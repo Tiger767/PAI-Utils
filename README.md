@@ -17,6 +17,8 @@ Package Features
   - Trimming and Splitting
   - Nonoverlapping Spectrogram creation
   - Audio file conversions
+- Image
+  - Simplified OpenCV Interface
 - Autoencoder
   - Trainner and Predictor
   - Basic network architecture creation
@@ -28,8 +30,7 @@ Package Features
 - Neural Network
   - Trainner and Predictor
   - Dense layers that combine batch norm
-  - Convolution layers that combine batch norm, max pooling, upsampling,
-    and transposing
+  - Convolution layers that combine batch norm, max pooling, upsampling, and transposing
 - Reinforcement
   - OpenAI Gym wrapper
   - Multi-agent adverserial environment
