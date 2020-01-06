@@ -1,0 +1,6 @@
+numpy>=1
+h5py>=2
+matplotlib>=3
+tensorflow>=2
+scikit-learn
+opencv-python>=4

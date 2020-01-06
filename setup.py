@@ -12,7 +12,7 @@ setuptools.setup(
     description="An artificial intelligence utilities package built to remove the delays of machine learning research.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/Tiger767",
+    url="https://github.com/Tiger767/PAI-Utils",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

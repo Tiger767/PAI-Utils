@@ -5,6 +5,9 @@ artificial intelligence and machine learning programming easier through
 abstractions of extensive APIs, research paper implementations, and data
 manipulation.
 
+Modules in this package are used extensively in [this playlist](https://www.youtube.com/watch?v=4_oJMTfTBYY&list=PLZkmLNZl0Wkw9KSJMBhbalbsxmrjdlgv3).
+The reinforcement modules are used [here](https://github.com/Tiger767/OpenAIGymResults).
+
 Package Features
 - Analytics
   - Plotting of data through embedding algorithms, such as Isomap and TSNE
@@ -42,7 +45,7 @@ Package Features
     - DDPGAgent: State to continous action space neural network model trained
                  with deterministic policy gradients
 - Reinforcement Agents
-  - DQNPNAgent: A combination of a DQN and PG agent
+  - DQNPGAgent: A combination of a DQN and PG agent into one agent
   - A2CAgent: Advantage Actor Critic agent
   - PPOAgent: Proximal Policy Optimization agent
   - TD3Agent: Twin Delayed DDPG Agent
