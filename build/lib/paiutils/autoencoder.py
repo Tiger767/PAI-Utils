@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 1_3_2020
+Version: 1_7_2020
 """
 
 
@@ -133,6 +133,7 @@ class AutoencoderTrainner(Trainner):
             path: A string, which is the path to create a folder in
                   containing model.json, weights.h5, note.txt, and
                   maybe encoder/decoder parts
+            note: A string, which is a note to save in the folder
         return: A string, which is the given path + folder name
         """
         time = datetime.datetime.now()

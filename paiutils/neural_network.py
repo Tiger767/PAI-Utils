@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 1_3_2020
+Version: 1_7_2020
 """
 
 
@@ -81,18 +81,18 @@ class Trainner:
                        batch_size=batch_size, epochs=epochs,
                        verbose=1 if verbose else 0, callbacks=callbacks)
         if verbose:
-            print('Train Data:')
+            print('Train Data Evaluation: ', end='')
             print(self.model.evaluate(self.train_data[0], self.train_data[1],
                                       batch_size=batch_size,
                                       verbose=0))
             if self.validation_data is not None:
-                print('Validation Data:')
+                print('Validation Data Evaluation: ', end='')
                 print(self.model.evaluate(self.validation_data[0],
                                           self.validation_data[1],
                                           batch_size=batch_size,
                                           verbose=0))
             if self.test_data is not None:
-                print('Test Data:')
+                print('Test Data Evaluation: ', end='')
                 print(self.model.evaluate(self.test_data[0],
                                           self.test_data[1],
                                           batch_size=batch_size,
@@ -124,6 +124,7 @@ class Trainner:
         params:
             path: A string, which is the path to create a folder in
                   containing model.json, weights.h5, and note.txt
+            note: A string, which is a note to save in the folder
         return: A string, which is the given path + folder name
         """
         time = datetime.datetime.now()
