@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: paiutils
-Version: 1.0.0
+Version: 1.0.1
 Summary: An artificial intelligence utilities package built to remove the delays of machine learning research.
 Home-page: https://github.com/Tiger767/PAI-Utils
 Author: Travis Hammond
@@ -24,6 +24,8 @@ Description: # PAI-Utils
           - Trimming and Splitting
           - Nonoverlapping Spectrogram creation
           - Audio file conversions
+        - Image
+          - Simplified OpenCV Interface
         - Autoencoder
           - Trainner and Predictor
           - Basic network architecture creation
@@ -35,8 +37,7 @@ Description: # PAI-Utils
         - Neural Network
           - Trainner and Predictor
           - Dense layers that combine batch norm
-          - Convolution layers that combine batch norm, max pooling, upsampling,
-            and transposing
+          - Convolution layers that combine batch norm, max pooling, upsampling, and transposing
         - Reinforcement
           - OpenAI Gym wrapper
           - Multi-agent adverserial environment

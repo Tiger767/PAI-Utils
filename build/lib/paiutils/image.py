@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_22_2019
+Version: 1_6_2020
 """
 
 
@@ -87,6 +87,24 @@ def resize(image, target_shape, interpolation=None):
     if np.prod(image.shape) > np.prod(target_shape):
         return cv2.resize(image, target_shape, interpolation=cv2.INTER_AREA)
     return cv2.resize(image, target_shape, interpolation=cv2.INTER_CUBIC)
+
+
+def normalize(image):
+    """Normalizes an image between -1 and 1.
+    params:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+    return: A numpy ndarray, which has the same number of dimensions as image
+    """
+    return (image.astype(np.float) - 127.5) / 127.5
+
+
+def denormalize(image):
+    """Denormalizes an image that is between -1 and 1 to 0 and 255.
+    params:
+        image: A numpy ndarray, which has 2 or 3 dimensions and is normalized
+    return: A numpy ndarray, which has the same number of dimensions as image
+    """
+    return np.clip(image * 127.5 + 127.5, 0, 255).astype(np.uint8)
 
 
 def pyr(image, level):
@@ -390,9 +408,17 @@ def zoom(image, shape, horizontal_center=0, vertical_center=0):
     return: A numpy ndarray, which has the same number of dimensions as image
     """
     old_shape = image.shape[1::-1]
-    image = crop(image, shape, vertical_center=vertical_center,
-                 horizontal_center=horizontal_center)
-    return resize(image, old_shape)
+    if old_shape[0] < shape[0] and old_shape[1] < shape[1]:
+        ds = (shape[0] - old_shape[0]) // 2, (shape[1] - old_shape[1]) // 2
+        image = pad(image, ds[0] + vertical_center,
+                    ds[0] - vertical_center,
+                    ds[1] + horizontal_center,
+                    ds[1] - horizontal_center)
+        return resize(image, old_shape)
+    else:
+        image = crop(image, shape, vertical_center=vertical_center,
+                    horizontal_center=horizontal_center)
+        return resize(image, old_shape)
 
 
 def transform_perspective(image, pts, shape):
