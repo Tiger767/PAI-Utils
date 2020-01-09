@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_21_2019
+Version: 1_8_2020
 """
 
 
@@ -258,7 +258,7 @@ def save_h5py(path, dataset):
         path: A string, which is a path to the dataset
         dataset: A dictionary, which contains the dataset
     """
-    with h5py.File('data.h5', 'w') as file:
+    with h5py.File(path, 'w') as file:
         if 'train_x' in dataset:
             file.create_dataset('train_x', data=dataset['train_x'])
         if 'train_y' in dataset:
