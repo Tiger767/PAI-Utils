@@ -98,7 +98,7 @@ class Environment:
         if teach:
             if key_action_map is None:
                 key_action_map = {str(i + 1): i
-                                  for i in range(self.env.action_shape[0])}
+                                  for i in range(self.action_shape[0])}
             key_action_map = key_action_map.items()
             key_action_msg = ('Press a key: ' +
                               ', '.join([f'{key}: {action}'
@@ -357,7 +357,7 @@ class MultiSeqAgentEnvironment(Environment):
         if teach:
             if key_action_map is None:
                 key_action_map = {str(i + 1): i
-                                  for i in range(self.env.action_shape[0])}
+                                  for i in range(self.action_shape[0])}
             key_action_map = key_action_map.items()
             key_action_msg = ('Press a key: ' +
                               ', '.join([f'{key}: {action}'
