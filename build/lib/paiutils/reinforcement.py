@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 1_5_2020
+Version: 5_2_2020
 """
 
 
@@ -15,12 +15,6 @@ import tensorflow as tf
 import tensorflow.keras.backend as K
 from tensorflow import keras
 from tensorflow.keras.models import model_from_json
-
-try:
-    import keyboard
-except ModuleNotFoundError:
-    print("Module 'keyboard' not found. "
-          "Explore teaching will not work.")
 
 
 class Environment:
@@ -66,20 +60,15 @@ class Environment:
         self.state = None
         return self.state, 0, False
 
-    def play_episode(self, agent, max_steps, teach=False,
-                     key_action_map=None, random=False,
-                     random_bounds=None, render=False,
-                     verbose=True):
+    def play_episode(self, agent, max_steps,
+                     random=False, random_bounds=None,
+                     render=False, verbose=True):
         """Plays a single complete episode with the agent.
         params:
             agent: An instance of Agent, which will be used to
                    interact in the environment
             max_steps: An integer, which is the max steps an episode
                        can take before terminating the episode
-            teach: A boolean, which determines if the agent
-                   should be taught by a human
-            key_action_map: A dictionary, which contains a key/char mapping
-                            to action values for teaching the agent
             random: A booelan, which determines if the agent should not
                     be used, but instead pick random actions
             random_bounds: A tuple of two bounds (lower and upper), which
@@ -95,30 +84,12 @@ class Environment:
         if not isinstance(agent.playing_data, PlayingData):
             raise ValueError('Invalid playing_data value. '
                              '(Forgot to set playing_data?)')
-        if teach:
-            if key_action_map is None:
-                key_action_map = {str(i + 1): i
-                                  for i in range(self.action_shape[0])}
-            key_action_map = key_action_map.items()
-            key_action_msg = ('Press a key: ' +
-                              ', '.join([f'{key}: {action}'
-                                         for key, action in key_action_map]))
         total_reward = 0
         state = self.reset()
         if render:
             self.render()
         for step in range(1, max_steps + 1):
-            if teach:
-                sleep(.5)
-                print(key_action_msg)
-                loop = True
-                while loop:
-                    for key, action in key_action_map:
-                        if keyboard.is_pressed(key):
-                            loop = False
-                            print(f'Pressed: {key}')
-                            break
-            elif random:
+            if random:
                 if random_bounds is None:
                     action = np.random.randint(0, self.action_shape[0])
                 else:
@@ -156,8 +127,8 @@ class Environment:
         return step, total_reward
 
     def play_episodes(self, agent, num_episodes, max_steps,
-                      teach=False, key_action_map=None, random=False,
-                      random_bounds=None, render=False, verbose=True,
+                      random=False, random_bounds=None,
+                      render=False, verbose=True,
                       episode_verbose=None):
         """Plays atleast 1 complete episode with the agent.
         params:
@@ -166,10 +137,6 @@ class Environment:
             num_episodes: An integer, which is the number of episodes to play
             max_steps: An integer, which is the max steps an episode
                        can take before terminating the episode
-            teach: A boolean, which determines if the agent
-                   should be taught by a human
-            key_action_map: A dictionary, which contains a key/char mapping
-                            to action values for teaching the agent
             random: A booelan, which determines if the agent should not
                     be used, but instead pick random actions
             random_bounds: A tuple of two bounds (lower and upper), which
@@ -189,8 +156,7 @@ class Environment:
         for episode in range(1, num_episodes + 1):
             step, total_reward = self.play_episode(
                 agent, max_steps, random=random, random_bounds=random_bounds,
-                teach=teach, key_action_map=key_action_map, render=render,
-                verbose=episode_verbose,
+                render=render, verbose=episode_verbose,
             )
             total_rewards += total_reward
             if best_reward == 'Unknown' or total_reward > best_reward:
@@ -243,11 +209,11 @@ class GymWrapper(Environment):
         """Resets the environment to its initialized state.
         return: A numpy ndarray, which is the state
         """
-        self.state = self.gym.reset()
+        state = self.gym.reset()
         if self.discrete_state_space is None:
-            return self.state
+            return state
         else:
-            return [self.state]
+            return [state]
 
     def step(self, action):
         """Moves the current state one step forward
@@ -258,11 +224,10 @@ class GymWrapper(Environment):
                 and a boolean (terminal state)
         """
         state, reward, terminal, _ = self.gym.step(action)
-        self.state = state
         if self.discrete_state_space is None:
-            return self.state, reward, terminal
+            return state, reward, terminal
         else:
-            return [self.state], reward, terminal
+            return [state], reward, terminal
 
     def close(self):
         """Closes any threads or loose ends of the environment.
@@ -297,12 +262,14 @@ class MultiSeqAgentEnvironment(Environment):
         self.action_shape = action_shape
         self.reset()
 
-    def reset(self):
+    def reset(self, num_agents):
         """Resets the environment to its initialized state.
+        params:
+            num_agents: An integer, which is the number of states needed
         return: A numpy ndarray, which is the state
         """
-        self.state = None
-        return self.state
+        state = None
+        return [state] * num_agents
 
     def step(self, agent_ndx, action):
         """Moves the current state one step forward
@@ -314,11 +281,11 @@ class MultiSeqAgentEnvironment(Environment):
         return: A tuple of a ndarray (state), a float/integer (reward),
                 and a boolean (terminal state)
         """
-        self.state = None
-        return self.state, 0, self.terminal
+        state = None
+        return state, 0, self.terminal
 
-    def play_episode(self, agents, max_steps, shuffle=True, teach=False,
-                     key_action_map=None, random=False, random_bounds=None,
+    def play_episode(self, agents, max_steps, shuffle=True, 
+                     random=False, random_bounds=None,
                      render=False, verbose=True):
         """Plays a single complete episode with the agents.
         params:
@@ -328,10 +295,6 @@ class MultiSeqAgentEnvironment(Environment):
                        can take before terminating the episode
             shuffle: A boolean, which determines if the agents' positions
                      should be shuffled
-            teach: A boolean, which determines if the agents
-                   should be taught by a human
-            key_action_map: A dictionary, which contains a key/char mapping
-                            to action values for teaching the agents
             random: A booelan, which determines if the agent should not
                     be used, but instead pick random actions
             random_bounds: A tuple of two bounds (lower and upper), which
@@ -354,31 +317,14 @@ class MultiSeqAgentEnvironment(Environment):
             assert isinstance(agents[ndx].playing_data, PlayingData), (
                 'Invalid playing_data value.'
             )
-        if teach:
-            if key_action_map is None:
-                key_action_map = {str(i + 1): i
-                                  for i in range(self.action_shape[0])}
-            key_action_map = key_action_map.items()
-            key_action_msg = ('Press a key: ' +
-                              ', '.join([f'{key}: {action}'
-                                         for key, action in key_action_map]))
         total_rewards = [0] * num_agents
-        state = self.reset()
+        states = self.reset(num_agents)
         if render:
             self.render()
         break_loop = [False] * num_agents
         for step in range(1, max_steps + 1):
             for ndx in ndxs:
-                if teach:
-                    print(key_action_msg)
-                    loop = True
-                    while loop:
-                        for key, action in key_action_map:
-                            if keyboard.is_pressed(key):
-                                loop = False
-                                print(f'Pressed: {key}')
-                                break
-                elif random:
+                if random:
                     if random_bounds is None:
                         action = np.random.randint(0, self.action_shape[0])
                     else:
@@ -386,15 +332,15 @@ class MultiSeqAgentEnvironment(Environment):
                                                    size=self.action_shape)
                 else:
                     action = agents[ndx].select_action(
-                        state, training=agents[ndx].playing_data.training
+                        states[ndx], training=agents[ndx].playing_data.training
                     )
                 new_state, reward, terminal = self.step(ndx, action)
                 total_rewards[ndx] += reward
 
                 if agents[ndx].playing_data.memorizing:
-                    agents[ndx].add_memory(state, action, new_state,
+                    agents[ndx].add_memory(states[ndx], action, new_state,
                                            reward, terminal)
-                state = new_state
+                states[ndx] = new_state
 
                 if verbose:
                     print(f'Step: {step} - Agent: {ndx} - '
@@ -422,9 +368,8 @@ class MultiSeqAgentEnvironment(Environment):
         return step, total_rewards
 
     def play_episodes(self, agents, num_episodes, max_steps, shuffle=True,
-                      teach=False, key_action_map=None, random=False,
-                      random_bounds=None, render=False, verbose=True,
-                      episode_verbose=None):
+                      random=False, random_bounds=None, render=False,
+                      verbose=True, episode_verbose=None):
         """Plays at least 1 complete episode with the agents.
         params:
             agents: A list of Agent instances, which will be used to
@@ -434,10 +379,6 @@ class MultiSeqAgentEnvironment(Environment):
                        can take before terminating the episode
             shuffle: A boolean, which determines if the agents' positions
                      should be shuffled
-            teach: A boolean, which determines if the agents
-                   should be taught by a human
-            key_action_map: A dictionary, which contains a key/char mapping
-                            to action values for teaching the agents
             random: A booelan, which determines if the agent should not
                     be used, but instead pick random actions
             random_bounds: A tuple of two bounds (lower and upper), which
@@ -459,8 +400,7 @@ class MultiSeqAgentEnvironment(Environment):
         for episode in range(1, num_episodes + 1):
             step, total_reward = self.play_episode(
                 agents, max_steps, shuffle=shuffle, random=random,
-                random_bounds=random_bounds, teach=teach,
-                key_action_map=key_action_map, render=render,
+                random_bounds=random_bounds, render=render,
                 verbose=episode_verbose,
             )
             for ndx in range(num_agents):
