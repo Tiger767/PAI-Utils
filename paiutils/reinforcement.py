@@ -40,8 +40,6 @@ class Environment:
         self.state_shape = state_shape
         self.action_shape = action_shape
 
-        self.reset()
-
     def reset(self):
         """Resets the environment to its initialized state.
         return: A numpy ndarray, which is the state
@@ -203,7 +201,6 @@ class GymWrapper(Environment):
             self.discrete_state_space = None
         self.state_shape = state_shape
         self.action_shape = action_shape
-        self.reset()
 
     def reset(self):
         """Resets the environment to its initialized state.
@@ -260,7 +257,6 @@ class MultiSeqAgentEnvironment(Environment):
             self.discrete_state_space = None
         self.state_shape = state_shape
         self.action_shape = action_shape
-        self.reset()
 
     def reset(self, num_agents):
         """Resets the environment to its initialized state.
