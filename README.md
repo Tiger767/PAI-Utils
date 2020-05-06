@@ -21,12 +21,14 @@ Package Features
   - Simplified OpenCV Interface
 - Autoencoder
   - Trainner and Predictor
+  - Trainer with extra decoder (for y-data) (Not implemented yet)
   - Basic network architecture creation
 - Evolution Algorithm
   - One dimensional evolution algorithm
   - Hyperparameter tuner
-- GAN Network
+- GAN
   - Trainner and Predictor
+  - Trainer with extra loss function (for y-data) (Not implemented yet)
 - Neural Network
   - Trainner and Predictor
   - Dense layers that combine batch norm
@@ -44,9 +46,9 @@ Package Features
     - PGAgent: State to action neural network model (Actor) trained with
                policy gradients
     - DDPGAgent: State to continous action space neural network model trained
-                 with deterministic policy gradients
+                 with deterministic policy gradients (Not working yet)
 - Reinforcement Agents
   - DQNPGAgent: A combination of a DQN and PG agent into one agent
   - A2CAgent: Advantage Actor Critic agent
   - PPOAgent: Proximal Policy Optimization agent
-  - TD3Agent: Twin Delayed DDPG Agent
+  - TD3Agent: Twin Delayed DDPG Agent (Not working yet)

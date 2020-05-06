@@ -6,7 +6,7 @@ paiutils/analytics.py
 paiutils/audio.py
 paiutils/autoencoder.py
 paiutils/evolution_algorithm.py
-paiutils/gan_network.py
+paiutils/gan.py
 paiutils/image.py
 paiutils/neural_network.py
 paiutils/reinforcement.py

@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 1_7_2020
+Version: 5_6_2020
 """
 
 
@@ -189,6 +189,74 @@ class AutoencoderPredictor(Predictor):
                              'decoder_model.json')
         else:
             super().__init__(path)
+
+
+class AutoencoderExtraDecoderTrainner(Trainner):
+    """AutoencoderExtraDecoderTrainner is an Autoencoder Trainer
+       with a extra decoder than can be trained to y-data.
+    """
+
+    def __init__(self, model, encoder_model, decoder_model,
+                 decoder_model2, data, file_loader_x=None,
+                 file_loader_y=None):
+        """Initializes train, validation, and test data.
+        params:
+            model: A compiled full keras model
+            encoder_model: The encoder part of the full model
+            decoder_model: The decoder part of the full model
+            extra_decoder_model: The extra decoder is trained
+                                 to map the encoder to a
+                                 different output
+                                 (not part of the full model)
+            data: A dictionary or string (path) containg train data,
+                  and optionally validation and test data.
+                  Ex. {'train_x': [...], 'validation_x: [...]}
+            file_loader_x: A function for loading each x data file
+            file_loader_y: A function for loading each y data file
+        """
+        raise NotImplementedError('Not implemented in this version')
+
+    def train_extra_decoder(self, epochs, batch_size=None,
+                            callbacks=None, verbose=True):
+        """Trains the extra decoder keras model on the outputs
+           of the trained encoder.
+        params:
+            epochs: An integer, which is the number of complete
+                    iterations to train
+            batch_size: An integer, which is the number of samples
+                        per graident update
+            callbacks: A list of keras Callback instances,
+                       which are called during training and validation
+            verbose: A boolean, which determines the verbositiy level
+        """
+        pass
+
+    def load(self, path, optimizer, loss, metrics=None):
+        """Loads a model and weights from a file.
+           (overrides the inital provided model)
+        params:
+            path: A string, which is the path to a folder
+                  containing model.json, weights.h5, note.txt
+                  and maybe encoder/decoder parts
+            optimizer: A string or optimizer instance, which will be
+                       the optimizer for the loaded model
+            loss: A string or loss instance, which will be
+                  the loss function for the loaded model
+            metrics: A list of metrics, which will be used
+                     by the loaded model
+        """
+        pass
+
+    def save(self, path, note=None):
+        """Saves the model and weights to a file.
+        params:
+            path: A string, which is the path to create a folder in
+                  containing model.json, weights.h5, note.txt, and
+                  maybe encoder/decoder parts
+            note: A string, which is a note to save in the folder
+        return: A string, which is the given path + folder name
+        """
+        pass
 
 
 def create_basic_dense_model(input_shape, units_list,

@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 1_3_2020
+Version: 5_6_2020
 """
 
 
@@ -223,6 +223,7 @@ class GANTrainner(Trainner):
             path: A string, which is the path to create a folder in
                   containing model.json, weights.h5, note.txt,
                   dis_model.json, and dis_weights.h5
+            note: A string, which is a note to save in the folder
         return: A string, which is the given path + folder name
         """
         time = datetime.datetime.now()
@@ -295,6 +296,58 @@ class GANPredictor(Predictor):
             return self.model.predict(uniform)[0]
         return self.model.predict([uniform,
                                    np.expand_dims(y, axis=0)])[0]
+
+
+class GANTTrainner(GANTrainner):
+    """Generative Adversarial Network with Targets Trainner
+       is used for loading, saving, and training keras GAN
+       models that can be trained at some degree to y-data.
+    """
+
+    def __init__(self, model, dis_model, data, file_loader_x=None,
+                 file_loader_y=None):
+        """Initializes data, optimizers, metrics, and models.
+        params:
+            model: A compiled keras model, which is the generator
+            dis_model: A compiled keras model, which is the discriminator
+                       (loss function does not matter)
+            data: A dictionary, numpy ndarray, string/path
+                  containg a dataset (Ex. {'train_x': [...]})
+            file_loader_x: A function for loading each X file
+            file_loader_y: A function for loading each Y file
+        """
+        raise NotImplementedError('Not implemented in this version')
+
+    def train(self, epochs, batch_size=None, loss1_coef=1,
+              loss2_coef=1, verbose=True):
+        """Trains the keras model.
+        params:
+            epochs: An integer, which is the number of complete
+                    iterations to train
+            batch_size: An integer, which is the number of samples
+                        per graident update
+            loss1_coef: A float, which is the amount of the loss from the
+                         discriminator to add to the total loss for the model
+            loss2_coef: A float, which is the amount of the compiled
+                         loss function to add to the loss for the model
+            verbose: A boolean, which determines the verbositiy level
+        """
+        pass
+
+    def load(self, path, optimizer='sgd', loss='mae', dis_optimizer='sgd'):
+        """Loads a generator and discriminator model and weights from a file.
+           (overrides the inital provided model)
+        params:
+            path: A string, which is the path to a folder
+                  containing model.json, weights.h5, and note.txt
+            optimizer: A string or optimizer instance, which will be
+                       the optimizer for the loaded generator model
+            loss: A string or loss function, which will be used for the
+                  generator model
+            dis_optimizer: A string or optimizer instance, which will be
+                           the optimizer for the loaded discriminator model
+        """
+        pass
 
 
 if __name__ == '__main__':

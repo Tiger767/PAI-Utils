@@ -1,8 +1,8 @@
 from paiutils import (
     analytics, audio, autoencoder,
     evolution_algorithm, image,
-    gan_network, neural_network,
+    gan, neural_network,
     reinforcement
 )
 
-__version__ = '1.0.5'
+__version__ = '1.1.0'
