@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 5_6_2020
+Version: 5_7_2020
 """
 
 
@@ -13,18 +13,18 @@ from tensorflow.keras.models import model_from_json
 
 try:
     from paiutils.neural_network import (
-        Trainner, Predictor, dense, conv2d
+        Trainer, Predictor, dense, conv2d
     )
     from paiutils.util_funcs import load_directory_dataset, load_h5py
 except ImportError:
     from neural_network import (
-        Trainner, Predictor, dense, conv2d
+        Trainer, Predictor, dense, conv2d
     )
     from util_funcs import load_directory_dataset, load_h5py
 
 
-class GANTrainner(Trainner):
-    """Generative Adversarial Network Trainner is used for loading, saving,
+class GANTrainer(Trainer):
+    """Generative Adversarial Network Trainer is used for loading, saving,
        and training keras GAN models.
     """
 
@@ -53,13 +53,17 @@ class GANTrainner(Trainner):
         self.model = model
         self.input_shape = self.model.layers[0].input_shape[0][1:]
         self.optimizer = model.optimizer
+        self.loss_func = model.loss_functions[0]
         self.dis_model = dis_model
         self.dis_optimizer = dis_model.optimizer
         self.metric = tf.keras.metrics.Mean(name='loss')
+        self.metric2 = tf.keras.metrics.Mean(name='loss2')
         self.dis_metric = tf.keras.metrics.Mean(name='dis_loss')
         self.train_data = train_data
         self.conditional = conditional
         self.normal_distribution = normal_distribution
+        self.loss1_coef = 1
+        self.loss2_coef = 1
 
         if (not isinstance(train_data, np.ndarray) and
                 (self.conditional and not
@@ -138,6 +142,11 @@ class GANTrainner(Trainner):
             loss = tf.nn.sigmoid_cross_entropy_with_logits(
                 tf.ones_like(dis_preds), dis_preds
             ) + reg_loss
+            if self.loss2_coef == 0:
+                loss2 = 0
+            else:
+                loss2 = self.loss_func(x, preds)
+            total_loss = self.loss1_coef * loss + self.loss2_coef * loss2
             dis_loss = tf.nn.sigmoid_cross_entropy_with_logits(
                 tf.zeros_like(dis_preds), dis_preds
             )
@@ -145,7 +154,7 @@ class GANTrainner(Trainner):
                 tf.ones_like(dis_real_preds), dis_real_preds
             )
             total_dis_loss = dis_loss + dis_real_loss + dis_reg_loss
-        grads = tape.gradient(loss, self.model.trainable_variables)
+        grads = tape.gradient(total_loss, self.model.trainable_variables)
         dis_grads = dis_tape.gradient(total_dis_loss,
                                       self.dis_model.trainable_variables)
 
@@ -157,18 +166,25 @@ class GANTrainner(Trainner):
         )
 
         self.metric(loss)
+        self.metric2(loss2)
         self.dis_metric(total_dis_loss)
 
-    def train(self, epochs, batch_size=None, verbose=True):
+    def train(self, epochs, batch_size=None, loss1_coef=1,
+              loss2_coef=0, verbose=True):
         """Trains the keras model.
         params:
             epochs: An integer, which is the number of complete
                     iterations to train
             batch_size: An integer, which is the number of samples
                         per graident update
+            loss1_coef: A float, which is the amount of the loss from the
+                        discriminator to add to the total loss for the model
+            loss2_coef: A float, which is the amount of the compiled
+                        loss function to add to the loss for the model
             verbose: A boolean, which determines the verbositiy level
         """
-
+        self.loss1_coef = loss1_coef
+        self.loss2_coef = loss2_coef
         if self.conditional:
             length = self.train_data[0].shape[0]
             batches = tf.data.Dataset.from_tensor_slices(
@@ -191,11 +207,13 @@ class GANTrainner(Trainner):
             if verbose:
                 print(f'{count}/{length} - '
                       f'loss: {self.metric.result()} - '
+                      f'loss2: {self.metric2.result()} - '
                       f'dis_loss: {self.dis_metric.result()}')
             self.metric.reset_states()
+            self.metric2.reset_states()
             self.dis_metric.reset_states()
 
-    def load(self, path, optimizer='sgd', dis_optimizer='sgd'):
+    def load(self, path, optimizer='sgd', loss='mae', dis_optimizer='sgd'):
         """Loads a generator and discriminator model and weights from a file.
            (overrides the inital provided model)
         params:
@@ -203,12 +221,14 @@ class GANTrainner(Trainner):
                   containing model.json, weights.h5, and note.txt
             optimizer: A string or optimizer instance, which will be
                        the optimizer for the loaded generator model
+            loss: A string or loss function, which will be used for the
+                  generator model
             dis_optimizer: A string or optimizer instance, which will be
                            the optimizer for the loaded discriminator model
         """
         with open(os.path.join(path, 'model.json'), 'r') as file:
             self.model = model_from_json(file.read())
-            self.model.optimizer = optimizer
+            self.model.compile(optimizer=optimizer, loss=loss)
         with open(os.path.join(path, 'dis_model.json'), 'r') as file:
             self.dis_model = model_from_json(file.read())
             self.dis_model.optimizer = dis_optimizer
@@ -298,10 +318,10 @@ class GANPredictor(Predictor):
                                    np.expand_dims(y, axis=0)])[0]
 
 
-class GANTTrainner(GANTrainner):
-    """Generative Adversarial Network with Targets Trainner
-       is used for loading, saving, and training keras GAN
-       models that can be trained at some degree to y-data.
+class GANITrainer(GANTrainer):
+    """Generative Adversarial Network with provided Inputs
+       Trainer is used for loading, saving, and training
+       keras GAN models that do not have random inputs.
     """
 
     def __init__(self, model, dis_model, data, file_loader_x=None,
@@ -316,10 +336,90 @@ class GANTTrainner(GANTrainner):
             file_loader_x: A function for loading each X file
             file_loader_y: A function for loading each Y file
         """
-        raise NotImplementedError('Not implemented in this version')
+        assert isinstance(data, (str, dict)), (
+            'data must be either in a dictionary or a file/folder path'
+        )
+        self.model = model
+        self.input_shape = self.model.layers[0].input_shape[0][1:]
+        self.optimizer = model.optimizer
+        self.loss_func = model.loss_functions[0]
+        self.dis_model = dis_model
+        self.dis_optimizer = dis_model.optimizer
+        self.metric = tf.keras.metrics.Mean(name='loss')
+        self.metric2 = tf.keras.metrics.Mean(name='loss2')
+        self.dis_metric = tf.keras.metrics.Mean(name='dis_loss')
+        self.loss1_coef = 1
+        self.loss2_coef = 1
+
+        if isinstance(data, str):
+            if os.path.isdir(data):
+                assert file_loader_x is not None
+                assert file_loader_y is not None
+                data = load_directory_dataset(data, file_loader_x,
+                                              file_loader_y=file_loader_y)
+            else:
+                assert data.split('.')[1] == 'h5'
+                data = load_h5py(data)
+        if isinstance(data, dict):
+            if 'train_x' in data:
+                self.train_data = [data['train_x'],
+                                   data['train_y']]
+            else:
+                raise Exception('There must be a train dataset')
+        else:
+            raise ValueError('Invalid data')
+
+    @tf.function
+    def _train_step(self, x, y):
+        """Trains the GAN 1 epoch.
+        params:
+            x: A tensor
+            y: A tensor
+        """
+        with tf.GradientTape() as tape, tf.GradientTape() as dis_tape:
+            preds = self.model(x, training=True)
+            if len(self.model.losses) > 0:
+                reg_loss = tf.math.add_n(self.model.losses)
+            else:
+                reg_loss = 0
+            dis_preds = self.dis_model([x, preds], training=True)
+            dis_real_preds = self.dis_model([x, y], training=True)
+            if len(self.dis_model.losses) > 0:
+                dis_reg_loss = tf.math.add_n(self.dis_model.losses)
+            else:
+                dis_reg_loss = 0
+            loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                tf.ones_like(dis_preds), dis_preds
+            ) + reg_loss
+            if self.loss2_coef == 0:
+                loss2 = 0
+            else:
+                loss2 = self.loss_func(y, preds)
+            total_loss = self.loss1_coef * loss + self.loss2_coef * loss2
+            dis_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                tf.zeros_like(dis_preds), dis_preds
+            )
+            dis_real_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                tf.ones_like(dis_real_preds), dis_real_preds
+            )
+            total_dis_loss = dis_loss + dis_real_loss + dis_reg_loss
+        grads = tape.gradient(total_loss, self.model.trainable_variables)
+        dis_grads = dis_tape.gradient(total_dis_loss,
+                                      self.dis_model.trainable_variables)
+
+        self.optimizer.apply_gradients(
+            zip(grads, self.model.trainable_variables)
+        )
+        self.dis_optimizer.apply_gradients(
+            zip(dis_grads, self.dis_model.trainable_variables)
+        )
+
+        self.metric(loss)
+        self.metric2(loss2)
+        self.dis_metric(total_dis_loss)
 
     def train(self, epochs, batch_size=None, loss1_coef=1,
-              loss2_coef=1, verbose=True):
+              loss2_coef=0, verbose=True):
         """Trains the keras model.
         params:
             epochs: An integer, which is the number of complete
@@ -332,22 +432,29 @@ class GANTTrainner(GANTrainner):
                          loss function to add to the loss for the model
             verbose: A boolean, which determines the verbositiy level
         """
-        pass
-
-    def load(self, path, optimizer='sgd', loss='mae', dis_optimizer='sgd'):
-        """Loads a generator and discriminator model and weights from a file.
-           (overrides the inital provided model)
-        params:
-            path: A string, which is the path to a folder
-                  containing model.json, weights.h5, and note.txt
-            optimizer: A string or optimizer instance, which will be
-                       the optimizer for the loaded generator model
-            loss: A string or loss function, which will be used for the
-                  generator model
-            dis_optimizer: A string or optimizer instance, which will be
-                           the optimizer for the loaded discriminator model
-        """
-        pass
+        self.loss1_coef = loss1_coef
+        self.loss2_coef = loss2_coef
+        length = self.train_data[0].shape[0]
+        batches = tf.data.Dataset.from_tensor_slices(
+            (self.train_data[0],
+             self.train_data[1])
+        ).shuffle(length).batch(batch_size)
+        for epoch in range(1, epochs + 1):
+            if verbose:
+                print(f'Epoch {epoch}/{epochs}')
+            count = 0
+            for batch in batches:
+                self._train_step(*batch)
+                count += np.minimum(batch_size, length - count)
+                print(f'{count}/{length}', end='\r')
+            if verbose:
+                print(f'{count}/{length} - '
+                      f'loss: {self.metric.result()} - '
+                      f'loss2: {self.metric2.result()} - '
+                      f'dis_loss: {self.dis_metric.result()}')
+            self.metric.reset_states()
+            self.metric2.reset_states()
+            self.dis_metric.reset_states()
 
 
 if __name__ == '__main__':
@@ -446,7 +553,7 @@ if __name__ == '__main__':
             dis_optimizer = tf.keras.optimizers.Adam(.0002, .5)
             dis_model.optimizer = dis_optimizer
 
-        gant = GANTrainner(model, dis_model, tx,
+        gant = GANTrainer(model, dis_model, tx,
                            conditional=conditional)
         if path is not None:
             gant.load(path)

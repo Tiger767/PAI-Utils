@@ -21,14 +21,14 @@ Package Features
   - Simplified OpenCV Interface
 - Autoencoder
   - Trainner and Predictor
-  - Trainer with extra decoder (for y-data) (Not implemented yet)
+  - Trainer with extra decoder
   - Basic network architecture creation
 - Evolution Algorithm
   - One dimensional evolution algorithm
   - Hyperparameter tuner
 - GAN
   - Trainner and Predictor
-  - Trainer with extra loss function (for y-data) (Not implemented yet)
+  - GANI Trainner (GAN which takes provided Inputs)
 - Neural Network
   - Trainner and Predictor
   - Dense layers that combine batch norm

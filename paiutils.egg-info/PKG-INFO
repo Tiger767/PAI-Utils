@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: paiutils
-Version: 1.1.0
+Version: 2.0.0
 Summary: An artificial intelligence utilities package built to remove the delays of machine learning research.
 Home-page: https://github.com/Tiger767/PAI-Utils
 Author: Travis Hammond
@@ -28,14 +28,14 @@ Description: # PAI-Utils
           - Simplified OpenCV Interface
         - Autoencoder
           - Trainner and Predictor
-          - Trainer with extra decoder (for y-data) (Not implemented yet)
+          - Trainer with extra decoder
           - Basic network architecture creation
         - Evolution Algorithm
           - One dimensional evolution algorithm
           - Hyperparameter tuner
         - GAN
           - Trainner and Predictor
-          - Trainer with extra loss function (for y-data) (Not implemented yet)
+          - GANI Trainner (GAN which takes provided Inputs)
         - Neural Network
           - Trainner and Predictor
           - Dense layers that combine batch norm

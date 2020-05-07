@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 1_7_2020
+Version: 5_7_2020
 """
 
 
@@ -21,8 +21,8 @@ except ImportError:
     )
 
 
-class Trainner:
-    """Trainner is used for loading, saving, and training keras models."""
+class Trainer:
+    """Trainer is used for loading, saving, and training keras models."""
 
     def __init__(self, model, data, file_loader=None, file_loader_y=None):
         """Initializes train, validation, and test data.
@@ -418,8 +418,8 @@ if __name__ == '__main__':
     model.compile(optimizer='adam', loss='binary_crossentropy',
                   metrics=['accuracy'])
 
-    trainner = Trainner(model, 'data.h5')
-    trainner.train(10000)
-    path = trainner.save('')
+    trainer = Trainer(model, 'data.h5')
+    trainer.train(10000)
+    path = trainer.save('')
     predictor = Predictor(path)
     print(predictor.predict([0, 1]))
