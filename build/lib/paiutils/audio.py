@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_19_2019
+Version: 5_16_2019
 """
 
 
@@ -15,17 +15,25 @@ try:
 except ModuleNotFoundError:
     print('ModuleError: webrtcvad could not be found. '
           'Therefore, vad_trim_all, vad_trim_sides, '
-          'and vad_split cannot be used')
+          'and vad_split cannot be used.')
 
+use_pyaudio = False
+try:
+    import pyaudio
+    use_pyaudio = True
+except ModuleNotFoundError:
+    print('ModuleError: pyaudio could not be found. '
+          'Therefore, sox will be used for recording and playing audio.')
 
 util_dir = os.path.dirname(__file__)
 sox_path = os.path.join(util_dir, 'sox', 'sox.exe')
-
 if not os.path.exists(sox_path):
     raise ImportError(f'Sox does not exist or is not in the '
                       f'location: {sox_path}\nDownload Sox: '
                       f'https://sourceforge.net/projects/sox'
                       f'/files/latest/download')
+
+CHUNK = 1024
 
 
 def convert_width_to_atype(width, signed=True):
@@ -204,19 +212,39 @@ def record(seconds, rate, atype=None, recording_device_name='Microphone'):
                                recording device
     return: A tuple of the loaded audio, rate, and atype
     """
-    temp_filename = os.path.join(
-        util_dir, str(np.random.randint(10000, 100000))+'.wav'
-    )
-    file_record(temp_filename, seconds, rate, atype=atype,
-                recording_device_name=recording_device_name)
-    try:
-        with wave.open(temp_filename, 'r') as file:
-            atype = convert_width_to_atype(file.getsampwidth())
-            rate = file.getframerate()
-            audio = file.readframes(file.getnframes())
-            audio = np.frombuffer(audio, dtype=atype) / np.iinfo(atype).max
-    finally:
-        os.remove(temp_filename)
+    global CHUNK, use_pyaudio
+    if use_pyaudio:
+        p = pyaudio.PyAudio()
+
+        stream = p.open(format=pyaudio.paInt16,
+                        channels=1,
+                        rate=rate, 
+                        input=True,
+                        frames_per_buffer=CHUNK)
+
+        frames = []
+        for i in range(0, int(rate / CHUNK * seconds)):
+		    frames.append(stream.read(chunk))
+        
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
+        audio = np.frombuffer(b''.join(frames), dtype=np.int16) / np.iinfo(np.int16).max
+        atype = 'int16'
+    else:
+        temp_filename = os.path.join(
+            util_dir, str(np.random.randint(10000, 100000))+'.wav'
+        )
+        file_record(temp_filename, seconds, rate, atype=atype,
+                    recording_device_name=recording_device_name)
+        try:
+            with wave.open(temp_filename, 'r') as file:
+                atype = convert_width_to_atype(file.getsampwidth())
+                rate = file.getframerate()
+                audio = file.readframes(file.getnframes())
+                audio = np.frombuffer(audio, dtype=atype) / np.iinfo(atype).max
+        finally:
+            os.remove(temp_filename)
     return audio, rate, atype
 
 
@@ -239,15 +267,32 @@ def play(audio, rate, atype=None):
         rate: An integer, which is the rate at which samples are taken
         atype: A string, which is the audio type (default: int16)
     """
-    temp_filename = os.path.join(
-        util_dir, str(np.random.randint(10000, 100000))+'.wav'
-    )
-    audio = np.pad(audio, (0, rate), 'constant')
-    save(temp_filename, audio, rate, atype=atype)
-    try:
-        file_play(temp_filename)
-    finally:
-        os.remove(temp_filename)
+    global CHUNK, use_pyaudio
+    if use_pyaudio:
+        p = pyaudio.PyAudio()
+        
+        stream = p.open(format=pyaudio.paInt16,
+                        channels=1,
+                        rate=rate, 
+                        output=True)
+        
+        data = np.array_split((x * np.iinfo(np.int16).max).astype(np.int16), CHUNK)
+        for frame in data:
+            stream.write(frame.tobytes())
+        
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
+    else:
+        temp_filename = os.path.join(
+            util_dir, str(np.random.randint(10000, 100000))+'.wav'
+        )
+        audio = np.pad(audio, (0, rate), 'constant')
+        save(temp_filename, audio, rate, atype=atype)
+        try:
+            file_play(temp_filename)
+        finally:
+            os.remove(temp_filename)
 
 
 def calc_duration(audio, rate):
