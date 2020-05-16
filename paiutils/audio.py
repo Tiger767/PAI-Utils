@@ -33,7 +33,7 @@ if not os.path.exists(sox_path):
                       f'https://sourceforge.net/projects/sox'
                       f'/files/latest/download')
 
-CHUNK = 1024
+CHUNK = 1000
 
 
 def convert_width_to_atype(width, signed=True):
@@ -224,8 +224,8 @@ def record(seconds, rate, atype=None, recording_device_name='Microphone'):
 
         frames = []
         for i in range(0, int(rate / CHUNK * seconds)):
-		    frames.append(stream.read(chunk))
-        
+            frames.append(stream.read(CHUNK))
+
         stream.stop_stream()
         stream.close()
         p.terminate()
@@ -276,7 +276,7 @@ def play(audio, rate, atype=None):
                         rate=rate, 
                         output=True)
         
-        data = np.array_split((x * np.iinfo(np.int16).max).astype(np.int16), CHUNK)
+        data = np.array_split((audio * np.iinfo(np.int16).max).astype(np.int16), CHUNK)
         for frame in data:
             stream.write(frame.tobytes())
         
