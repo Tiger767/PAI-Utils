@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 5_2_2020
+Version: 5_18_2020
 """
 
 
@@ -1957,7 +1957,8 @@ class PGAgent(Agent):
             for batch in batches:
                 self._tf_train_step(*batch, entropy_coef)
                 count += np.minimum(batch_size, length - count)
-                print(f'{count}/{length}', end='\r')
+                if verbose:
+                    print(f'{count}/{length}', end='\r')
             loss_results = self.metric.result()
             self.metric.reset_states()
             if verbose:
@@ -2323,7 +2324,8 @@ class DDPGAgent(Agent):
             for batch in batches:
                 self._tf_train_step(*batch)
                 count += np.minimum(batch_size, length - count)
-                print(f'{count}/{length}', end='\r')
+                if verbose:
+                    print(f'{count}/{length}', end='\r')
             critic_loss_results = self.metric_c.result()
             actor_loss_results = self.metric_a.result()
             self.metric_c.reset_states()

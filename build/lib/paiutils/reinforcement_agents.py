@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 1_4_2020
+Version: 5_18_2020
 """
 
 
@@ -255,7 +255,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
                 else:
                     self._tf_train_step(*batch)
                 count += np.minimum(batch_size, length - count)
-                print(f'{count}/{length}', end='\r')
+                if verbose:
+                    print(f'{count}/{length}', end='\r')
             dqn_loss_results = self.metric.result()
             self.metric.reset_states()
             pg_loss_results = self.pg_metric.result()
@@ -602,7 +603,8 @@ class A2CAgent(PGAgent):
             for batch in batches:
                 self._tf_train_step(*batch, entropy_coef)
                 count += np.minimum(batch_size, length - count)
-                print(f'{count}/{length}', end='\r')
+                if verbose:
+                    print(f'{count}/{length}', end='\r')
             actor_loss_results = self.metric.result()
             critic_loss_results = self.metric_c.result()
             self.metric.reset_states()
@@ -960,7 +962,8 @@ class PPOAgent(A2CAgent):
                 else:
                     self._tf_train_step(*batch, entropy_coef)
                 count += np.minimum(batch_size, length - count)
-                print(f'{count}/{length}', end='\r')
+                if verbose:
+                    print(f'{count}/{length}', end='\r')
             actor_loss_results = self.metric.result()
             critic_loss_results = self.metric_c.result()
             self.metric.reset_states()
@@ -1367,7 +1370,8 @@ class TD3Agent(DDPGAgent):
                                     policy_noise_clip,
                                     actor_update)
                 count += np.minimum(batch_size, length - count)
-                print(f'{count}/{length}', end='\r')
+                if verbose:
+                    print(f'{count}/{length}', end='\r')
             critic_loss_results = self.metric_c.result()
             actor_loss_results = self.metric_a.result()
             self.metric_c.reset_states()
