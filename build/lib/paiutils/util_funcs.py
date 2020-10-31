@@ -1,10 +1,12 @@
 """
 Author: Travis Hammond
-Version: 1_8_2020
+Version: 10_31_2020
 """
 
 
 import os
+import shutil
+import csv
 import numpy as np
 import h5py
 
@@ -273,6 +275,128 @@ def save_h5py(path, dataset):
             file.create_dataset('test_y', data=dataset['test_y'])
 
 
+def write(mappings, directory, **kwargs):
+    """Creates or appends a mapping csv file.
+    params:
+        mappings: A list of dictionaries
+        directory: A string for the directory to save the csv file to
+    """
+    headers = list(mappings[0].keys())
+    newfile = not os.path.isfile(os.path.join(directory, 'mappings.csv'))
+    with open(os.path.join(directory, 'mappings.csv'), 'a+', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, headers)
+        if newfile:
+            writer.writeheader()
+        for mapping in mappings:
+            writer.writerow(mapping)
+
+
+def read(directory, **kwargs):
+    """Loads a mapping file.
+    params:
+        directory: A string from which to load the mappings.csv file
+    return: A list of dictionaries
+    """
+    mappings = []
+    with open(os.path.join(directory, 'mappings.csv'), newline='') as csvfile:
+        reader = csv.DictReader(csvfile, **kwargs)
+        for mapping in reader:
+            mappings.append(mapping)
+    return mappings
+
+
+def create_directory_structure(directory, new_directory, copy=True):
+    """Creates a directory with subdirectories.
+    params:
+        directory: A string for the directory to load from
+        new_directory: A string for the directory to create
+        copy: A boolean of whether to copy or move the files
+    """
+    if copy:
+        move = shutil.copy
+    else:
+        move = shutil.move
+
+    if not os.path.isdir(new_directory):
+        os.mkdir(new_directory)
+
+    mappings = read(directory)
+    for mapping in mappings:
+        new_loc = os.path.join(new_directory, mapping['label'])
+        if mapping['label'] not in os.listdir(new_directory):
+            os.mkdir(new_loc)
+        move(
+            os.path.join(directory, mapping['filename']),
+            os.path.join(new_loc, mapping['filename'])
+        )
+
+
+def flatten_directory_structure(directory, new_directory, copy=True):
+    """Flattens a directory with subdirectories.
+    params:
+        directory: A string for the directory to load from
+        new_directory: A string for the directory to create
+        copy: A boolean of whether to copy or move the files
+    """
+    if copy:
+        move = shutil.copy
+    else:
+        move = shutil.move
+
+    if not os.path.isdir(new_directory):
+        os.mkdir(new_directory)
+
+    mappings = []
+    for folder in os.listdir(directory):
+        for filename in os.listdir(os.path.join(directory, folder)):
+            move(
+                os.path.join(directory, folder, filename),
+                os.path.join(new_directory, filename)
+            )
+            mappings.append({'filename': filename, 'label': folder})
+    write(mappings, new_directory)
+
+
+def create_datafile(directory, data_filename, file_loader, verbose=True,
+                    ignore_load_fails=True):
+    """Creates a h5 file from a flatten directory with a mappings.csv file.
+    params:
+        directory: A string for the directory to load from
+        data_filename: A string for the name of the created data file
+        file_loader: A function for loading the individual files
+        verbose: A boolean of whether to print a count
+        ignore_load_fails: A boolean of whether to ignore exceptions
+                           while loading files
+    """
+    mappings = read(directory)
+
+    seperated_filenames = {}
+    for mapping in mappings:
+        if mapping['label'] not in seperated_filenames:
+            seperated_filenames[mapping['label']] = []
+        seperated_filenames[mapping['label']].append(mapping['filename'])
+
+    seperated = []
+    for ndx, (label, filenames) in enumerate(seperated_filenames.items()):
+        if verbose:
+            print(ndx)
+        seperated.append((label, []))
+        for ndx, filename in enumerate(filenames):
+            try:
+                seperated[-1][1].append(
+                    file_loader(os.path.join(directory, filename))
+                )
+            except Exception as e:
+                if not ignore_load_fails:
+                    raise e
+
+    with h5py.File(data_filename, 'w') as file:
+        for ndx, (label, imgs) in enumerate(seperated):
+            if verbose:
+                print(ndx)
+            file.create_dataset(label, data=np.array(imgs))
+
+
 if __name__ == '__main__':
     dataset = {
         'train_x': np.random.random((50, 2)),
@@ -314,3 +438,6 @@ if __name__ == '__main__':
     dataset3 = load_h5py('data.h5')
     print(dataset3['validation_x'])
     print(dataset3['validation_y'])
+
+    write([{'filename': 'test', 'label': 'test'}], '.')
+    print(read('.'))

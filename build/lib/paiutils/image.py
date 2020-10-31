@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 1_6_2020
+Version: 10_31_2020
 """
 
 
@@ -719,6 +719,7 @@ class Camera:
     """This class is used for capturing pictures with the
        computer's camera.
     """
+    _DEVICES = set()
 
     def __init__(self, fps=30, camera_device=0):
         """Initializes the camera and checks if it worked.
@@ -726,13 +727,34 @@ class Camera:
             fps: An integer, which is the number of frames per second
             camera_device: An integer, which determines the device to use
         """
+        self.camera_device = camera_device
         self.camera = cv2.VideoCapture(camera_device)
         self.camera.set(cv2.CAP_PROP_FPS, fps)
         if not self.camera.isOpened():
             raise Exception("Camera could not be found")
+        if camera_device in Camera._DEVICES:
+            raise Exception("Camera device already in use")
+        else:
+            Camera._DEVICES.add(camera_device)
 
-    def release(self):
-        """Releases the camera object."""
+    def __enter__(self):
+        if not self.camera.isOpened():
+            self.open()
+
+    def __exit__(self):
+        self.close()
+
+    def open(self):
+        if self.camera_device in Camera._DEVICES:
+            raise Exception("Camera device already in use")
+        else:
+            Camera._DEVICES.add(self.camera_device)
+        if not self.camera.open(self.camera_device):
+            raise Exception("Camera could not be found")
+
+    def close(self):
+        if self.camera.isOpened() and self.camera_device in Camera._DEVICES:
+            Camera._DEVICES.remove(self.camera_device)
         self.camera.release()
 
     def capture(self, filename=None, target_shape=None, color=True):
@@ -1099,3 +1121,4 @@ if __name__ == '__main__':
         sleep(1000)
     finally:
         ws.stop()
+    c.close()

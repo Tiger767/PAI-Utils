@@ -351,7 +351,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
                     and self.total_steps % target_update_interval == 0):
                 self.update_target(tau)
 
-    def load(self, path, load_model=True, load_data=True):
+    def load(self, path, load_model=True, load_data=True, custom_objects=None):
         """Loads a save from a folder.
         params:
             path: A string, which is the path to a folder to load
@@ -360,11 +360,15 @@ class DQNPGAgent(DQNAgent, PGAgent):
                         should be loaded
             load_data: A boolean, which determines if the memory
                        from a folder should be loaded
+            custom_objects: A dictionary mapping to custom classes
+                            or functions for loading the model
         """
         DQNAgent.load(self, path, load_model=load_model, load_data=False)
         if load_model:
             with open(os.path.join(path, 'amodel.json'), 'r') as file:
-                self.amodel = model_from_json(file.read())
+                self.amodel = model_from_json(
+                    file.read(), custom_objects=custom_objects
+                )
             self.amodel.load_weights(os.path.join(path, 'aweights.h5'))
         if load_data:
             with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:
@@ -700,7 +704,7 @@ class A2CAgent(PGAgent):
                         action_onehots, epochs, batch_size, entropy_coef,
                         verbose=verbose)
 
-    def load(self, path, load_model=True, load_data=True):
+    def load(self, path, load_model=True, load_data=True, custom_objects=None):
         """Loads a save from a folder.
         params:
             path: A string, which is the path to a folder to load
@@ -709,11 +713,15 @@ class A2CAgent(PGAgent):
                         should be loaded
             load_data: A boolean, which determines if the memory
                        from a folder should be loaded
+            custom_objects: A dictionary mapping to custom classes
+                            or functions for loading the model
         """
         PGAgent.load(self, path, load_model=load_model, load_data=False)
         if load_model:
             with open(os.path.join(path, 'cmodel.json'), 'r') as file:
-                self.cmodel = model_from_json(file.read())
+                self.amodel = model_from_json(
+                    file.read(), custom_objects=custom_objects
+                )
             self.cmodel.load_weights(os.path.join(path, 'cweights.h5'))
         if load_data:
             with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:

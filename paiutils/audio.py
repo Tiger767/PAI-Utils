@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 5_16_2019
+Version: 10_31_2019
 """
 
 
@@ -26,12 +26,20 @@ except ModuleNotFoundError:
           'Therefore, sox will be used for recording and playing audio.')
 
 util_dir = os.path.dirname(__file__)
-sox_path = os.path.join(util_dir, 'sox', 'sox.exe')
-if not os.path.exists(sox_path):
-    raise ImportError(f'Sox does not exist or is not in the '
-                      f'location: {sox_path}\nDownload Sox: '
-                      f'https://sourceforge.net/projects/sox'
-                      f'/files/latest/download')
+
+if os.name == 'nt':
+    sox_path = os.path.join(util_dir, 'sox', 'sox.exe')
+    if not os.path.exists(sox_path):
+        print(f'SoX does not exist or is not in the '
+              f'location: {sox_path}\nDownload SoX: '
+              f'https://sourceforge.net/projects/sox/\n'
+              f'Some functionally will be disabled until resolved.')
+else:
+    sox_path = None
+    if sox_path is None:
+        print('SoX is only configured to work with Windows, '
+              'so some functionally will be disabled.')
+
 
 CHUNK = 1000
 

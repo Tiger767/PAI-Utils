@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 5_7_2020
+Version: 10_31_2020
 """
 
 
@@ -14,38 +14,34 @@ try:
     from paiutils.neural_network import (
         Trainer, Predictor, dense, conv2d, conv1d
     )
-    from paiutils.util_funcs import (
-        load_directory_dataset, load_h5py
-    )
 except ImportError:
     from neural_network import (
         Trainer, Predictor, dense, conv2d, conv1d
     )
-    from util_funcs import (
-        load_directory_dataset, load_h5py
-    )
-
 
 class AutoencoderTrainer(Trainer):
     """AutoencoderTrainer is used for loading, saving,
        and training keras autoencoder models.
     """
 
-    def __init__(self, model, data, file_loader=None,
-                 encoder_model=None, decoder_model=None):
+    def __init__(self, model, data, encoder_model=None, decoder_model=None):
         """Initializes train, validation, and test data.
         params:
             model: A compiled full keras model
-            data: A dictionary or string (path) containg train data,
+            data: A dictionary containg train data
                   and optionally validation and test data.
-                  Ex. {'train_x': [...], 'validation_x: [...]}
-            file_loader: A function for loading each file
+                  If the 'train' key is present, the value will
+                  be used as a generator and 'train_x' & 'train_y'
+                  will be ignored.
+                  Ex. {'train_x': [...], 'train_y: [...]}
+                  Ex. {'train': generator()}
             encoder_model: The encoder part of the full model
             decoder_model: The decoder part of the full model
         """
-        assert isinstance(data, (str, dict)), (
-            'data must be either in a dictionary or a file/folder path'
-        )
+        if not isinstance(data, dict):
+            raise TypeError(
+                'data must be a dictionary'
+            )
         self.model = model
         self.encoder_model = encoder_model
         self.decoder_model = decoder_model
@@ -53,28 +49,20 @@ class AutoencoderTrainer(Trainer):
         self.validation_data = None
         self.test_data = None
 
-        if isinstance(data, str):
-            if os.path.isdir(data):
-                assert file_loader is not None
-                data = load_directory_dataset(data, file_loader)
-            else:
-                assert data.split('.')[1] == 'h5'
-                data = load_h5py(data)
-        if isinstance(data, dict):
-            if 'train_x' in data:
-                self.train_data = data['train_x']
-                self.train_data = (self.train_data, self.train_data)
-            else:
-                raise Exception('There must be a train dataset')
-            if 'validation_x' in data:
-                self.validation_data = data['validation_x']
-                self.validation_data = (self.validation_data,
-                                        self.validation_data)
-            if 'test_x' in data:
-                self.test_data = data['test_x']
-                self.test_data = (self.test_data, self.test_data)
+        if 'train_x' in data:
+            self.train_data = data['train_x']
+            self.train_data = (self.train_data, self.train_data)
+        elif 'train' in data:
+            self.train_data = data['train']
         else:
-            raise ValueError('Invalid data')
+            raise Exception('There must be train data')
+        if 'validation_x' in data:
+            self.validation_data = data['validation_x']
+            self.validation_data = (self.validation_data,
+                                    self.validation_data)
+        if 'test_x' in data:
+            self.test_data = data['test_x']
+            self.test_data = (self.test_data, self.test_data)
 
     def train(self, epochs, batch_size=None, callbacks=None, verbose=True):
         """Trains the keras model.
@@ -96,7 +84,7 @@ class AutoencoderTrainer(Trainer):
             decoder_num_weights = len(self.decoder_model.get_weights())
             self.decoder_model.set_weights(weights[-decoder_num_weights:])
 
-    def load(self, path, optimizer, loss, metrics=None):
+    def load(self, path, optimizer, loss, metrics=None, custom_objects=None):
         """Loads a model and weights from a file.
            (overrides the inital provided model)
         params:
@@ -109,11 +97,16 @@ class AutoencoderTrainer(Trainer):
                   the loss function for the loaded model
             metrics: A list of metrics, which will be used
                      by the loaded model
+            custom_objects: A dictionary mapping to custom classes
+                            or functions for loading the model
         """
-        super().load(path, optimizer, loss)
+        super().load(path, optimizer, loss, metrics=metrics,
+                     custom_objects=custom_objects)
         if 'encoder_model.json' in os.listdir(path):
             with open(os.path.join(path, 'encoder_model.json'), 'r') as file:
-                self.encoder_model = model_from_json(file.read())
+                self.encoder_model = model_from_json(
+                    file.read(), custom_objects=custom_objects
+                )
                 self.encoder_model.compile(optimizer=optimizer, loss=loss,
                                            metrics=metrics)
             self.encoder_model.load_weights(
@@ -121,7 +114,9 @@ class AutoencoderTrainer(Trainer):
             )
         if 'decoder_model.json' in os.listdir(path):
             with open(os.path.join(path, 'decoder_model.json'), 'r') as file:
-                self.decoder_model = model_from_json(file.read())
+                self.decoder_model = model_from_json(
+                    file.read(), custom_objects=custom_objects
+                )
                 self.decoder_model.compile(optimizer=optimizer, loss=loss)
             self.decoder_model.load_weights(
                 os.path.join(path, 'decoder_weights.h5')
@@ -197,8 +192,7 @@ class AutoencoderExtraDecoderTrainer(Trainer):
     """
 
     def __init__(self, model, encoder_model, decoder_model,
-                 extra_decoder_model, data, file_loader_x=None,
-                 file_loader_y=None, include_y_data=True):
+                 extra_decoder_model, data, include_y_data=True):
         """Initializes train, validation, and test data.
         params:
             model: A compiled full keras model
@@ -208,18 +202,16 @@ class AutoencoderExtraDecoderTrainer(Trainer):
                                  to map the encoder to a
                                  different output
                                  (not part of the full model)
-            data: A dictionary or string (path) containg train data,
+            data: A dictionary containg train data
                   and optionally validation and test data.
-                  Ex. {'train_x': [...], 'validation_x: [...]}
-            file_loader_x: A function for loading each x data file
-            file_loader_y: A function for loading each y data file
             include_y_data: A boolean, which determines if y-data should
                             be appened with the x-data for training the
                             autoencoder
         """
-        assert isinstance(data, (str, dict)), (
-            'data must be either in a dictionary or a file/folder path'
-        )
+        if not isinstance(data, dict):
+            raise TypeError(
+                'data must be a dictionary'
+            )
         self.model = model
         self.encoder_model = encoder_model
         self.decoder_model = decoder_model
@@ -231,46 +223,34 @@ class AutoencoderExtraDecoderTrainer(Trainer):
         self.validation_data2 = None
         self.test_data2 = None
 
-        if isinstance(data, str):
-            if os.path.isdir(data):
-                assert file_loader_x is not None
-                assert file_loader_y is not None
-                data = load_directory_dataset(data, file_loader_x,
-                                              file_loader_y=file_loader_y)
+        if 'train_x' in data and 'train_y' in data:
+            if include_y_data:
+                self.train_data = np.vstack([data['train_x'],
+                                             data['train_y']])
             else:
-                assert data.split('.')[1] == 'h5'
-                data = load_h5py(data)
-        if isinstance(data, dict):
-            if 'train_x' in data and 'train_y' in data:
-                if include_y_data:
-                    self.train_data = np.vstack([data['train_x'],
-                                                 data['train_y']])
-                else:
-                    self.train_data = data['train_x']
-                self.train_data = (self.train_data, self.train_data)
-                self.train_data2 = [data['train_x'], data['train_y']]
-            else:
-                raise Exception('There must be a train dataset')
-            if 'validation_x' in data and 'validation_y' in data:
-                if include_y_data:
-                    self.validation_data = np.vstack([data['validation_x'],
-                                                    data['validation_y']])
-                else:
-                    self.validation_data = data['validation_x']
-                self.validation_data = (self.validation_data,
-                                        self.validation_data)
-                self.validation_data2 = [data['validation_x'],
-                                         data['validation_y']]
-            if 'test_x' in data and 'test_y' in data:
-                if include_y_data:
-                    self.test_data = np.vstack([data['test_x'],
-                                                data['test_y']])
-                else:
-                    self.test_data = data['test_x']
-                self.test_data = (self.test_data, self.test_data)
-                self.test_data2 = [data['test_x'], data['test_y']]
+                self.train_data = data['train_x']
+            self.train_data = (self.train_data, self.train_data)
+            self.train_data2 = [data['train_x'], data['train_y']]
         else:
-            raise ValueError('Invalid data')
+            raise Exception('There must be train data')
+        if 'validation_x' in data and 'validation_y' in data:
+            if include_y_data:
+                self.validation_data = np.vstack([data['validation_x'],
+                                                data['validation_y']])
+            else:
+                self.validation_data = data['validation_x']
+            self.validation_data = (self.validation_data,
+                                    self.validation_data)
+            self.validation_data2 = [data['validation_x'],
+                                        data['validation_y']]
+        if 'test_x' in data and 'test_y' in data:
+            if include_y_data:
+                self.test_data = np.vstack([data['test_x'],
+                                            data['test_y']])
+            else:
+                self.test_data = data['test_x']
+            self.test_data = (self.test_data, self.test_data)
+            self.test_data2 = [data['test_x'], data['test_y']]
 
     def train_extra_decoder(self, epochs, batch_size=None,
                             callbacks=None, verbose=True):
@@ -303,9 +283,9 @@ class AutoencoderExtraDecoderTrainer(Trainer):
         if verbose:
             print('Extra Decoder Train Data Evaluation: ', end='')
             print(self.extra_decoder_model.evaluate(train_data2_x,
-                                                self.train_data2[1],
-                                                batch_size=batch_size,
-                                                verbose=0))
+                                                    self.train_data2[1],
+                                                    batch_size=batch_size,
+                                                    verbose=0))
             if self.validation_data2 is not None:
                 print('Extra Decoder Validation Data Evaluation: ', end='')
                 print(self.extra_decoder_model.evaluate(validation_data2[0],
@@ -323,7 +303,7 @@ class AutoencoderExtraDecoderTrainer(Trainer):
                                                         verbose=0))
 
 
-    def load(self, path, optimizer, loss, metrics=None):
+    def load(self, path, optimizer, loss, metrics=None, custom_objects=None):
         """Loads a model and weights from a file.
            (overrides the inital provided model)
         params:
@@ -336,12 +316,17 @@ class AutoencoderExtraDecoderTrainer(Trainer):
                   the loss function for the loaded model
             metrics: A list of metrics, which will be used
                      by the loaded model
+            custom_objects: A dictionary mapping to custom classes
+                            or functions for loading the model
         """
-        super().load(path, optimizer, loss, metrics=metrics)
+        super().load(path, optimizer, loss, metrics=metrics,
+                     custom_objects=custom_objects)
         if 'extra_decoder_model.json' in os.listdir(path):
             edm_path = os.path.join(path, 'extra_decoder_model.json')
             with open(edm_path, 'r') as file:
-                self.extra_decoder_model = model_from_json(file.read())
+                self.extra_decoder_model = model_from_json(
+                    file.read(), custom_objects=custom_objects
+                )
                 self.extra_decoder_model.compile(optimizer=optimizer,
                                                  loss=loss,
                                                  metrics=metrics)
@@ -550,7 +535,7 @@ if __name__ == '__main__':
     import image as img
     from time import sleep
 
-    training = False
+    training = True
     uses_encoder_model = False
     uses_decoder_model = True
     uses_conv_model = True
@@ -595,7 +580,7 @@ if __name__ == '__main__':
 
         trainer = AutoencoderTrainer(model, dataset, encoder_model=encoder,
                                      decoder_model=decoder)
-        path = trainer.train(20, batch_size=32)
+        trainer.train(20, batch_size=32)
         path = trainer.save('')
 
     predictor = AutoencoderPredictor(

@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 5_7_2020
+Version: 10_31_2020
 """
 
 
@@ -11,59 +11,41 @@ from tensorflow import keras
 from tensorflow.keras.models import model_from_json
 from tensorflow.keras.regularizers import l1_l2
 
-try:
-    from paiutils.util_funcs import (
-        load_directory_dataset, load_h5py, save_h5py
-    )
-except ImportError:
-    from util_funcs import (
-        load_directory_dataset, load_h5py, save_h5py
-    )
-
 
 class Trainer:
     """Trainer is used for loading, saving, and training keras models."""
 
-    def __init__(self, model, data, file_loader=None, file_loader_y=None):
+    def __init__(self, model, data):
         """Initializes train, validation, and test data.
         params:
             model: A compiled keras model
-            data: A dictionary or string (path) containg train data, and
-                  optionally validation and test data.
+            data: A dictionary containg train data
+                  and optionally validation and test data.
+                  If the 'train' key is present, the value will
+                  be used as a generator and 'train_x' & 'train_y'
+                  will be ignored.
                   Ex. {'train_x': [...], 'train_y: [...]}
-            file_loader: A function for loading each X file
-            file_loader_y: A function for loading each Y file
+                  Ex. {'train': generator()}
         """
-        assert isinstance(data, (str, dict)), (
-            'data must be either in a dictionary or a file/folder path'
-        )
+        if not isinstance(data, dict):
+            raise TypeError(
+                'data must be a dictionary'
+            )
         self.model = model
         self.train_data = None
         self.validation_data = None
         self.test_data = None
-
-        if isinstance(data, str):
-            if os.path.isdir(data):
-                assert file_loader is not None
-                data = load_directory_dataset(data, file_loader,
-                                              file_loader_y)
-            else:
-                assert data.split('.')[1] == 'h5'
-                data = load_h5py(data)
-        if isinstance(data, dict):
-            if 'train_x' in data and 'train_y' in data:
-                self.train_data = (np.array(data['train_x']),
-                                   np.array(data['train_y']))
-            else:
-                raise Exception('There must be a train dataset')
-            if 'validation_x' in data and 'validation_y' in data:
-                self.validation_data = (np.array(data['validation_x']),
-                                        np.array(data['validation_y']))
-            if 'test_x' in data and 'test_y' in data:
-                self.test_data = (np.array(data['test_x']),
-                                  np.array(data['test_y']))
+        if 'train_x' in data and 'train_y' in data:
+            self.train_data = (data['train_x'], data['train_y'])
+        elif 'train' in data:
+            self.train_data = data['train']
         else:
-            raise ValueError('Invalid data')
+            raise Exception('There must be train data')
+        if 'validation_x' in data and 'validation_y' in data:
+            self.validation_data = (data['validation_x'],
+                                    data['validation_y'])
+        if 'test_x' in data and 'test_y' in data:
+            self.test_data = (data['test_x'], data['test_y'])
 
     def train(self, epochs, batch_size=None, callbacks=None, verbose=True):
         """Trains the keras model.
@@ -98,7 +80,7 @@ class Trainer:
                                           batch_size=batch_size,
                                           verbose=0))
 
-    def load(self, path, optimizer, loss, metrics=None):
+    def load(self, path, optimizer, loss, metrics=None, custom_objects=None):
         """Loads a model and weights from a file.
            (overrides the inital provided model)
         params:
@@ -110,9 +92,13 @@ class Trainer:
                   the loss function for the loaded model
             metrics: A list of metrics, which will be used
                      by the loaded model
+            custom_objects: A dictionary mapping to custom classes
+                            or functions for loading the model
         """
         with open(os.path.join(path, 'model.json'), 'r') as file:
-            self.model = model_from_json(file.read())
+            self.model = model_from_json(
+                file.read(), custom_objects=custom_objects
+            )
             self.model.compile(optimizer=optimizer, loss=loss,
                                metrics=metrics)
         self.model.load_weights(os.path.join(path, 'weights.h5'))
@@ -135,7 +121,9 @@ class Trainer:
             file.write(self.model.to_json())
         with open(os.path.join(path, 'note.txt'), 'w') as file:
             if note is None:
-                self.model.summary(print_fn=lambda line: file.write(line+'\n'))
+                self.model.summary(
+                    print_fn=lambda line: file.write(line+'\n')
+                )
             else:
                 file.write(note)
         return path
@@ -145,16 +133,20 @@ class Predictor:
     """Predictor is used for loading and predicting keras models."""
 
     def __init__(self, path,  weights_name='weights.h5',
-                 model_name='model.json'):
+                 model_name='model.json', custom_objects=None):
         """Initializes the model and weights.
         params:
             path: A string, which is the path to a folder containing
                   model.json, weights.h5, and maybe note.txt
             weights_name: A string, which is the name of the weights to load
-            model_name: A string, which is the name of the model to laod
+            model_name: A string, which is the name of the model to load
+            custom_objects: A dictionary mapping to custom classes
+                            or functions for loading the model
         """
         with open(os.path.join(path, model_name), 'r') as file:
-            self.model = model_from_json(file.read())
+            self.model = model_from_json(
+                file.read(), custom_objects=custom_objects
+            )
         self.model.load_weights(os.path.join(path, weights_name))
         note_path = os.path.join(path, 'note.txt')
         if os.path.exists(note_path):
@@ -397,7 +389,7 @@ def inception(inceptions):
         return: A Tensor
         """
         branches = []
-        for branch in inception:
+        for branch in inceptions:
             y = branch[0](x)
             for layer in branch[1:]:
                 y = layer(y)
@@ -407,10 +399,6 @@ def inception(inceptions):
 
 
 if __name__ == '__main__':
-    tx = np.array([[0, 0], [1, 1]])
-    ty = np.array([0, 1])
-    save_h5py('data.h5', {'train_x': tx, 'train_y': ty})
-
     inputs = keras.layers.Input(shape=(2,))
     x = dense(16)(inputs)
     outputs = dense(1, activation='sigmoid', batch_norm=False)(x)
@@ -418,8 +406,10 @@ if __name__ == '__main__':
     model.compile(optimizer='adam', loss='binary_crossentropy',
                   metrics=['accuracy'])
 
-    trainer = Trainer(model, 'data.h5')
-    trainer.train(10000)
+    tx = np.array([[0, 0], [1, 1]])
+    ty = np.array([0, 1])
+    trainer = Trainer(model, {'train_x': tx, 'train_y': ty})
+    trainer.train(1000)
     path = trainer.save('')
     predictor = Predictor(path)
     print(predictor.predict([0, 1]))

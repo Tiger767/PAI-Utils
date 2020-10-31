@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="paiutils",
-    version="2.1.2",
+    version="3.0.0",
     author="Travis Hammond",
     description="An artificial intelligence utilities package built to remove the delays of machine learning research.",
     long_description=long_description,
@@ -21,5 +21,5 @@ setuptools.setup(
     ],
     python_requires='>=3.7',
     include_package_data=True,
-    install_requires=['numpy>=1', 'h5py>=2', 'matplotlib>=3', 'tensorflow>=2', 'scikit-learn', 'opencv-python>=4']
+    install_requires=['numpy>=1', 'h5py>=2', 'matplotlib>=3', 'tensorflow>=2.1', 'scikit-learn', 'opencv-python>=4']
 )
