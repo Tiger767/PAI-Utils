@@ -64,18 +64,17 @@ class AutoencoderTrainer(Trainer):
             self.test_data = data['test_x']
             self.test_data = (self.test_data, self.test_data)
 
-    def train(self, epochs, batch_size=None, callbacks=None, verbose=True):
+    def train(self, epochs, batch_size=None, verbose=True, **kwargs):
         """Trains the keras model.
         params:
             epochs: An integer, which is the number of complete
                     iterations to train
             batch_size: An integer, which is the number of samples
                         per graident update
-            callbacks: A list of keras Callback instances,
-                       which are called during training and validation
             verbose: A boolean, which determines the verbositiy level
         """
-        super().train(epochs, batch_size, callbacks, verbose)
+        super().train(epochs, batch_size=batch_size,
+                      verbose=verbose, **kwargs)
         weights = self.model.get_weights()
         if self.encoder_model is not None:
             encoder_num_weights = len(self.encoder_model.get_weights())
@@ -253,7 +252,7 @@ class AutoencoderExtraDecoderTrainer(Trainer):
             self.test_data2 = [data['test_x'], data['test_y']]
 
     def train_extra_decoder(self, epochs, batch_size=None,
-                            callbacks=None, verbose=True):
+                            verbose=True, **kwargs):
         """Trains the extra decoder keras model on the outputs
            of the assumingly trained encoder.
         params:
@@ -279,7 +278,7 @@ class AutoencoderExtraDecoderTrainer(Trainer):
                                      validation_data=validation_data2,
                                      batch_size=batch_size, epochs=epochs,
                                      verbose=1 if verbose else 0,
-                                     callbacks=callbacks)
+                                     **kwargs)
         if verbose:
             print('Extra Decoder Train Data Evaluation: ', end='')
             print(self.extra_decoder_model.evaluate(train_data2_x,
@@ -301,7 +300,6 @@ class AutoencoderExtraDecoderTrainer(Trainer):
                                                         self.test_data2[1],
                                                         batch_size=batch_size,
                                                         verbose=0))
-
 
     def load(self, path, optimizer, loss, metrics=None, custom_objects=None):
         """Loads a model and weights from a file.

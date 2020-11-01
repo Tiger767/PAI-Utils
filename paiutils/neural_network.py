@@ -3,7 +3,7 @@ Author: Travis Hammond
 Version: 10_31_2020
 """
 
-
+from types import GeneratorType
 import os
 import datetime
 import numpy as np
@@ -47,26 +47,41 @@ class Trainer:
         if 'test_x' in data and 'test_y' in data:
             self.test_data = (data['test_x'], data['test_y'])
 
-    def train(self, epochs, batch_size=None, callbacks=None, verbose=True):
+    def train(self, epochs, batch_size=None, verbose=True, **kwargs):
         """Trains the keras model.
         params:
             epochs: An integer, which is the number of complete
                     iterations to train
             batch_size: An integer, which is the number of samples
                         per graident update
-            callbacks: A list of keras Callback instances,
-                       which are called during training and validation
             verbose: A boolean, which determines the verbositiy level
         """
-        self.model.fit(self.train_data[0], self.train_data[1],
-                       validation_data=self.validation_data,
-                       batch_size=batch_size, epochs=epochs,
-                       verbose=1 if verbose else 0, callbacks=callbacks)
+        if isinstance(self.train_data, GeneratorType):
+            if 'steps_per_epoch' not in kwargs and batch_size is not None:
+                kwargs['steps_per_epoch'] = batch_size
+            self.model.fit(self.train_data,
+                           validation_data=self.validation_data,
+                           epochs=epochs,
+                           verbose=1 if verbose else 0, **kwargs)
+        else:
+            self.model.fit(self.train_data[0], self.train_data[1],
+                           validation_data=self.validation_data,
+                           batch_size=batch_size, epochs=epochs,
+                           verbose=1 if verbose else 0, **kwargs)
         if verbose:
             print('Train Data Evaluation: ', end='')
-            print(self.model.evaluate(self.train_data[0], self.train_data[1],
-                                      batch_size=batch_size,
-                                      verbose=0))
+            if isinstance(self.train_data, GeneratorType):
+                steps = None
+                if 'steps_per_epoch' in kwargs:
+                    steps = kwargs['steps_per_epoch']
+                print(self.model.evaluate(
+                    self.train_data, steps=steps, verbose=0)
+                )
+            else:
+                print(self.model.evaluate(
+                    self.train_data[0], self.train_data[1],
+                    batch_size=batch_size, verbose=0)
+                )
             if self.validation_data is not None:
                 print('Validation Data Evaluation: ', end='')
                 print(self.model.evaluate(self.validation_data[0],

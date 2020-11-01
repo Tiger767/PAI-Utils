@@ -896,7 +896,7 @@ class LockDict:
 
 class Windows:
     """This class is used to displays images."""
-    created = False
+    CREATED = False
 
     def __init__(self, update_delay=1):
         """Initializes the Dictionaries for holding the windows.
@@ -908,7 +908,7 @@ class Windows:
         if Windows.created:
             raise Exception('Only one Windows instance can exist per process.')
         else:
-            Windows.created = True
+            Windows.CREATED = True
         assert update_delay > 0, 'update_delay must be greater than 0'
         self.update_delay = update_delay
         self.windows = LockDict()

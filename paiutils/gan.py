@@ -43,7 +43,7 @@ class GANTrainer(Trainer):
                                  model should be trained with normal
                                  or uniform random values
             loss_func: A function for calculating the 2nd loss
-                       (only applied if loss2_coef > 0)
+                       (only applied if loss2_coef > 0) (default: mae)
         """
         if not isinstance(train_data, (dict, np.ndarray, list)):
             raise TypeError(
@@ -52,6 +52,8 @@ class GANTrainer(Trainer):
         self.model = model
         self.input_shape = self.model.layers[0].input_shape[0][1:]
         self.optimizer = model.optimizer
+        if loss_func is None:
+            loss_func = tf.keras.losses.MeanAbsoluteError()
         self.loss_func = loss_func
         self.dis_model = dis_model
         self.dis_optimizer = dis_model.optimizer
@@ -315,15 +317,18 @@ class GANITrainer(GANTrainer):
        keras GAN models that do not have random inputs.
     """
 
-    def __init__(self, model, dis_model, data):
+    def __init__(self, model, dis_model, data, loss_func=None):
         """Initializes data, optimizers, metrics, and models.
         params:
             model: A compiled keras model, which is the generator
+                   (loss function does not matter)
             dis_model: A compiled keras model, which is the discriminator
                        (loss function does not matter)
             data: A dictionary containg train data
                   and optionally validation and test data.
                   Ex. {'train_x': [...], 'train_y: [...]}
+            loss_func: A function for calculating the 2nd loss
+                       (default: mae)
         """
         if not isinstance(data, dict):
             raise TypeError(
@@ -332,7 +337,9 @@ class GANITrainer(GANTrainer):
         self.model = model
         self.input_shape = self.model.layers[0].input_shape[0][1:]
         self.optimizer = model.optimizer
-        self.loss_func = model.loss_functions[0]
+        if loss_func is None:
+            loss_func = tf.keras.losses.MeanAbsoluteError()
+        self.loss_func = loss_func
         self.dis_model = dis_model
         self.dis_optimizer = dis_model.optimizer
         self.metric = tf.keras.metrics.Mean(name='loss')
@@ -440,7 +447,7 @@ if __name__ == '__main__':
 
     training = True
     conditional = False
-    path = None # 'trained_conditional' if conditional else 'trained'
+    path = None
 
     (tx, ty), _ = keras.datasets.fashion_mnist.load_data()
     tx = np.expand_dims((tx - 127.5) / 127.5, axis=-1)
@@ -509,7 +516,6 @@ if __name__ == '__main__':
             model = keras.Model(inputs=inputs, outputs=outputs)
             model.summary()
             optimizer = tf.keras.optimizers.Adam(.0002, .5)
-            # model.compile(optimizer=optimizer, loss='mse')
             model.optimizer = optimizer
 
             # Discriminator Model
