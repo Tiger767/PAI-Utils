@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 10_31_2020
+Version: 11_19_2020
 """
 
 
@@ -905,7 +905,7 @@ class Windows:
             update_delay: An integer, which is the number of ms
                           to delay each update (must be > 0)
         """
-        if Windows.created:
+        if Windows.CREATED:
             raise Exception('Only one Windows instance can exist per process.')
         else:
             Windows.CREATED = True

@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 10_31_2020
+Version: 11_19_2020
 """
 
 
@@ -351,9 +351,9 @@ def flatten_directory_structure(directory, new_directory, copy=True):
         for filename in os.listdir(os.path.join(directory, folder)):
             move(
                 os.path.join(directory, folder, filename),
-                os.path.join(new_directory, filename)
+                os.path.join(new_directory, folder + filename)
             )
-            mappings.append({'filename': filename, 'label': folder})
+            mappings.append({'filename': folder + filename, 'label': folder})
     write(mappings, new_directory)
 
 
