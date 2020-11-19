@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 10_31_2020
+Version: 11_19_2020
 """
 
 
@@ -76,6 +76,8 @@ class GANTrainer(Trainer):
                                            train_data['train_y']]
                     else:
                         self.train_data = train_data['train_x']
+                elif not self.conditional and 'train' in train_data:
+                    self.train_data = train_data['train']
                 else:
                     raise Exception('There must be train data')
             else:
@@ -189,7 +191,8 @@ class GANTrainer(Trainer):
             for batch in batches:
                 self._train_step(batch)
                 count += np.minimum(batch_size, length - count)
-                print(f'{count}/{length}', end='\r')
+                if verbose:
+                    print(f'{count}/{length}', end='\r')
             if verbose:
                 print(f'{count}/{length} - '
                       f'loss: {self.metric.result()} - '
@@ -199,19 +202,12 @@ class GANTrainer(Trainer):
             self.metric2.reset_states()
             self.dis_metric.reset_states()
 
-    def load(self, path, optimizer='sgd', loss='mae', dis_optimizer='sgd',
-             custom_objects=None):
+    def load(self, path, custom_objects=None):
         """Loads a generator and discriminator model and weights from a file.
            (overrides the inital provided model)
         params:
             path: A string, which is the path to a folder
                   containing model.json, weights.h5, and note.txt
-            optimizer: A string or optimizer instance, which will be
-                       the optimizer for the loaded generator model
-            loss: A string or loss function, which will be used for the
-                  generator model
-            dis_optimizer: A string or optimizer instance, which will be
-                           the optimizer for the loaded discriminator model
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
         """
@@ -219,12 +215,13 @@ class GANTrainer(Trainer):
             self.model = model_from_json(
                 file.read(), custom_objects=custom_objects
             )
-            self.model.compile(optimizer=optimizer, loss=loss)
+            self.model.compile(optimizer=self.optimizer,
+                               loss=self.loss_func)
         with open(os.path.join(path, 'dis_model.json'), 'r') as file:
             self.dis_model = model_from_json(
                 file.read(), custom_objects=custom_objects
             )
-            self.dis_model.optimizer = dis_optimizer
+            self.dis_model.optimizer = self.dis_optimizer
         self.model.load_weights(os.path.join(path, 'weights.h5'))
         self.dis_model.load_weights(os.path.join(path, 'dis_weights.h5'))
         with open(os.path.join(path, 'note.txt'), 'r') as file:
@@ -542,7 +539,7 @@ if __name__ == '__main__':
             gant.load(path)
         gant.train(50, 512)
         path = gant.save('')
-        gant.load(path, optimizer=optimizer, dis_optimizer=dis_optimizer)
+        gant.load(path)
 
         del gant
 

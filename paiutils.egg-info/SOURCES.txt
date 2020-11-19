@@ -12,6 +12,7 @@ paiutils/neural_network.py
 paiutils/reinforcement.py
 paiutils/reinforcement_agents.py
 paiutils/util_funcs.py
+paiutils/vae.py
 paiutils.egg-info/PKG-INFO
 paiutils.egg-info/SOURCES.txt
 paiutils.egg-info/dependency_links.txt

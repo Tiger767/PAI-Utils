@@ -20,17 +20,19 @@ Package Features
 - Image
   - Simplified OpenCV Interface
 - Autoencoder
-  - Trainner and Predictor
+  - Trainer and Predictor
   - Trainer with extra decoder
   - Basic network architecture creation
 - Evolution Algorithm
   - One dimensional evolution algorithm
   - Hyperparameter tuner
+- VAE
+  - Trainer
 - GAN
-  - Trainner and Predictor
-  - GANI Trainner (GAN which takes provided Inputs)
+  - Trainer and Predictor
+  - GANI Trainer (GAN which takes provided Inputs)
 - Neural Network
-  - Trainner and Predictor
+  - Trainer and Predictor
   - Dense layers that combine batch norm
   - Convolution layers that combine batch norm, max pooling, upsampling, and transposing
 - Reinforcement
