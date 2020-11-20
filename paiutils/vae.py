@@ -66,7 +66,6 @@ class VAETrainer(Trainer):
         """Trains the VAE 1 epoch.
         params:
             x: A Tensor
-            y: A Tensor
         """
         def log_normal_pdf(sample, mean, logvar, raxis=1):
             log2pi = tf.math.log(2. * np.pi)
@@ -119,7 +118,7 @@ class VAETrainer(Trainer):
                     print(f'{count}/{length}', end='\r')
             if verbose:
                 print(f'{count}/{length} - '
-                      f'loss: {self.metric.result()} - ')
+                      f'loss: {self.metric.result()}')
             self.metric.reset_states()
 
     def load(self, path, custom_objects=None):

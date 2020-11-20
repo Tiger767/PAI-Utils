@@ -99,7 +99,6 @@ class GANTrainer(Trainer):
         """Trains the GAN 1 epoch.
         params:
             x: A Tensor
-            y: A Tensor
         """
         if self.conditional:
             length = x[0].shape[0]
