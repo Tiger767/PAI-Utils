@@ -15,7 +15,7 @@ Package Features
   - Recording and playing
   - Volume, speed, and pitch manipulation
   - Trimming and Splitting
-  - Nonoverlapping Spectrogram creation
+  - Spectrogram, Fbanks, and MFCC creation
   - Audio file conversions
 - Image
   - Simplified OpenCV Interface

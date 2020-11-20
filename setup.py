@@ -17,7 +17,7 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
-        "Operating System :: Microsoft :: Windows :: Windows 10",
+        "Topic :: Scientific/Engineering",
     ],
     python_requires='>=3.7',
     include_package_data=True,

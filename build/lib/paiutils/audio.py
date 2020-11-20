@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 10_31_2019
+Version: 11_20_2019
 """
 
 
@@ -9,6 +9,7 @@ import subprocess
 import wave
 import numpy as np
 from matplotlib import pyplot as plt
+from scipy.fftpack import dct
 
 try:
     import webrtcvad
@@ -425,6 +426,120 @@ def convert_spectrogram_to_audio(spectrogram, rate, real=True):
     for frame in spectrogram:
         frames.append(ft(frame))
     return np.hstack(frames), len(frames[0]) * rate
+
+
+def compute_fbank(signal, samplerate=16000, winlen=0.025, winstep=0.01,
+                  nfilt=26, nfft=512, lowfreq=0, highfreq=None, preemph=0.97,
+                  winfunc=lambda x: np.ones((x,))):
+    """Compute Mel-filterbank energy features from an audio signal.
+    Code adapted from python_speech_features, written orginally by James Lyons.
+
+    params:
+        signal: the audio signal from which to compute features.
+                Should be an N*1 array
+        samplerate: the sample rate of the signal we are working with, in Hz.
+        winlen: the length of the analysis window in seconds. Default is
+                0.025s (25 milliseconds)
+        winstep: the step between successive windows in seconds. Default
+                 is 0.01s (10 milliseconds)
+        nfilt: the number of filters in the filterbank, default 26.
+        nfft: the FFT size. Default is None, which uses the calculate_nfft
+              function to choose the smallest size that does not drop sample data.
+        lowfreq: lowest band edge of mel filters. In Hz, default is 0.
+        highfreq: highest band edge of mel filters. In Hz, default is samplerate/2
+        preemph: apply preemphasis filter with preemph as coefficient. 0 is no filter.
+                 Default is 0.97.
+        winfunc: the analysis window to apply to each frame. By default no window is applied.
+                 You can use numpy window functions here e.g. winfunc=numpy.hamming
+    return: 2 values. The first is a numpy array of size (NUMFRAMES by nfilt)
+            containing features. Each row holds 1 feature vector. The second return
+            value is the energy in each frame (total energy, unwindowed)
+    """
+    highfreq = highfreq or samplerate / 2
+    assert highfreq <= samplerate / 2, 'highfreq is greater than samplerate / 2'
+    signal = np.append(signal[0], signal[1:] - preemph * signal[:-1])
+
+    slen = len(signal)
+    frame_len = int(winlen * samplerate + .5)
+    frame_step = int(winstep * samplerate + .5)
+    num_frames = 1
+    if slen > frame_len:
+        num_frames += int(np.ceil((slen - frame_len) / frame_step))
+    pad_len = int((num_frames - 1) * frame_step + frame_len)
+    padded_signal = np.concatenate([signal, np.zeros(pad_len - slen)])
+    frames = np.lib.stride_tricks.as_strided(
+        padded_signal,
+        shape=padded_signal.shape[:-1] +
+              (padded_signal.shape[-1] - frame_len + 1, frame_len),
+        strides=padded_signal.strides + (padded_signal.strides[-1],)
+    )[::frame_step] * winfunc(frame_len)
+    pspec = 1.0 / nfft * np.square(np.abs(np.fft.rfft(frames, nfft)))
+    energy = np.sum(pspec, 1)
+    energy = np.where(energy == 0, np.finfo(float).eps,energy)
+
+    lowmel = 2595 * np.log10(1 + lowfreq / 700)
+    highmel = 2595 * np.log10(1 + highfreq / 700)
+    melpoints = np.linspace(lowmel, highmel, nfilt + 2)
+    fft_bins = np.floor(
+        (nfft + 1) * (700 * (10**(melpoints / 2595) - 1)) / samplerate
+    )
+    fbank = np.zeros([nfilt,nfft//2+1])
+    for j in range(0,nfilt):
+        for i in range(int(fft_bins[j]), int(fft_bins[j+1])):
+            fbank[j,i] = (i - fft_bins[j]) / (fft_bins[j+1]-fft_bins[j])
+        for i in range(int(fft_bins[j+1]), int(fft_bins[j+2])):
+            fbank[j,i] = (fft_bins[j+2]-i) / (fft_bins[j+2]-fft_bins[j+1])
+    feat = np.dot(pspec, fbank.T)
+    feat = np.where(feat == 0, np.finfo(float).eps, feat)
+    return feat, energy
+
+
+def compute_mfcc(signal, samplerate=16000, winlen=0.025, winstep=0.01, numcep=13,
+                 nfilt=26, nfft=None, lowfreq=0, highfreq=None, preemph=0.97,
+                 ceplifter=22,append_energy=True, winfunc=lambda x: np.ones((x,))):
+    """Computes MFCC features from an audio signal.
+    Code adapted from python_speech_features, written orginally by James Lyons.
+
+    params:
+        signal: the audio signal from which to compute features.
+                Should be an N*1 array
+        samplerate: the sample rate of the signal we are working with, in Hz.
+        winlen: the length of the analysis window in seconds. Default is
+                0.025s (25 milliseconds)
+        winstep: the step between successive windows in seconds. Default
+                 is 0.01s (10 milliseconds)
+        numcep: the number of cepstrum to return, default 13
+        nfilt: the number of filters in the filterbank, default 26.
+        nfft: the FFT size. Default is None, which uses the calculate_nfft
+              function to choose the smallest size that does not drop sample data.
+        lowfreq: lowest band edge of mel filters. In Hz, default is 0.
+        highfreq: highest band edge of mel filters. In Hz, default is samplerate/2
+        preemph: apply preemphasis filter with preemph as coefficient. 0 is no filter.
+                 Default is 0.97.
+        ceplifter: apply a lifter to final cepstral coefficients. 0 is no lifter.
+                   Default is 22.
+        append_energy: if this is true, the zeroth cepstral coefficient is replaced with
+                       the log of the total frame energy.
+        winfunc: the analysis window to apply to each frame. By default no window is applied.
+                 You can use numpy window functions here e.g. winfunc=numpy.hamming
+    return: A numpy array of size (NUMFRAMES by numcep) containing features.
+            Each row holds 1 feature vector.
+    """
+    if nfft is None:
+        winlen_samples = winlen * samplerate
+        nfft = 1
+        while nfft < winlen_samples:
+            nfft *= 2
+    feat, energy = compute_fbank(signal, samplerate, winlen, winstep, nfilt,
+                                 nfft, lowfreq, highfreq, preemph, winfunc)
+    feat = np.log(feat)
+    feat = dct(feat, type=2, axis=1, norm='ortho')[:,:numcep]
+    if ceplifter > 0:
+        feat = feat * (1 + (ceplifter / 2) *
+                       np.sin((np.pi / ceplifter) * np.arange(feat.shape[1])))
+    if append_energy:
+        feat[:,0] = np.log(energy)
+    return feat
 
 
 def calc_rms(audio):

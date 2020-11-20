@@ -22,7 +22,7 @@ Description: # PAI-Utils
           - Recording and playing
           - Volume, speed, and pitch manipulation
           - Trimming and Splitting
-          - Nonoverlapping Spectrogram creation
+          - Spectrogram, Fbanks, and MFCC creation
           - Audio file conversions
         - Image
           - Simplified OpenCV Interface
@@ -65,6 +65,6 @@ Description: # PAI-Utils
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
-Classifier: Operating System :: Microsoft :: Windows :: Windows 10
+Classifier: Topic :: Scientific/Engineering
 Requires-Python: >=3.7
 Description-Content-Type: text/markdown
