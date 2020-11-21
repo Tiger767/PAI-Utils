@@ -5,4 +5,4 @@ from paiutils import (
     reinforcement, util_funcs
 )
 
-__version__ = '3.1.0'
+__version__ = '3.1.1'

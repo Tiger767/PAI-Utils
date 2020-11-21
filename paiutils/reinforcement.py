@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 5_18_2020
+Version: 11_21_2020
 """
 
 
@@ -1542,7 +1542,9 @@ class DQNAgent(Agent):
                 reg_loss = 0
             y_true = (y_pred * (1 - action_onehots) +
                       qvalues[:, tf.newaxis] * action_onehots)
-            loss = self.qmodel.loss_functions[0](y_true, y_pred) + reg_loss
+            loss = self.qmodel.compiled_loss._losses.fn(
+                y_true, y_pred
+            ) + reg_loss
         grads = tape.gradient(loss, self.qmodel.trainable_variables)
         self.qmodel.optimizer.apply_gradients(
             zip(grads, self.qmodel.trainable_variables)
@@ -2268,7 +2270,9 @@ class DDPGAgent(Agent):
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss = self.cmodel.loss_functions[0](qvalues_true, qvalues_pred)
+            loss = self.cmodel.compiled_loss._losses.fn(
+                qvalues_true, qvalues_pred
+            )
             loss = tf.reduce_mean(loss) + reg_loss
         grads = tape.gradient(loss, self.cmodel.trainable_variables)
         self.cmodel.optimizer.apply_gradients(
@@ -2279,9 +2283,9 @@ class DDPGAgent(Agent):
         # Actor
         with tf.GradientTape() as tape:
             action_preds = self.amodel(states, training=True)
-            loss = -tf.reduce_mean(
-                self.cmodel([states, action_preds], training=False)
-            )
+            loss = -tf.reduce_mean(tf.reduce_sum(
+                self.cmodel([states, action_preds], training=False), axis=1
+            ))
         grads = tape.gradient(loss, self.amodel.trainable_variables)
         self.amodel.optimizer.apply_gradients(
             zip(grads, self.amodel.trainable_variables)
