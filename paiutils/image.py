@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 11_19_2020
+Version: 11_21_2020
 """
 
 
@@ -741,7 +741,7 @@ class Camera:
         if not self.camera.isOpened():
             self.open()
 
-    def __exit__(self):
+    def __exit__(self, type, value, traceback):
         self.close()
 
     def open(self):
@@ -933,6 +933,7 @@ class Windows:
     def __enter__(self):
         """Starts the thread for updating."""
         self.start()
+        return self
 
     def __exit__(self, type, value, traceback):
         """Stops the thread from updating the windows and removes
