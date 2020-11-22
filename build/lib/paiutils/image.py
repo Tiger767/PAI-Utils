@@ -740,6 +740,7 @@ class Camera:
     def __enter__(self):
         if not self.camera.isOpened():
             self.open()
+        return self
 
     def __exit__(self, type, value, traceback):
         self.close()
