@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 11_21_2020
+Version: 11_24_2020
 """
 
 
@@ -640,10 +640,8 @@ class TemplateMatcher:
         params:
             template: A numpy ndarray, which has 2 or 3 dimensions (BGR)
         """
-        if template.ndim == 3:
-            template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
         self.template = template
-        self.h, self.w = self.template.shape
+        self.h, self.w = self.template.shape[:2]
 
     def match_coords(self, image, method=cv2.TM_CCOEFF_NORMED):
         """Finds the top left point and dimensions (width, height)
@@ -653,17 +651,16 @@ class TemplateMatcher:
             method: A cv2 constant or integer, which determines the
                     method of finding a match
         returns: A tuple of 2 tuples with 2 integers in each
-                 ((left, top), (width, height))
+                 ((left, top), (width, height)) and a float
+                 of the confidence
         """
-        if image.ndim == 3:
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         result = cv2.matchTemplate(image, self.template, method)
         min_loc, max_loc = cv2.minMaxLoc(result)[2:]
         if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
             top_left = min_loc
         else:
             top_left = max_loc
-        return top_left, (self.w, self.h)
+        return top_left, (self.w, self.h), result[top_left[::-1]]
 
     def match_draw_rect(self, image, color=(0, 255, 0), thickness=2,
                         method=cv2.TM_CCOEFF_NORMED):
@@ -678,12 +675,12 @@ class TemplateMatcher:
                        rectangle line
             method: A cv2 constant or integer, which determines the
                     method of finding a match
-        returns: A tuple of 2 tuples with 2 integers in each
-                 ((left, top), (width, height))
+        returns: A float of the confidence
         """
-        top_left, (w, h) = self.match_coords(image, method)
+        top_left, (w, h), result = self.match_coords(image, method)
         cv2.rectangle(image, top_left, (top_left[0] + w, top_left[1] + h),
                       color, thickness)
+        return result
 
     def match_draw_all_rects(self, image, threshold=.8, color=(0, 255, 0),
                              thickness=2, method=cv2.TM_CCOEFF_NORMED):
