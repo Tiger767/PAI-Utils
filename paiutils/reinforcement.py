@@ -881,6 +881,7 @@ class BufferedMemory(Memory):
             self.filled = True
             self.overflow = True
             self.end = 0
+            self.start = -1
         if self.overflow:
             self.start += 1
             if self.start == self.length:
@@ -892,9 +893,13 @@ class BufferedMemory(Memory):
         params:
             key: A valid key or index for a memory entry
         """
-        if key > 0:
+        if key >= 0:
+            if key >= self.__len__():
+                raise IndexError('out of range')
             key = (self.start + key) % self.length
         else:
+            if -key > self.__len__():
+                raise IndexError('out of range')
             key = (self.end + key) % self.length
         return self.buffer[key]
 
@@ -904,9 +909,13 @@ class BufferedMemory(Memory):
             key: A valid key or index for a memory entry
             value: A entry similar to other entries
         """
-        if key > 0:
+        if key >= 0:
+            if key >= self.__len__():
+                raise IndexError('out of range')
             key = (self.start + key) % self.length
         else:
+            if -key > self.__len__():
+                raise IndexError('out of range')
             key = (self.end + key) % self.length
         self.buffer[key] = value
 
@@ -914,7 +923,9 @@ class BufferedMemory(Memory):
         """Returns a copy of the memory.
         return: A numpy ndarray
         """
-        return self.buffer
+        if self.filled:
+            return self.buffer
+        return self.buffer[self.start:self.end]
 
     def reset(self):
         """Resets or clears the memory.
