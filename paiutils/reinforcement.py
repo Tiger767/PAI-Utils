@@ -818,6 +818,130 @@ class Memory:
         """
         self.buffer.clear()
 
+    @staticmethod
+    def create_shuffled_subset(memories, subset_size, weights=None):
+        """Creates a list of numpy arrays of a shuffled subset of memories.
+        params:
+            memories: A list of Memeory Objects (not asserted but assumed)
+            subset_size: A integer, which is the size of the
+                         outer dimension of each ndarray
+            weights: A list of probabilities that add up to 1
+        return: arrays and shuffled indexes
+        """
+        indexes = np.random.choice(np.arange(len(memories[0])),
+                                   size=subset_size, replace=False,
+                                   p=weights)
+        if len(memories[0]) // 10 > subset_size:
+            arrays = [memory.array()[indexes] for memory in memories]
+        else:
+            arrays = [np.empty(memory[0].shape) for memory in memories]
+            for ndx, rndx in enumerate(indexes):
+                for array, memory in zip(arrays, memories):
+                    array[ndx] = memory[rndx]
+        return arrays, indexes
+
+
+class BufferedMemory(Memory):
+    """This class is used by agents to store episode information.
+       (uses a numpy ndarray)
+    """
+
+    def __init__(self, length, shape, dtype=np.float):
+        """Initalizes the memory.
+        params:
+            length: An integer, which is the max length of memory
+                    and the amount buffered
+                    (oldest elements will be overwritten at max)
+            shape: A tuple, which is the shape of each element
+            dtype: A numpy data type, which is the data type of each element
+        """
+        self.length = length
+        self.buffer = np.empty((length, *shape), dtype=dtype)
+        self.start = 0
+        self.end = 0
+        self.overflow = False
+        self.filled = False
+
+    def __len__(self):
+        """Returns the number of entries in the memory.
+        return: An integer
+        """
+        if self.filled:
+            return self.length
+        return self.end - self.start
+
+    def add(self, x):
+        """Adds a entry to memory.
+        params:
+            x: A entry similar to other entries
+        """
+        self.buffer[self.end] = x
+        self.end += 1
+        if self.end == self.length:
+            self.filled = True
+            self.overflow = True
+            self.end = 0
+        if self.overflow:
+            self.start += 1
+            if self.start == self.length:
+                self.start = 0
+                self.overflow = False
+
+    def __getitem__(self, key):
+        """Returns an item given a key.
+        params:
+            key: A valid key or index for a memory entry
+        """
+        if key > 0:
+            key = (self.start + key) % self.length
+        else:
+            key = (self.end + key) % self.length
+        return self.buffer[key]
+
+    def __setitem__(self, key, value):
+        """Sets a entry to a given key.
+        params:
+            key: A valid key or index for a memory entry
+            value: A entry similar to other entries
+        """
+        if key > 0:
+            key = (self.start + key) % self.length
+        else:
+            key = (self.end + key) % self.length
+        self.buffer[key] = value
+
+    def array(self):
+        """Returns a copy of the memory.
+        return: A numpy ndarray
+        """
+        return self.buffer
+
+    def reset(self):
+        """Resets or clears the memory.
+        """
+        self.start = 0
+        self.end = 0
+        self.overflow = False
+        self.filled = False
+
+    @staticmethod
+    def create_shuffled_subset(memories, subset_size, weights=None):
+        """Creates a list of numpy arrays of a shuffled subset of memories.
+        params:
+            memories: A list of BufferedMemeory Objects
+                      (not asserted but assumed)
+            subset_size: A integer, which is the size of the
+                         outer dimension of each ndarray
+            weights: A list of probabilities that add up to 1
+        return: arrays and shuffled indexes
+        """
+        if weights is not None:
+            weights = np.roll(weights, memories[0].start)
+        indexes = np.random.choice(np.arange(len(memories[0])),
+                                   size=subset_size, replace=False,
+                                   p=weights)
+        return [memory.buffer[indexes] for memory in memories], indexes
+
 
 class RingMemory(Memory):
     """This class is used by agents to store episode information.
@@ -1376,13 +1500,13 @@ class DQNAgent(Agent):
         self.rewards = create_memory()
         self.terminals = create_memory()
         if enable_PER:
-            self.PER_losses = create_memory()
+            self.per_losses = create_memory()
 
             # assuming the true max loss will be less than 100
             # at least at the begining
             self.max_loss = 100.0
         else:
-            self.PER_losses = None
+            self.per_losses = None
         self.action_identity = np.identity(self.action_shape[0])
         self.total_steps = 0
         self.metric = tf.keras.metrics.Mean(name='loss')
@@ -1477,11 +1601,11 @@ class DQNAgent(Agent):
         """
         self.states.add(np.array(state))
         self.next_states.add(np.array(new_state))
-        self.actions.add(action)
+        self.actions.add(self.action_identity[action])
         self.rewards.add(reward)
         self.terminals.add(0 if terminal else 1)
-        if self.PER_losses is not None:
-            self.PER_losses.add(self.max_loss)
+        if self.per_losses is not None:
+            self.per_losses.add(self.max_loss)
 
     def forget(self):
         """Forgets or clears all memory."""
@@ -1490,8 +1614,8 @@ class DQNAgent(Agent):
         self.actions.reset()
         self.rewards.reset()
         self.terminals.reset()
-        if self.PER_losses is not None:
-            self.PER_losses.reset()
+        if self.per_losses is not None:
+            self.per_losses.reset()
 
     def update_target(self, tau):
         """Updates the target Q Model weights.
@@ -1509,14 +1633,14 @@ class DQNAgent(Agent):
                 tws[ndx] = ws[ndx] * tau + tws[ndx] * (1 - tau)
 
     def _train_step(self, states, next_states,
-                    action_onehots, terminals, rewards):
+                    actions, terminals, rewards):
         """Performs one gradient step with a batch of data.
         params:
             states: A tensor that contains environment states
             next_states: A tensor that contains the states of
                          the environment after an action was performed
-            action_onehots: A tensor that contains onehot encodings of
-                            the action performed
+            actions: A tensor that contains onehot encodings of
+                     the action performed
             terminals: A tensor that contains ones for nonterminal
                        states and zeros for terminal states
             rewards: A tensor that contains the reward for the action
@@ -1540,8 +1664,8 @@ class DQNAgent(Agent):
                 reg_loss = tf.math.add_n(self.qmodel.losses)
             else:
                 reg_loss = 0
-            y_true = (y_pred * (1 - action_onehots) +
-                      qvalues[:, tf.newaxis] * action_onehots)
+            y_true = (y_pred * (1 - actions) +
+                      qvalues[:, tf.newaxis] * actions)
             loss = self.qmodel.compiled_loss._losses.fn(
                 y_true, y_pred
             ) + reg_loss
@@ -1553,15 +1677,15 @@ class DQNAgent(Agent):
 
         return tf.reduce_sum(tf.abs(y_true - y_pred), axis=-1)
 
-    def _train(self, states, next_states, action_onehots, terminals,
+    def _train(self, states, next_states, actions, terminals,
                rewards, epochs, batch_size, verbose=True):
         """Performs multiple gradient steps of all the data.
         params:
             states: A numpy array that contains environment states
             next_states: A numpy array that contains the states of
                          the environment after an action was performed
-            action_onehots: A numpy array that contains onehot encodings of
-                            the action performed
+            actions: A numpy array that contains onehot encodings of
+                     the action performed
             terminals: A numpy array that contains ones for nonterminal
                        states and zeros for terminal states
             rewards: A numpy array that contains the reward for the action
@@ -1580,7 +1704,7 @@ class DQNAgent(Agent):
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              next_states.astype(float_type),
-             action_onehots.astype(float_type),
+             actions.astype(float_type),
              terminals.astype(float_type),
              rewards.astype(float_type))
         ).batch(batch_size)
@@ -1638,45 +1762,27 @@ class DQNAgent(Agent):
         for count in range(1, repeat+1):
             if verbose:
                 print(f'Repeat {count}/{repeat}')
-            indexes = None
-            if self.PER_losses is None:
-                indexes = np.random.choice(np.arange(len(self.states)),
-                                           size=length, replace=False)
+
+            if self.per_losses is None:
+                arrays, indexes = self.states.create_shuffled_subset(
+                    [self.states, self.next_states, self.actions,
+                     self.terminals, self.rewards],
+                    length
+                )
             else:
-                PER_losses_arr = self.PER_losses.array()
-                self.max_loss = PER_losses_arr.max()
-                PER_losses_arr = PER_losses_arr / PER_losses_arr.sum()
-                indexes = np.random.choice(np.arange(len(self.states)),
-                                           size=length, replace=False,
-                                           p=PER_losses_arr)
-            if length >= 10000:  # depends on cpu and other factors
-                next_states_arr = self.next_states.array()[indexes]
-                states_arr = self.states.array()[indexes]
-                action_onehots = self.action_identity[
-                    self.actions.array()[indexes]
-                ]
-                rewards_arr = self.rewards.array()[indexes]
-                terminals_arr = self.terminals.array()[indexes]
-            else:
-                next_states_arr = np.empty((length, *self.states[0].shape))
-                states_arr = np.empty((length, *self.states[0].shape))
-                action_onehots = np.empty((length, self.action_shape[0]))
-                rewards_arr = np.empty(length)
-                terminals_arr = np.empty(length)
-                for ndx, rndx in enumerate(indexes):
-                    states_arr[ndx] = self.states[rndx]
-                    next_states_arr[ndx] = self.next_states[rndx]
-                    action_onehots[ndx] = self.action_identity[
-                        self.actions[rndx]
-                    ]
-                    rewards_arr[ndx] = self.rewards[rndx]
-                    terminals_arr[ndx] = self.terminals[rndx]
-            losses = self._train(states_arr, next_states_arr, action_onehots,
-                                 terminals_arr, rewards_arr, epochs,
-                                 batch_size, verbose=verbose)
-            if self.PER_losses is not None:
+                per_losses = self.per_losses.array()
+                self.max_loss = per_losses.max()
+                per_losses = per_losses / per_losses.sum()
+                arrays, indexes = self.states.create_shuffled_subset(
+                    [self.states, self.next_states, self.actions,
+                     self.terminals, self.rewards],
+                    length, weights=per_losses
+                )
+            losses = self._train(*arrays, epochs, batch_size, verbose=verbose)
+            if self.per_losses is not None:
                 for ndx, loss in zip(indexes, losses):
-                    self.PER_losses[ndx] = loss
+                    self.per_losses[ndx] = loss
+
             if (self.enable_target
                     and self.total_steps % target_update_interval == 0):
                 self.update_target(tau)
@@ -1714,13 +1820,13 @@ class DQNAgent(Agent):
                     self.rewards.add(reward)
                 for terminal in file['terminals']:
                     self.terminals.add(terminal)
-                if self.PER_losses is not None:
-                    if 'PER_losses' in file:
-                        for loss in file['PER_losses']:
-                            self.PER_losses.add(loss)
+                if self.per_losses is not None:
+                    if 'per_losses' in file:
+                        for loss in file['per_losses']:
+                            self.per_losses.add(loss)
                     else:
                         for _ in range(len(self.states)):
-                            self.PER_losses.add(self.max_loss)
+                            self.per_losses.add(self.max_loss)
 
     def save(self, path, save_model=True,
              save_data=True, note='DQNAgent Save'):
@@ -1749,9 +1855,9 @@ class DQNAgent(Agent):
                 file.create_dataset('actions', data=self.actions.array())
                 file.create_dataset('rewards', data=self.rewards.array())
                 file.create_dataset('terminals', data=self.terminals.array())
-                if self.PER_losses is not None:
+                if self.per_losses is not None:
                     file.create_dataset(
-                        'PER_losses', data=self.PER_losses.array()
+                        'per_losses', data=self.per_losses.array()
                     )
         return path
 
@@ -1866,7 +1972,7 @@ class PGAgent(Agent):
                       (discarded)
         """
         self.states.add(np.array(state))
-        self.actions.add(action)
+        self.actions.add(self.action_identity[action])
         self.episode_rewards.append(reward)
 
     def forget(self):
@@ -1891,14 +1997,14 @@ class PGAgent(Agent):
             for dreward in reversed(dreward_list):
                 self.drewards.add(dreward)
 
-    def _train_step(self, states, drewards, action_onehots, entropy_coef):
+    def _train_step(self, states, drewards, actions, entropy_coef):
         """Performs one gradient step with a batch of data.
         params:
             states: A tensor that contains environment states
             drewards: A tensor that contains the discounted reward
                       for the action performed in the environment
-            action_onehots: A tensor that contains onehot encodings of
-                            the action performed
+            actions: A tensor that contains onehot encodings of
+                     the action performed
             entropy_coef: A tensor constant float, which is the
                           coefficent of entropy to add to the
                           actor loss
@@ -1908,7 +2014,7 @@ class PGAgent(Agent):
             # log_softmax may be mathematically correct, but in practice
             # seems to give worse results
             log_probs = tf.reduce_sum(
-                action_onehots *
+                actions *
                 tf.math.log(y_pred + tf.keras.backend.epsilon()), axis=1
             )
             loss = -tf.reduce_mean(drewards * log_probs)
@@ -1923,15 +2029,15 @@ class PGAgent(Agent):
         )
         self.metric(loss)
 
-    def _train(self, states, drewards, action_onehots,
+    def _train(self, states, drewards, actions,
                epochs, batch_size, entropy_coef, verbose=True):
         """Performs multiple gradient steps of all the data.
         params:
             states: A numpy array that contains environment states
             drewards: A numpy array that contains the discounted reward
                       for the action performed in the environment
-            action_onehots: A numpy array that contains onehot encodings of
-                            the action performed
+            actions: A numpy array that contains onehot encodings of
+                     the action performed
             epochs: An integer, which is the number of complete gradient
                     steps to perform
             batch_size: An integer, which is the size of the batch for
@@ -1947,7 +2053,7 @@ class PGAgent(Agent):
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              drewards.astype(float_type),
-             action_onehots.astype(float_type))
+             actions.astype(float_type))
         ).batch(batch_size)
         entropy_coef = tf.constant(entropy_coef,
                                    dtype=float_type)
@@ -1993,32 +2099,16 @@ class PGAgent(Agent):
         for count in range(1, repeat+1):
             if verbose:
                 print(f'Repeat {count}/{repeat}')
-            indexes = np.random.choice(np.arange(len(self.states)),
-                                       size=length, replace=False)
-            if length >= 20000:  # depends on cpu and other factors
-                states_arr = self.states.array()[indexes]
-                action_onehots = self.action_identity[
-                    self.actions.array()[indexes]
-                ]
-                drewards_arr = self.drewards.array()[indexes]
-            else:
-                states_arr = np.empty((length, *self.states[0].shape))
-                action_onehots = np.empty((length, self.action_shape[0]))
-                drewards_arr = np.empty(length)
-                for ndx in range(length):
-                    states_arr[ndx] = self.states[indexes[ndx]]
-                    action_onehots[ndx] = self.action_identity[
-                        self.actions[indexes[ndx]]
-                    ]
-                    drewards_arr[ndx] = self.drewards[indexes[ndx]]
 
-            std = drewards_arr.std()
+            arrays, _ = self.states.create_shuffled_subset(
+                [self.states, self.drewards, self.actions], length
+            )
+            std = arrays[1].std()
             if std == 0:
                 return False
-            drewards_arr = (drewards_arr - drewards_arr.mean()) / std
-
-            self._train(states_arr, drewards_arr, action_onehots,
-                        epochs, batch_size, entropy_coef, verbose=verbose)
+            arrays[1] = (arrays[1] - arrays[1].mean()) / std
+            self._train(*arrays, epochs, batch_size,
+                        entropy_coef, verbose=verbose)
 
     def load(self, path, load_model=True, load_data=True):
         """Loads a save from a folder.
@@ -2373,30 +2463,13 @@ class DDPGAgent(Agent):
         for count in range(1, repeat+1):
             if verbose:
                 print(f'Repeat {count}/{repeat}')
-            indexes = np.random.choice(np.arange(len(self.states)),
-                                       size=length, replace=False)
-            if length >= 10000:  # depends on cpu and other factors
-                next_states_arr = self.next_states.array()[indexes]
-                states_arr = self.states.array()[indexes]
-                actions_arr = self.actions.array()[indexes]
-                rewards_arr = self.rewards.array()[indexes]
-                terminals_arr = self.terminals.array()[indexes]
-            else:
-                next_states_arr = np.empty((length, *self.states[0].shape))
-                states_arr = np.empty((length, *self.states[0].shape))
-                actions_arr = np.empty((length, *self.actions[0].shape))
-                rewards_arr = np.empty(length)
-                terminals_arr = np.empty(length)
-                for ndx, rndx in enumerate(indexes):
-                    states_arr[ndx] = self.states[rndx]
-                    next_states_arr[ndx] = self.next_states[rndx]
-                    actions_arr[ndx] = self.actions[rndx]
-                    rewards_arr[ndx] = self.rewards[rndx]
-                    terminals_arr[ndx] = self.terminals[rndx]
 
-            self._train(states_arr, next_states_arr, actions_arr,
-                        terminals_arr, rewards_arr, epochs, batch_size,
-                        verbose=verbose)
+            arrays, _ = self.states.create_shuffled_subset(
+                [self.states, self.next_states, self.actions,
+                 self.terminals, self.rewards],
+                length
+            )
+            self._train(*arrays, epochs, batch_size, verbose=verbose)
 
             if (self.enable_target
                     and self.total_steps % target_update_interval == 0):
