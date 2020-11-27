@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 11_21_2020
+Version: 11_26_2020
 """
 
 
@@ -1780,8 +1780,8 @@ class PGAgent(Agent):
         self.discounted_rate = discounted_rate
         self.states = create_memory()
         self.actions = create_memory()
-        self.rewards = create_memory()
         self.drewards = create_memory()
+        self.episode_rewards = []
         self.action_identity = np.identity(self.action_shape[0])
         self.metric = tf.keras.metrics.Mean(name='loss')
         self._tf_train_step = tf.function(
@@ -1867,28 +1867,27 @@ class PGAgent(Agent):
         """
         self.states.add(np.array(state))
         self.actions.add(action)
-        self.rewards.add(reward)
+        self.episode_rewards.append(reward)
 
     def forget(self):
         """Forgets or clears all memory."""
         self.states.reset()
         self.actions.reset()
-        self.rewards.reset()
         self.drewards.reset()
+        self.episode_rewards.clear()
 
     def end_episode(self):
         """Ends the episode, and creates drewards based
            on the episodes rewards.
         """
-        if len(self.rewards) > 0:
+        if len(self.episode_rewards) > 0:
             dreward = 0
             dreward_list = []
-            # hacky, assuming memory works with reversed
-            for reward in reversed(self.rewards.buffer):
+            for reward in reversed(self.episode_rewards):
                 dreward *= self.discounted_rate
                 dreward += reward
                 dreward_list.append(dreward)
-            self.rewards.reset()
+            self.episode_rewards.clear()
             for dreward in reversed(dreward_list):
                 self.drewards.add(dreward)
 

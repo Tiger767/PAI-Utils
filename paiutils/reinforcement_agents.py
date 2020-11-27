@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 5_18_2020
+Version: 11_26_2020
 """
 
 
@@ -61,8 +61,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
                           enable_PER=enable_PER)
         self.amodel = amodel
         self.uses_dqn_method = True
-        self.temp_rewards = create_memory()
         self.drewards = create_memory()
+        self.episode_rewards = []
         self.pg_metric = tf.keras.metrics.Mean(name='pg_loss')
         self._tf_train_step = tf.function(
             self._train_step,
@@ -125,27 +125,26 @@ class DQNPGAgent(DQNAgent, PGAgent):
                       add memory is the last for the episode
         """
         DQNAgent.add_memory(self, state, action, new_state, reward, terminal)
-        self.temp_rewards.add(reward)
+        self.episode_rewards.append(reward)
 
     def forget(self):
         """Forgets or clears all memory."""
         DQNAgent.forget(self)
-        self.temp_rewards.reset()
         self.drewards.reset()
+        self.episode_rewards.clear()
 
     def end_episode(self):
         """Ends the episode, and creates drewards based
            on the episodes rewards.
         """
-        if len(self.temp_rewards) > 0:
+        if len(self.episode_rewards) > 0:
             dreward = 0
             dreward_list = []
-            # hacky, assuming memory works with reversed
-            for reward in reversed(self.temp_rewards.buffer):
+            for reward in reversed(self.episode_rewards):
                 dreward *= self.discounted_rate
                 dreward += reward
                 dreward_list.append(dreward)
-            self.temp_rewards.reset()
+            self.episode_rewards.clear()
             for dreward in reversed(dreward_list):
                 self.drewards.add(dreward)
 
@@ -184,7 +183,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
                 reg_loss = 0
             y_true = (y_pred * (1 - action_onehots) +
                       qvalues[:, tf.newaxis] * action_onehots)
-            loss = self.qmodel.loss_functions[0](y_true, y_pred) + reg_loss
+            loss = self.qmodel.compiled_loss._losses.fn(y_true, y_pred) + reg_loss
         grads = tape.gradient(loss, self.qmodel.trainable_variables)
         self.qmodel.optimizer.apply_gradients(
             zip(grads, self.qmodel.trainable_variables)
@@ -455,8 +454,8 @@ class A2CAgent(PGAgent):
                          policy=None)
         self.cmodel = cmodel
         self.lambda_rate = lambda_rate
-        self.temp_rewards = create_memory()
         self.terminals = create_memory()
+        self.rewards = create_memory()
         self.metric_c = tf.keras.metrics.Mean(name='critic_loss')
         self._tf_train_step = tf.function(
             self._train_step,
@@ -489,7 +488,7 @@ class A2CAgent(PGAgent):
         """
         self.states.add(np.array(state))
         self.actions.add(action)
-        self.temp_rewards.add(reward)
+        self.episode_rewards.append(reward)
         if self.lambda_rate > 0:
             self.terminals.add(terminal)
             self.rewards.add(reward)
@@ -497,22 +496,21 @@ class A2CAgent(PGAgent):
     def forget(self):
         """Forgets or clears all memory."""
         PGAgent.forget(self)
-        self.temp_rewards.reset()
         self.terminals.reset()
+        self.rewards.reset()
 
     def end_episode(self):
         """Ends the episode, and creates drewards based
            on the episodes rewards.
         """
-        if len(self.temp_rewards) > 0:
+        if len(self.episode_rewards) > 0:
             dreward = 0
             dreward_list = []
-            # hacky, assuming memory works with reversed
-            for reward in reversed(self.temp_rewards.buffer):
+            for reward in reversed(self.episode_rewards):
                 dreward *= self.discounted_rate
                 dreward += reward
                 dreward_list.append(dreward)
-            self.temp_rewards.reset()
+            self.episode_rewards.clear()
             for dreward in reversed(dreward_list):
                 self.drewards.add(dreward)
             if self.lambda_rate > 0:
@@ -538,7 +536,7 @@ class A2CAgent(PGAgent):
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss = self.cmodel.loss_functions[0](drewards, value_pred)
+            loss = self.cmodel.compiled_loss._losses.fn(drewards, value_pred)
             loss = loss + reg_loss
         grads = tape.gradient(loss, self.cmodel.trainable_variables)
         self.cmodel.optimizer.apply_gradients(
@@ -890,7 +888,7 @@ class PPOAgent(A2CAgent):
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss = self.cmodel.loss_functions[0](drewards, value_pred)
+            loss = self.cmodel.compiled_loss._losses.fn(drewards, value_pred)
             loss = loss + reg_loss
         grads = tape.gradient(loss, self.cmodel.trainable_variables)
         self.cmodel.optimizer.apply_gradients(
@@ -1302,8 +1300,8 @@ class TD3Agent(DDPGAgent):
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss1 = self.cmodel.loss_functions[0](qvalues_true, qvalues_pred1)
-            loss2 = self.cmodel.loss_functions[0](qvalues_true, qvalues_pred2)
+            loss1 = self.cmodel.compiled_loss._losses.fn(qvalues_true, qvalues_pred1)
+            loss2 = self.cmodel.compiled_loss._losses.fn(qvalues_true, qvalues_pred2)
             loss = tf.reduce_mean(loss1) + tf.reduce_mean(loss2) + reg_loss
         grads = tape.gradient(loss, self.cmodel.trainable_variables)
         self.cmodel.optimizer.apply_gradients(

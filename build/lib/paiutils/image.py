@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 11_24_2020
+Version: 11_25_2020
 """
 
 
@@ -635,12 +635,14 @@ class TemplateMatcher:
     methods = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR,
                cv2.TM_CCORR_NORMED, cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]
 
-    def __init__(self, template):
+    def __init__(self, template, mask=None):
         """Initializes the TemplateMatcher by converting and setting the template.
         params:
             template: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+            mask: A numpy ndarray, which acts as a binary mask or weights
         """
         self.template = template
+        self.mask = mask
         self.h, self.w = self.template.shape[:2]
 
     def match_coords(self, image, method=cv2.TM_CCOEFF_NORMED):
@@ -654,7 +656,8 @@ class TemplateMatcher:
                  ((left, top), (width, height)) and a float
                  of the confidence
         """
-        result = cv2.matchTemplate(image, self.template, method)
+        result = cv2.matchTemplate(image, self.template,
+                                   method, mask=self.mask)
         min_loc, max_loc = cv2.minMaxLoc(result)[2:]
         if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
             top_left = min_loc
@@ -701,7 +704,8 @@ class TemplateMatcher:
                  ((left, top), (width, height))
         """
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        result = cv2.matchTemplate(gray_image, self.template, method)
+        result = cv2.matchTemplate(gray_image, self.template,
+                                   method, mask=self.mask)
         if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
             ys, xs = np.where(result <= threshold)
         else:
