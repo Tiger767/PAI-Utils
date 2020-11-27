@@ -1509,14 +1509,14 @@ class DQNAgent(Agent):
                                     tf.keras.backend.floatx())
         self.next_states = create_memory(self.qmodel.input_shape,
                                          tf.keras.backend.floatx())
-        self.actions = create_memory(self.qmodel.input_shape,
+        self.actions = create_memory(self.qmodel.output_shape,
                                      tf.keras.backend.floatx())
-        self.rewards = create_memory(self.qmodel.input_shape,
+        self.rewards = create_memory((None,),
                                      tf.keras.backend.floatx())
-        self.terminals = create_memory(self.qmodel.input_shape,
+        self.terminals = create_memory((None,),
                                        tf.keras.backend.floatx())
         if enable_PER:
-            self.per_losses = create_memory(self.qmodel.input_shape,
+            self.per_losses = create_memory((None,),
                                             tf.keras.backend.floatx())
 
             # assuming the true max loss will be less than 100
@@ -1903,9 +1903,9 @@ class PGAgent(Agent):
         self.discounted_rate = discounted_rate
         self.states = create_memory(self.amodel.input_shape,
                                     tf.keras.backend.floatx())
-        self.actions = create_memory(self.amodel.input_shape,
+        self.actions = create_memory(self.amodel.output_shape,
                                      tf.keras.backend.floatx())
-        self.drewards = create_memory(self.amodel.input_shape,
+        self.drewards = create_memory((None,),
                                       tf.keras.backend.floatx())
         self.episode_rewards = []
         self.action_identity = np.identity(self.action_shape[0])
@@ -2225,11 +2225,11 @@ class DDPGAgent(Agent):
                                     tf.keras.backend.floatx())
         self.next_states = create_memory(self.amodel.input_shape,
                                          tf.keras.backend.floatx())
-        self.actions = create_memory(self.amodel.input_shape,
+        self.actions = create_memory(self.amodel.output_shape,
                                      tf.keras.backend.floatx())
-        self.rewards = create_memory(self.amodel.input_shape,
+        self.rewards = create_memory((None,),
                                      tf.keras.backend.floatx())
-        self.terminals = create_memory(self.amodel.input_shape,
+        self.terminals = create_memory((None,),
                                        tf.keras.backend.floatx())
         self.total_steps = 0
         self.metric_c = tf.keras.metrics.Mean(name='critic_loss')

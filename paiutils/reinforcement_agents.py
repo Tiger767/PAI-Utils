@@ -61,7 +61,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
                           enable_PER=enable_PER)
         self.amodel = amodel
         self.uses_dqn_method = True
-        self.drewards = create_memory(self.qmodel.input_shape,
+        self.drewards = create_memory((None,),
                                       tf.keras.backend.floatx())
         self.episode_rewards = []
         self.pg_metric = tf.keras.metrics.Mean(name='pg_loss')
@@ -436,9 +436,9 @@ class A2CAgent(PGAgent):
                          policy=None)
         self.cmodel = cmodel
         self.lambda_rate = lambda_rate
-        self.terminals = create_memory(self.amodel.input_shape,
+        self.terminals = create_memory((None,),
                                        tf.keras.backend.floatx())
-        self.rewards = create_memory(self.amodel.input_shape,
+        self.rewards = create_memory((None,),
                                      tf.keras.backend.floatx())
         self.metric_c = tf.keras.metrics.Mean(name='critic_loss')
         self._tf_train_step = tf.function(
@@ -760,7 +760,7 @@ class PPOAgent(A2CAgent):
                           lambda_rate=lambda_rate,
                           create_memory=create_memory)
         self.clip_ratio = clip_ratio
-        self.old_probs = create_memory(self.amodel.input_shape,
+        self.old_probs = create_memory((None,),
                                        tf.keras.backend.floatx())
         self.prob = None
         self._tf_train_step = tf.function(
