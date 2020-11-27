@@ -29,7 +29,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
     """
 
     def __init__(self, policy, qmodel, amodel, discounted_rate,
-                 create_memory=lambda: Memory(),
+                 create_memory=lambda shape, dtype: Memory(),
                  enable_target=True, enable_double=False,
                  enable_PER=False):
         """Initalizes the Deep Q Network and Policy Gradient Agent.
@@ -61,7 +61,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
                           enable_PER=enable_PER)
         self.amodel = amodel
         self.uses_dqn_method = True
-        self.drewards = create_memory()
+        self.drewards = create_memory(self.qmodel.input_shape,
+                                      tf.keras.backend.floatx())
         self.episode_rewards = []
         self.pg_metric = tf.keras.metrics.Mean(name='pg_loss')
         self._tf_train_step = tf.function(
@@ -148,15 +149,15 @@ class DQNPGAgent(DQNAgent, PGAgent):
             for dreward in reversed(dreward_list):
                 self.drewards.add(dreward)
 
-    def _train_step(self, states, next_states, action_onehots,
+    def _train_step(self, states, next_states, actions,
                     terminals, rewards, drewards):
         """Performs one gradient step with a batch of data.
         params:
             states: A tensor that contains environment states
             next_states: A tensor that contains the states of
                          the environment after an action was performed
-            action_onehots: A tensor that contains onehot encodings of
-                            the action performed
+            actions: A tensor that contains onehot encodings of
+                     the action performed
             terminals: A tensor that contains ones for nonterminal
                        states and zeros for terminal states
             rewards: A tensor that contains the reward for the action
@@ -181,9 +182,11 @@ class DQNPGAgent(DQNAgent, PGAgent):
                 reg_loss = tf.math.add_n(self.qmodel.losses)
             else:
                 reg_loss = 0
-            y_true = (y_pred * (1 - action_onehots) +
-                      qvalues[:, tf.newaxis] * action_onehots)
-            loss = self.qmodel.compiled_loss._losses.fn(y_true, y_pred) + reg_loss
+            y_true = (y_pred * (1 - actions) +
+                      qvalues[:, tf.newaxis] * actions)
+            loss = self.qmodel.compiled_loss._losses.fn(
+                y_true, y_pred
+            ) + reg_loss
         grads = tape.gradient(loss, self.qmodel.trainable_variables)
         self.qmodel.optimizer.apply_gradients(
             zip(grads, self.qmodel.trainable_variables)
@@ -197,7 +200,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
             # log_softmax may be more stable, but in practice
             # seems to give worse results
             log_probs = tf.reduce_sum(
-                action_onehots *
+                actions *
                 tf.math.log(y_pred + tf.keras.backend.epsilon()), axis=1
             )
             loss = -tf.reduce_mean(drewards * log_probs)
@@ -209,15 +212,15 @@ class DQNPGAgent(DQNAgent, PGAgent):
 
         return abs_loss
 
-    def _train(self, states, next_states, action_onehots, terminals,
+    def _train(self, states, next_states, actions, terminals,
                rewards, drewards, epochs, batch_size, verbose=True):
         """Performs multiple gradient steps of all the data.
         params:
             states: A numpy array that contains environment states
             next_states: A numpy array that contains the states of
                          the environment after an action was performed
-            action_onehots: A numpy array that contains onehot encodings of
-                            the action performed
+            actions: A numpy array that contains onehot encodings of
+                     the action performed
             terminals: A numpy array that contains ones for nonterminal
                        states and zeros for terminal states
             rewards: A numpy array that contains the reward for the action
@@ -238,7 +241,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              next_states.astype(float_type),
-             action_onehots.astype(float_type),
+             actions.astype(float_type),
              terminals.astype(float_type),
              rewards.astype(float_type),
              drewards.astype(float_type))
@@ -299,53 +302,32 @@ class DQNPGAgent(DQNAgent, PGAgent):
         for count in range(1, repeat+1):
             if verbose:
                 print(f'Repeat {count}/{repeat}')
-            if self.PER_losses is None:
-                indexes = np.random.choice(np.arange(len(self.states)),
-                                           size=length, replace=False)
-            else:
-                PER_losses_arr = self.PER_losses.array()
-                self.max_loss = PER_losses_arr.max()
-                PER_losses_arr = PER_losses_arr / PER_losses_arr.sum()
-                indexes = np.random.choice(np.arange(len(self.states)),
-                                           size=length, replace=False,
-                                           p=PER_losses_arr)
-            if length >= 10000:  # depends on cpu and other factors
-                next_states_arr = self.next_states.array()[indexes]
-                states_arr = self.states.array()[indexes]
-                action_onehots = self.action_identity[
-                    self.actions.array()[indexes]
-                ]
-                rewards_arr = self.rewards.array()[indexes]
-                drewards_arr = self.drewards.array()[indexes]
-                terminals_arr = self.terminals.array()[indexes]
-            else:
-                next_states_arr = np.empty((length, *self.states[0].shape))
-                states_arr = np.empty((length, *self.states[0].shape))
-                action_onehots = np.empty((length, self.action_shape[0]))
-                rewards_arr = np.empty(length)
-                drewards_arr = np.empty(length)
-                terminals_arr = np.empty(length)
-                for ndx, rndx in enumerate(indexes):
-                    states_arr[ndx] = self.states[rndx]
-                    next_states_arr[ndx] = self.next_states[rndx]
-                    action_onehots[ndx] = self.action_identity[
-                        self.actions[rndx]
-                    ]
-                    rewards_arr[ndx] = self.rewards[rndx]
-                    drewards_arr[ndx] = self.drewards[rndx]
-                    terminals_arr[ndx] = self.terminals[rndx]
 
-            std = drewards_arr.std()
+            if self.per_losses is None:
+                arrays, indexes = self.states.create_shuffled_subset(
+                    [self.states, self.next_states, self.actions,
+                     self.terminals, self.rewards, self.drewards],
+                    length
+                )
+            else:
+                per_losses = self.per_losses.array()
+                self.max_loss = per_losses.max()
+                per_losses = per_losses / per_losses.sum()
+                arrays, indexes = self.states.create_shuffled_subset(
+                    [self.states, self.next_states, self.actions,
+                     self.terminals, self.rewards, self.drewards],
+                    length, weights=per_losses
+                )
+
+            std = arrays[-1].std()
             if std == 0:
                 return False
-            drewards_arr = (drewards_arr - drewards_arr.mean()) / std
-
-            losses = self._train(states_arr, next_states_arr, action_onehots,
-                                 terminals_arr, rewards_arr, drewards_arr,
-                                 epochs, batch_size, verbose=verbose)
-            if self.PER_losses is not None:
+            arrays[-1] = (arrays[-1] - arrays[-1].mean()) / std
+            losses = self._train(*arrays, epochs, batch_size, verbose=verbose)
+            if self.per_losses is not None:
                 for ndx, loss in zip(indexes, losses):
-                    self.PER_losses[ndx] = loss
+                    self.per_losses[ndx] = loss
+
             if (self.enable_target
                     and self.total_steps % target_update_interval == 0):
                 self.update_target(tau)
@@ -383,13 +365,13 @@ class DQNPGAgent(DQNAgent, PGAgent):
                     self.drewards.add(dreward)
                 for terminal in file['terminals']:
                     self.terminals.add(terminal)
-                if self.PER_losses is not None:
-                    if 'PER_losses' in file:
-                        for loss in file['PER_losses']:
-                            self.PER_losses.add(loss)
+                if self.per_losses is not None:
+                    if 'per_losses' in file:
+                        for loss in file['per_losses']:
+                            self.per_losses.add(loss)
                     else:
                         for _ in range(len(self.states)):
-                            self.PER_losses.add(self.max_loss)
+                            self.per_losses.add(self.max_loss)
 
     def save(self, path, save_model=True,
              save_data=True, note='DQNPGAgent Save'):
@@ -419,9 +401,9 @@ class DQNPGAgent(DQNAgent, PGAgent):
                 file.create_dataset('rewards', data=self.rewards.array())
                 file.create_dataset('drewards', data=self.drewards.array())
                 file.create_dataset('terminals', data=self.terminals.array())
-                if self.PER_losses is not None:
+                if self.per_losses is not None:
                     file.create_dataset(
-                        'PER_losses', data=self.PER_losses.array()
+                        'per_losses', data=self.per_losses.array()
                     )
         return path
 
@@ -434,7 +416,7 @@ class A2CAgent(PGAgent):
     """
 
     def __init__(self, amodel, cmodel, discounted_rate,
-                 lambda_rate=0, create_memory=lambda: Memory()):
+                 lambda_rate=0, create_memory=lambda shape, dtype: Memory()):
         """Initalizes the Policy Gradient Agent.
         params:
             amodel: A keras model, which takes the state as input and outputs
@@ -454,8 +436,10 @@ class A2CAgent(PGAgent):
                          policy=None)
         self.cmodel = cmodel
         self.lambda_rate = lambda_rate
-        self.terminals = create_memory()
-        self.rewards = create_memory()
+        self.terminals = create_memory(self.amodel.input_shape,
+                                       tf.keras.backend.floatx())
+        self.rewards = create_memory(self.amodel.input_shape,
+                                     tf.keras.backend.floatx())
         self.metric_c = tf.keras.metrics.Mean(name='critic_loss')
         self._tf_train_step = tf.function(
             self._train_step,
@@ -487,7 +471,7 @@ class A2CAgent(PGAgent):
                       add memory is the last for the episode
         """
         self.states.add(np.array(state))
-        self.actions.add(action)
+        self.actions.add(self.action_identity[action])
         self.episode_rewards.append(reward)
         if self.lambda_rate > 0:
             self.terminals.add(terminal)
@@ -517,7 +501,7 @@ class A2CAgent(PGAgent):
                 self.terminals[-1] = True
 
     def _train_step(self, states, drewards, advantages,
-                    action_onehots, entropy_coef):
+                    actions, entropy_coef):
         """Performs one gradient step with a batch of data.
         params:
             states: A tensor that contains environment states
@@ -525,8 +509,8 @@ class A2CAgent(PGAgent):
                       for the action performed in the environment
             advantages: A tensor, which if valid (lambda_rate > 0) contains
                         advantages for the actions performed
-            action_onehots: A tensor that contains onehot encodings of
-                            the action performed
+            actions: A tensor that contains onehot encodings of
+                     the action performed
             entropy_coef: A float, which is the coefficent of entropy to add
                           to the actor loss
         """
@@ -549,7 +533,7 @@ class A2CAgent(PGAgent):
             # log_softmax may be mathematically correct, but in practice
             # seems to give worse results
             log_probs = tf.reduce_sum(
-                action_onehots *
+                actions *
                 tf.math.log(action_pred + tf.keras.backend.epsilon()), axis=1
             )
             if self.lambda_rate == 0:
@@ -567,7 +551,7 @@ class A2CAgent(PGAgent):
         )
         self.metric(loss)
 
-    def _train(self, states, drewards, advantages, action_onehots,
+    def _train(self, states, drewards, advantages, actions,
                epochs, batch_size, entropy_coef, verbose=True):
         """Performs multiple gradient steps of all the data.
         params:
@@ -576,8 +560,8 @@ class A2CAgent(PGAgent):
                       for the actions performed in the environment
             advantages: A numpy array, which if valid (lambda_rate > 0)
                         contains advantages for the actions performed
-            action_onehots: A numpy array that contains onehot encodings of
-                            the action performed
+            actions: A numpy array that contains onehot encodings of
+                     the action performed
             epochs: An integer, which is the number of complete gradient
                     steps to perform
             batch_size: An integer, which is the size of the batch for
@@ -594,7 +578,7 @@ class A2CAgent(PGAgent):
             (states.astype(float_type),
              drewards.astype(float_type),
              advantages.astype(float_type),
-             action_onehots.astype(float_type))
+             actions.astype(float_type))
         ).batch(batch_size)
         entropy_coef = tf.constant(entropy_coef,
                                    dtype=float_type)
@@ -662,45 +646,25 @@ class A2CAgent(PGAgent):
                                  self.lambda_rate * advantage)
                     advantages[ndx] = advantage
 
-            indexes = np.random.choice(np.arange(len(self.states)),
-                                       size=length, replace=False)
-            if length >= 20000:  # depends on cpu and other factors
-                states_arr = self.states.array()[indexes]
-                action_onehots = self.action_identity[
-                    self.actions.array()[indexes]
-                ]
-                drewards_arr = self.drewards.array()[indexes]
-                if self.lambda_rate > 0:
-                    advantages_arr = advantages[indexes]
-            else:
-                states_arr = np.empty((length, *self.states[0].shape))
-                action_onehots = np.empty((length, self.action_shape[0]))
-                drewards_arr = np.empty(length)
-                if self.lambda_rate > 0:
-                    advantages_arr = np.empty(length)
-                for ndx in range(length):
-                    states_arr[ndx] = self.states[indexes[ndx]]
-                    action_onehots[ndx] = self.action_identity[
-                        self.actions[indexes[ndx]]
-                    ]
-                    drewards_arr[ndx] = self.drewards[indexes[ndx]]
-                    if self.lambda_rate > 0:
-                        advantages_arr[ndx] = advantages[indexes[ndx]]
+            arrays, indexes = self.states.create_shuffled_subset(
+                [self.states, self.drewards, self.actions], length
+            )
 
             if self.lambda_rate == 0:
-                std = drewards_arr.std()
+                arrays = [arrays[0], arrays[1], advantages_arr, arrays[2]]
+                std = arrays[1].std()
                 if std == 0:
                     return False
-                drewards_arr = (drewards_arr - drewards_arr.mean()) / std
+                arrays[1] = (arrays[1] - arrays[1].mean()) / std
             else:
-                std = advantages_arr.std()
+                arrays = [arrays[0], arrays[1], advantages[indexes], arrays[2]]
+                std = arrays[2].std()
                 if std == 0:
                     return False
-                advantages_arr = (advantages_arr - advantages_arr.mean()) / std
+                arrays[2] = (arrays[2] - arrays[2].mean()) / std
 
-            self._train(states_arr, drewards_arr, advantages_arr,
-                        action_onehots, epochs, batch_size, entropy_coef,
-                        verbose=verbose)
+            self._train(*arrays, epochs, batch_size,
+                        entropy_coef, verbose=verbose)
 
     def load(self, path, load_model=True, load_data=True, custom_objects=None):
         """Loads a save from a folder.
@@ -774,7 +738,7 @@ class PPOAgent(A2CAgent):
 
     def __init__(self, amodel, cmodel, discounted_rate,
                  lambda_rate=0, clip_ratio=.2,
-                 create_memory=lambda: Memory()):
+                 create_memory=lambda shape, dtype: Memory()):
         """Initalizes the Policy Gradient Agent.
         params:
             amodel: A keras model, which takes the state as input and outputs
@@ -796,7 +760,8 @@ class PPOAgent(A2CAgent):
                           lambda_rate=lambda_rate,
                           create_memory=create_memory)
         self.clip_ratio = clip_ratio
-        self.old_probs = create_memory()
+        self.old_probs = create_memory(self.amodel.input_shape,
+                                       tf.keras.backend.floatx())
         self.prob = None
         self._tf_train_step = tf.function(
             self._train_step,
@@ -865,7 +830,7 @@ class PPOAgent(A2CAgent):
         A2CAgent.forget(self)
         self.old_probs.forget()
 
-    def _train_step(self, states, drewards, advantages, action_onehots,
+    def _train_step(self, states, drewards, advantages, actions,
                     old_probs, entropy_coef):
         """Performs one gradient step with a batch of data.
         params:
@@ -874,8 +839,8 @@ class PPOAgent(A2CAgent):
                       for the action performed in the environment
             advantages: A tensor, which if valid (lambda_rate > 0) contains
                         advantages for the actions performed
-            action_onehots: A tensor that contains onehot encodings of
-                            the action performed
+            actions: A tensor that contains onehot encodings of
+                     the action performed
             old_probs: A tensor of the old probs
             entropy_coef: A tensor constant float, which is the
                           coefficent of entropy to add to the
@@ -898,7 +863,7 @@ class PPOAgent(A2CAgent):
 
         with tf.GradientTape() as tape:
             action_pred = self.amodel(states, training=True)
-            probs = tf.reduce_sum(action_onehots * action_pred, axis=1)
+            probs = tf.reduce_sum(actions * action_pred, axis=1)
             ratio = probs / (old_probs + tf.keras.backend.epsilon())
             clipped_ratio = tf.clip_by_value(ratio, 1.0 - self.clip_ratio,
                                              1.0 + self.clip_ratio)
@@ -921,7 +886,7 @@ class PPOAgent(A2CAgent):
         self.metric(loss)
         return probs
 
-    def _train(self, states, drewards, advantages, action_onehots,
+    def _train(self, states, drewards, advantages, actions,
                old_probs, epochs, batch_size, entropy_coef,
                verbose=True):
         """Performs multiple gradient steps of all the data.
@@ -931,8 +896,8 @@ class PPOAgent(A2CAgent):
                       for the action performed in the environment
             advantages: A numpy array, which if valid (lambda_rate > 0)
                         contains advantages for the actions performed
-            action_onehots: A numpy array that contains onehot encodings of
-                            the action performed
+            actions: A numpy array that contains onehot encodings of
+                     the action performed
             old_probs: A numpy array of the old probs
             epochs: An integer, which is the number of complete gradient
                     steps to perform
@@ -951,7 +916,7 @@ class PPOAgent(A2CAgent):
             (states.astype(float_type),
              drewards.astype(float_type),
              advantages.astype(float_type),
-             action_onehots.astype(float_type),
+             actions.astype(float_type),
              old_probs.astype(float_type))
         ).batch(batch_size)
         entropy_coef = tf.constant(entropy_coef,
@@ -1025,50 +990,28 @@ class PPOAgent(A2CAgent):
                                  self.lambda_rate * advantage)
                     advantages[ndx] = advantage
 
-            indexes = np.random.choice(np.arange(len(self.states)),
-                                       size=length, replace=False)
-            if length >= 15000:  # depends on cpu and other factors
-                states_arr = self.states.array()[indexes]
-                action_onehots = self.action_identity[
-                    self.actions.array()[indexes]
-                ]
-                drewards_arr = self.drewards.array()[indexes]
-                old_probs_arr = self.old_probs.array()[indexes]
-                if self.lambda_rate > 0:
-                    advantages_arr = advantages[indexes]
-            else:
-                states_arr = np.empty((length, *self.states[0].shape))
-                action_onehots = np.empty((length, self.action_shape[0]))
-                drewards_arr = np.empty(length)
-                if self.lambda_rate > 0:
-                    advantages_arr = np.empty(length)
-                old_probs_arr = np.empty(length)
-                for ndx in range(length):
-                    states_arr[ndx] = self.states[indexes[ndx]]
-                    action_onehots[ndx] = self.action_identity[
-                        self.actions[indexes[ndx]]
-                    ]
-                    drewards_arr[ndx] = self.drewards[indexes[ndx]]
-                    if self.lambda_rate > 0:
-                        advantages_arr[ndx] = advantages[indexes[ndx]]
-                    old_probs_arr[ndx] = self.old_probs[indexes[ndx]]
+            arrays, indexes = self.states.create_shuffled_subset(
+                [self.states, self.drewards, self.actions, self.old_probs],
+                length
+            )
 
             if self.lambda_rate == 0:
-                std = drewards_arr.std()
+                arrays = [arrays[0], arrays[1], advantages_arr,
+                          arrays[2], arrays[3]]
+                std = arrays[1].std()
                 if std == 0:
                     return False
-                drewards_arr = (drewards_arr - drewards_arr.mean()) / std
+                arrays[1] = (arrays[1] - arrays[1].mean()) / std
             else:
-                std = advantages_arr.std()
+                arrays = [arrays[0], arrays[1], advantages[indexes],
+                          arrays[2], arrays[3]]
+                std = arrays[2].std()
                 if std == 0:
                     return False
-                advantages_arr = (advantages_arr - advantages_arr.mean()) / std
+                arrays[2] = (arrays[2] - arrays[2].mean()) / std
 
-            loss, new_probs = self._train(
-                states_arr, drewards_arr, advantages_arr, action_onehots,
-                old_probs_arr, epochs, batch_size, entropy_coef,
-                verbose=verbose
-            )
+            loss, new_probs = self._train(*arrays, epochs, batch_size,
+                                          entropy_coef, verbose=verbose)
             for ndx in range(length):
                 self.old_probs[indexes[ndx]] = new_probs[ndx]
 
@@ -1132,7 +1075,7 @@ class PGCAAgent(PGAgent):
     """This class is a PGAgent adapted for continuous action spaces."""
 
     def __init__(self, amodel, discounted_rate, max_action,
-                 create_memory=lambda: Memory(),
+                 create_memory=lambda shape, dtype: Memory(),
                  policy=None):
         """Initalizes the Policy Gradient Agent.
         params:
@@ -1161,7 +1104,7 @@ class TD3Agent(DDPGAgent):
     """
 
     def __init__(self, policy, amodel, cmodel, discounted_rate,
-                 create_memory=lambda: Memory()):
+                 create_memory=lambda shape, dtype: Memory()):
         """Initalizes the DDPG Agent.
         params:
             policy: A noise policy instance, which used for exploring
@@ -1300,8 +1243,12 @@ class TD3Agent(DDPGAgent):
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss1 = self.cmodel.compiled_loss._losses.fn(qvalues_true, qvalues_pred1)
-            loss2 = self.cmodel.compiled_loss._losses.fn(qvalues_true, qvalues_pred2)
+            loss1 = self.cmodel.compiled_loss._losses.fn(
+                qvalues_true, qvalues_pred1
+            )
+            loss2 = self.cmodel.compiled_loss._losses.fn(
+                qvalues_true, qvalues_pred2
+            )
             loss = tf.reduce_mean(loss1) + tf.reduce_mean(loss2) + reg_loss
         grads = tape.gradient(loss, self.cmodel.trainable_variables)
         self.cmodel.optimizer.apply_gradients(
@@ -1432,29 +1379,14 @@ class TD3Agent(DDPGAgent):
         for count in range(1, repeat+1):
             if verbose:
                 print(f'Repeat {count}/{repeat}')
-            indexes = np.random.choice(np.arange(len(self.states)),
-                                       size=length, replace=False)
-            if length >= 10000:  # depends on cpu and other factors
-                next_states_arr = self.next_states.array()[indexes]
-                states_arr = self.states.array()[indexes]
-                actions_arr = self.actions.array()[indexes]
-                rewards_arr = self.rewards.array()[indexes]
-                terminals_arr = self.terminals.array()[indexes]
-            else:
-                next_states_arr = np.empty((length, *self.states[0].shape))
-                states_arr = np.empty((length, *self.states[0].shape))
-                actions_arr = np.empty((length, *self.actions[0].shape))
-                rewards_arr = np.empty(length)
-                terminals_arr = np.empty(length)
-                for ndx, rndx in enumerate(indexes):
-                    states_arr[ndx] = self.states[rndx]
-                    next_states_arr[ndx] = self.next_states[rndx]
-                    actions_arr[ndx] = self.actions[rndx]
-                    rewards_arr[ndx] = self.rewards[rndx]
-                    terminals_arr[ndx] = self.terminals[rndx]
 
-            self._train(states_arr, next_states_arr, actions_arr,
-                        terminals_arr, rewards_arr, epochs, batch_size,
+            arrays, _ = self.states.create_shuffled_subset(
+                [self.states, self.next_states, self.actions,
+                 self.terminals, self.rewards],
+                length
+            )
+
+            self._train(*arrays, epochs, batch_size,
                         policy_noise_std, policy_noise_clip,
                         actor_update_infreq, verbose=verbose)
 

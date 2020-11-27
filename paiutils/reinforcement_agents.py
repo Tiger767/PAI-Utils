@@ -29,7 +29,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
     """
 
     def __init__(self, policy, qmodel, amodel, discounted_rate,
-                 create_memory=lambda: Memory(),
+                 create_memory=lambda shape, dtype: Memory(),
                  enable_target=True, enable_double=False,
                  enable_PER=False):
         """Initalizes the Deep Q Network and Policy Gradient Agent.
@@ -61,7 +61,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
                           enable_PER=enable_PER)
         self.amodel = amodel
         self.uses_dqn_method = True
-        self.drewards = create_memory()
+        self.drewards = create_memory(self.qmodel.input_shape,
+                                      tf.keras.backend.floatx())
         self.episode_rewards = []
         self.pg_metric = tf.keras.metrics.Mean(name='pg_loss')
         self._tf_train_step = tf.function(
@@ -415,7 +416,7 @@ class A2CAgent(PGAgent):
     """
 
     def __init__(self, amodel, cmodel, discounted_rate,
-                 lambda_rate=0, create_memory=lambda: Memory()):
+                 lambda_rate=0, create_memory=lambda shape, dtype: Memory()):
         """Initalizes the Policy Gradient Agent.
         params:
             amodel: A keras model, which takes the state as input and outputs
@@ -435,8 +436,10 @@ class A2CAgent(PGAgent):
                          policy=None)
         self.cmodel = cmodel
         self.lambda_rate = lambda_rate
-        self.terminals = create_memory()
-        self.rewards = create_memory()
+        self.terminals = create_memory(self.amodel.input_shape,
+                                       tf.keras.backend.floatx())
+        self.rewards = create_memory(self.amodel.input_shape,
+                                     tf.keras.backend.floatx())
         self.metric_c = tf.keras.metrics.Mean(name='critic_loss')
         self._tf_train_step = tf.function(
             self._train_step,
@@ -735,7 +738,7 @@ class PPOAgent(A2CAgent):
 
     def __init__(self, amodel, cmodel, discounted_rate,
                  lambda_rate=0, clip_ratio=.2,
-                 create_memory=lambda: Memory()):
+                 create_memory=lambda shape, dtype: Memory()):
         """Initalizes the Policy Gradient Agent.
         params:
             amodel: A keras model, which takes the state as input and outputs
@@ -757,7 +760,8 @@ class PPOAgent(A2CAgent):
                           lambda_rate=lambda_rate,
                           create_memory=create_memory)
         self.clip_ratio = clip_ratio
-        self.old_probs = create_memory()
+        self.old_probs = create_memory(self.amodel.input_shape,
+                                       tf.keras.backend.floatx())
         self.prob = None
         self._tf_train_step = tf.function(
             self._train_step,
@@ -1071,7 +1075,7 @@ class PGCAAgent(PGAgent):
     """This class is a PGAgent adapted for continuous action spaces."""
 
     def __init__(self, amodel, discounted_rate, max_action,
-                 create_memory=lambda: Memory(),
+                 create_memory=lambda shape, dtype: Memory(),
                  policy=None):
         """Initalizes the Policy Gradient Agent.
         params:
@@ -1100,7 +1104,7 @@ class TD3Agent(DDPGAgent):
     """
 
     def __init__(self, policy, amodel, cmodel, discounted_rate,
-                 create_memory=lambda: Memory()):
+                 create_memory=lambda shape, dtype: Memory()):
         """Initalizes the DDPG Agent.
         params:
             policy: A noise policy instance, which used for exploring

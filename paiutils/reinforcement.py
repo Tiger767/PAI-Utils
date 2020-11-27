@@ -1472,7 +1472,7 @@ class DQNAgent(Agent):
         return layer
 
     def __init__(self, policy, qmodel, discounted_rate,
-                 create_memory=lambda: Memory(),
+                 create_memory=lambda shape, dtype: Memory(),
                  enable_target=True, enable_double=False,
                  enable_PER=False):
         """Initalizes the Deep Q Network Agent.
@@ -1505,13 +1505,19 @@ class DQNAgent(Agent):
         else:
             self.target_qmodel = self.qmodel
         self.discounted_rate = discounted_rate
-        self.states = create_memory()
-        self.next_states = create_memory()
-        self.actions = create_memory()
-        self.rewards = create_memory()
-        self.terminals = create_memory()
+        self.states = create_memory(self.qmodel.input_shape,
+                                    tf.keras.backend.floatx())
+        self.next_states = create_memory(self.qmodel.input_shape,
+                                         tf.keras.backend.floatx())
+        self.actions = create_memory(self.qmodel.input_shape,
+                                     tf.keras.backend.floatx())
+        self.rewards = create_memory(self.qmodel.input_shape,
+                                     tf.keras.backend.floatx())
+        self.terminals = create_memory(self.qmodel.input_shape,
+                                       tf.keras.backend.floatx())
         if enable_PER:
-            self.per_losses = create_memory()
+            self.per_losses = create_memory(self.qmodel.input_shape,
+                                            tf.keras.backend.floatx())
 
             # assuming the true max loss will be less than 100
             # at least at the begining
@@ -1879,8 +1885,8 @@ class PGAgent(Agent):
        learns to predict these actions through Policy Gradients (PG).
     """
 
-    def __init__(self, amodel, discounted_rate, create_memory=lambda: Memory(),
-                 policy=None):
+    def __init__(self, amodel, discounted_rate,
+                 create_memory=lambda shape, dtype: Memory(), policy=None):
         """Initalizes the Policy Gradient Agent.
         params:
             amodel: A keras model, which takes the state as input and outputs
@@ -1895,9 +1901,12 @@ class PGAgent(Agent):
         Agent.__init__(self, amodel.output_shape[1:], policy)
         self.amodel = amodel
         self.discounted_rate = discounted_rate
-        self.states = create_memory()
-        self.actions = create_memory()
-        self.drewards = create_memory()
+        self.states = create_memory(self.amodel.input_shape,
+                                    tf.keras.backend.floatx())
+        self.actions = create_memory(self.amodel.input_shape,
+                                     tf.keras.backend.floatx())
+        self.drewards = create_memory(self.amodel.input_shape,
+                                      tf.keras.backend.floatx())
         self.episode_rewards = []
         self.action_identity = np.identity(self.action_shape[0])
         self.metric = tf.keras.metrics.Mean(name='loss')
@@ -2179,7 +2188,7 @@ class DDPGAgent(Agent):
     """
 
     def __init__(self, policy, amodel, cmodel, discounted_rate,
-                 create_memory=lambda: Memory(),
+                 create_memory=lambda shape, dtype: Memory(),
                  enable_target=False):
         """Initalizes the DDPG Agent.
         params:
@@ -2212,11 +2221,16 @@ class DDPGAgent(Agent):
             self.target_amodel = self.amodel
             self.target_cmodel = self.cmodel
 
-        self.states = create_memory()
-        self.next_states = create_memory()
-        self.actions = create_memory()
-        self.rewards = create_memory()
-        self.terminals = create_memory()
+        self.states = create_memory(self.amodel.input_shape,
+                                    tf.keras.backend.floatx())
+        self.next_states = create_memory(self.amodel.input_shape,
+                                         tf.keras.backend.floatx())
+        self.actions = create_memory(self.amodel.input_shape,
+                                     tf.keras.backend.floatx())
+        self.rewards = create_memory(self.amodel.input_shape,
+                                     tf.keras.backend.floatx())
+        self.terminals = create_memory(self.amodel.input_shape,
+                                       tf.keras.backend.floatx())
         self.total_steps = 0
         self.metric_c = tf.keras.metrics.Mean(name='critic_loss')
         self.metric_a = tf.keras.metrics.Mean(name='actor_loss')
