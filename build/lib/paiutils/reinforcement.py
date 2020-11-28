@@ -278,7 +278,7 @@ class MultiSeqAgentEnvironment(Environment):
                 and a boolean (terminal state)
         """
         state = None
-        return state, 0, self.terminal
+        return state, 0,, False
 
     def play_episode(self, agents, max_steps, shuffle=True, 
                      random=False, random_bounds=None,
@@ -681,20 +681,24 @@ class Decay:
        (formula: max(initial_value - constant * steps, 0))
     """
 
-    def __init__(self, initial_value, constant, min_value=0):
+    def __init__(self, initial_value, constant,
+                 min_value=0, step_every_call=True):
         """Initalizes the state of the decay object.
         params:
             initial_value: A float, which is the starting value to decay
             constant: A float, which is the slope/rate that the decay occurs
             min_value: A float, which is the minimum value the decay can reach
+            step_every_call: A boolean, which determines if each call should
+                             step the decay
         """
         assert initial_value >= min_value, (
             'initial_value must be greater or equal to min_value'
         )
         self.initial_value = initial_value
-        self.steps = 0
         self.constant = constant
         self.min_value = min_value
+        self.step_ever_call = step_every_call
+        self.steps = 0
 
     def reset(self):
         """Resets the steps"""
@@ -708,6 +712,8 @@ class Decay:
         """Returns the current value with regard to the state of decay.
         return: A float
         """
+        if self.step_ever_call:
+            self.step()
         value = self.initial_value - self.constant * self.steps
         return np.max([value, self.min_value])
 
@@ -718,12 +724,15 @@ class ExponentialDecay(Decay):
        (formula: inital_value * (1 - rate)^steps + min_value)
     """
 
-    def __init__(self, initial_value, rate, min_value=0):
+    def __init__(self, initial_value, rate, min_value=0,
+                 step_every_call=True):
         """Initalizes the state of the decay object.
         params:
             initial_value: A float, which is the starting value to decay
             rate: A float, which is the slope/rate that the decay occurs
             min_value: A float, which is the minimum value the decay can reach
+            step_every_call: A boolean, which determines if each call should
+                             step the decay
         """
         assert initial_value >= min_value, (
             'initial_value must be greater or equal to min_value'
@@ -731,12 +740,15 @@ class ExponentialDecay(Decay):
         self.initial_value = initial_value
         self.rate = rate
         self.min_value = min_value
+        self.step_ever_call = step_every_call
         self.steps = 0
 
     def __call__(self):
         """Returns the current value with regard to the state of decay.
         return: A float
         """
+        if self.step_ever_call:
+            self.step()
         return np.maximum(self.initial_value * (1 - self.rate)**self.steps,
                           self.min_value)
 
@@ -748,7 +760,8 @@ class LinearDecay(Decay):
                      / total_steps * steps, min_value))
     """
 
-    def __init__(self, initial_value, total_steps, min_value=0):
+    def __init__(self, initial_value, total_steps,
+                 min_value=0, step_every_call=True):
         """Initalizes the state of the decay object.
         params:
             initial_value: A float, which is the starting value to decay
@@ -756,6 +769,8 @@ class LinearDecay(Decay):
                          min_value would be reach
             min_value: A float, which is the minimum value the decay
                        can reach
+            step_every_call: A boolean, which determines if each call should
+                             step the decay
         """
         assert initial_value >= min_value, (
             'initial_value must be greater or equal to min_value'
@@ -763,6 +778,7 @@ class LinearDecay(Decay):
         self.initial_value = initial_value
         self.total_steps = total_steps
         self.min_value = min_value
+        self.step_ever_call = step_every_call
         self.a = (-1 * (self.initial_value - self.min_value) /
                   self.total_steps)
         self.steps = 0
@@ -771,6 +787,8 @@ class LinearDecay(Decay):
         """Returns the current value with regard to the state of decay.
         return: A float
         """
+        if self.step_ever_call:
+            self.step()
         value = self.a * self.steps + self.initial_value
         return np.max([value, self.min_value])
 
