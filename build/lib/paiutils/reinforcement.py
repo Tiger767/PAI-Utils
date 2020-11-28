@@ -831,76 +831,55 @@ class Memory:
         indexes = np.random.choice(np.arange(len(memories[0])),
                                    size=subset_size, replace=False,
                                    p=weights)
-        if len(memories[0]) // 10 > subset_size:
-            arrays = [memory.array()[indexes] for memory in memories]
-        else:
-            arrays = [np.empty(memory[0].shape) for memory in memories]
-            for ndx, rndx in enumerate(indexes):
-                for array, memory in zip(arrays, memories):
-                    array[ndx] = memory[rndx]
+        arrays = [np.empty((subset_size, *memory[0].shape))
+                    for memory in memories]
+        for ndx, rndx in enumerate(indexes):
+            for array, memory in zip(arrays, memories):
+                array[ndx] = memory[rndx]
         return arrays, indexes
 
 
-class BufferedMemory(Memory):
-    """This class is used by agents to store episode information.
-       (uses a numpy ndarray)
+class ETDMemory(Memory):
+    """This class is for efficient storage of time distributed states.
+       (uses a normal python list)
     """
 
-    def __init__(self, length, shape, dtype=np.float):
+    def __init__(self, num_time_steps, void_state, max_len=None):
         """Initalizes the memory.
         params:
-            length: An integer, which is the max length of memory
-                    and the amount buffered
-                    (oldest elements will be overwritten at max)
-            shape: A tuple, which is the shape of each element
-            dtype: A numpy data type, which is the data type of each element
+            max_len: An integer, which is the max length of memory
+                     (if reached, the oldest memory will be removed)
         """
-        self.length = length
-        self.buffer = np.empty((length, *shape), dtype=dtype)
-        self.start = 0
-        self.end = 0
-        self.overflow = False
-        self.filled = False
+        self.num_time_steps = num_time_steps
+        self.max_len = max_len
+        self.buffer = [void_state]
+        self.ndxs = []
 
     def __len__(self):
         """Returns the number of entries in the memory.
         return: An integer
         """
-        if self.filled:
-            return self.length
-        return self.end - self.start
+        return len(self.buffer)
 
     def add(self, x):
         """Adds a entry to memory.
         params:
             x: A entry similar to other entries
         """
-        self.buffer[self.end] = x
-        self.end += 1
-        if self.end == self.length:
-            self.filled = True
-            self.overflow = True
-            self.end = 0
-            self.start = -1
-        if self.overflow:
-            self.start += 1
-            if self.start == self.length:
-                self.start = 0
-                self.overflow = False
+        if self.ndxs[-1] is None:
+            self.ndxs[-1] = [0 for _ in range(self.num_time_steps - 1)]
+        self.ndxs[-1].append(len(self.buffer))
+        self.buffer.append(x)
+
+        if (self.max_len is not None
+                and len(self.buffer) > self.max_len):
+            del self.buffer[0]
 
     def __getitem__(self, key):
         """Returns an item given a key.
         params:
             key: A valid key or index for a memory entry
         """
-        if key >= 0:
-            if key >= self.__len__():
-                raise IndexError('out of range')
-            key = (self.start + key) % self.length
-        else:
-            if -key > self.__len__():
-                raise IndexError('out of range')
-            key = (self.end + key) % self.length
         return self.buffer[key]
 
     def __setitem__(self, key, value):
@@ -909,70 +888,42 @@ class BufferedMemory(Memory):
             key: A valid key or index for a memory entry
             value: A entry similar to other entries
         """
-        if key >= 0:
-            if key >= self.__len__():
-                raise IndexError('out of range')
-            key = (self.start + key) % self.length
-        else:
-            if -key > self.__len__():
-                raise IndexError('out of range')
-            key = (self.end + key) % self.length
         self.buffer[key] = value
 
     def array(self):
         """Returns a copy of the memory.
         return: A numpy ndarray
         """
-        if self.filled:
-            return self.buffer
-        return self.buffer[self.start:self.end]
+        return np.array(self.buffer)
 
     def reset(self):
         """Resets or clears the memory.
         """
-        self.start = 0
-        self.end = 0
-        self.overflow = False
-        self.filled = False
+        self.buffer.clear()
 
     @staticmethod
     def create_shuffled_subset(memories, subset_size, weights=None):
         """Creates a list of numpy arrays of a shuffled subset of memories.
         params:
-            memories: A list of BufferedMemeory Objects
-                      (not asserted but assumed)
+            memories: A list of Memeory Objects (not asserted but assumed)
             subset_size: A integer, which is the size of the
                          outer dimension of each ndarray
             weights: A list of probabilities that add up to 1
         return: arrays and shuffled indexes
         """
-        if weights is not None:
-            weights = np.roll(weights, memories[0].start)
         indexes = np.random.choice(np.arange(len(memories[0])),
                                    size=subset_size, replace=False,
                                    p=weights)
-        return [memory.buffer[indexes] for memory in memories], indexes
+        arrays = [np.empty((subset_size, *memory[0].shape))
+                    for memory in memories]
+        for ndx, rndx in enumerate(indexes):
+            for array, memory in zip(arrays, memories):
+                array[ndx] = memory[rndx]
+        return arrays, indexes
 
 
 class RingMemory(Memory):
-    """This class is used by agents to store episode information.
-       (uses a deque)
-    """
-
-    def __init__(self, max_len):
-        """Initalizes the memory.
-        params:
-            max_len: An integer, which is the max length of memory
-                     (if reached, the oldest memory will be removed)
-        """
-        self.buffer = deque(maxlen=max_len)
-
-    def add(self, x):
-        """Adds a entry to memory.
-        params:
-            x: A entry similar to other entries
-        """
-        self.buffer.append(x)
+    pass
 
 
 class PlayingData:
