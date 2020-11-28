@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 11_27_2020
+Version: 11_28_2020
 """
 
 
@@ -13,12 +13,12 @@ from tensorflow.keras.models import model_from_json
 try:
     from paiutils.reinforcement import (
         Memory, PlayingData, DQNAgent,
-        PGAgent, DDPGAgent, NoisePolicy,
+        MemoryAgent, PGAgent, DDPGAgent,
     )
 except ImportError:
     from reinforcement import (
-        Memory, PlayingData, DQNAgent, MemoryAgent,
-        PGAgent, DDPGAgent, NoisePolicy,
+        Memory, PlayingData, DQNAgent,
+        MemoryAgent, PGAgent, DDPGAgent,
     )
 
 
@@ -99,17 +99,9 @@ class DQNPGAgent(DQNAgent, PGAgent):
         return: A value, which is the selected action
         """
         if self.uses_dqn_method:
-            def _select_action():
-                qvalues = self.qmodel(np.expand_dims(state, axis=0),
-                                      training=False)[0].numpy()
-                return qvalues
-            return self.policy.select_action(_select_action,
-                                             training=training)
+            return DQNAgent.select_action(self, state, training=training)
         else:
-            actions = np.abs(self.amodel(np.expand_dims(state, axis=0),
-                                         training=False)[0].numpy())
-            return np.random.choice(np.arange(self.action_shape[0]),
-                                    p=actions)
+            return PGAgent.select_action(self, state, training=training)
 
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
@@ -724,6 +716,14 @@ class PPOAgent(A2CAgent):
                       agent is training
         return: A value, which is the selected action
         """
+        if (self.time_distributed_states
+                and state.shape == self.amodel.input_shape[2:]):
+            self.time_distributed_states = np.roll(
+                self.time_distributed_states, -1
+            )
+            self.time_distributed_states[-1] = state
+            state = self.time_distributed_states
+
         actions = self.amodel(np.expand_dims(state, axis=0),
                               training=False)[0].numpy()
         action = np.random.choice(np.arange(self.action_shape[0]),
@@ -985,9 +985,6 @@ class TD3Agent(DDPGAgent):
                              reward
             create_memory: A function, which returns a Memory instance
         """
-        if not isinstance(policy, NoisePolicy):
-            raise ValueError('The policy parameter must be a '
-                             'instance of NoisePolicy.')
         DDPGAgent.__init__(self, policy, amodel, cmodel, discounted_rate,
                            create_memory=create_memory,
                            enable_target=True)

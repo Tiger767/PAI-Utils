@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 11_27_2020
+Version: 11_28_2020
 """
 
 
@@ -437,6 +437,10 @@ class Policy:
         """Resets any states."""
         pass
 
+    def end_episode(self):
+        """Tells the policy the episode ended."""
+        pass
+
 
 class GreedyPolicy(Policy):
     """This class is used for calling an Agent's action function and
@@ -512,6 +516,10 @@ class StochasticPolicy(Policy):
         else:
             return self.policy.select_action(action_func, training)
 
+    def end_episode(self):
+        """Tells the policy the episode ended and steps the decay."""
+        self.stochasticity_decay_training.step()
+
     def reset(self):
         """Resets state of the stochasticity decay instance."""
         self.stochasticity_decay_training.reset()
@@ -552,6 +560,10 @@ class NoisePolicy(Policy):
             noise_scale = self.noise_scale_testing
         noise = np.random.normal(scale=noise_scale, size=actions.shape)
         return np.clip(actions + noise, *self.action_bounds)
+
+    def end_episode(self):
+        """Tells the policy the episode ended and steps the decay."""
+        self.noise_scale_decay_training.step()
 
     def reset(self):
         """Resets decay state."""
@@ -688,11 +700,14 @@ class Decay:
         """Resets the steps"""
         self.steps = 0
 
+    def step(self):
+        """Steps the decay forward"""
+        self.steps += 1
+
     def __call__(self):
         """Returns the current value with regard to the state of decay.
         return: A float
         """
-        self.steps += 1
         value = self.initial_value - self.constant * self.steps
         return np.max([value, self.min_value])
 
@@ -722,7 +737,6 @@ class ExponentialDecay(Decay):
         """Returns the current value with regard to the state of decay.
         return: A float
         """
-        self.steps += 1
         return np.maximum(self.initial_value * (1 - self.rate)**self.steps,
                           self.min_value)
 
@@ -757,7 +771,6 @@ class LinearDecay(Decay):
         """Returns the current value with regard to the state of decay.
         return: A float
         """
-        self.steps += 1
         value = self.a * self.steps + self.initial_value
         return np.max([value, self.min_value])
 
@@ -1054,7 +1067,7 @@ class Agent:
 
     def end_episode(self):
         """Ends the episode for the agent."""
-        pass
+        self.policy.end_episode()
 
     def learn(self, verbose=True):
         """Trains the agent on a batch of its experiences.
@@ -1412,37 +1425,26 @@ class MemoryAgent(Agent):
                           action shape of the environment
             policy: A policy instance
         """
-        self.action_shape = action_shape
-        self.policy = policy
-        self.playing_data = None
+        Agent.__init__(self, action_shape, policy)
         self.memory = {}
-
-    def add_memory(self, state, action, new_state, reward, terminal):
-        """Adds information from one step in the environment to the agent.
-        params:
-            state: A value or list of values, which is the
-                   state of the environment before the
-                   action was performed
-            action: A value, which is the action the agent took
-            new_state: A value or list of values, which is the
-                       state of the environment after performing
-                       the action
-            reward: A float/integer, which is the evaluation of
-                    the action performed
-            terminal: A boolean, which determines if this call to
-                      add memory is the last for the episode
-        """
-        pass
 
     def forget(self):
         """Forgets or clears all memory."""
+        Agent.end_episode(self)
         for memory in self.memory.items():
             memory.reset()
 
     def end_episode(self):
         """Ends the episode for the agent."""
+        Agent.end_episode(self)
         for memory in self.memory.items():
             memory.end_episode()
+        if ('states' in self.memory
+                and isinstance(self.memory['states'], ETDMemory)):
+            self.time_distributed_states = np.array([
+                self.memory['states'].buffer[0]
+                for _ in range(self.memory['states'].num_time_steps)
+            ])
 
     def load(self, path, load_data=True):
         """Loads a save from a folder.
@@ -1555,6 +1557,13 @@ class DQNAgent(MemoryAgent):
             'actions': self.actions, 'rewards': self.rewards,
             'terminals': self.terminals
         }
+        if isinstance(self.memory['states'], ETDMemory):
+            self.time_distributed_states = np.array([
+                self.memory['states'].buffer[0]
+                for _ in range(self.memory['states'].num_time_steps)
+            ])
+        else:
+            self.time_distributed_states = 0
         if enable_PER:
             self.per_losses = create_memory((None,),
                                             tf.keras.backend.floatx())
@@ -1592,6 +1601,14 @@ class DQNAgent(MemoryAgent):
                       agent is training
         return: A value, which is the selected action
         """
+        if (self.time_distributed_states
+                and state.shape == self.qmodel.input_shape[2:]):
+            self.time_distributed_states = np.roll(
+                self.time_distributed_states, -1
+            )
+            self.time_distributed_states[-1] = state
+            state = self.time_distributed_states
+
         def _select_action():
             qvalues = self.qmodel(np.expand_dims(state, axis=0),
                                   training=False)[0].numpy()
@@ -1883,7 +1900,7 @@ class PGAgent(MemoryAgent):
     """
 
     def __init__(self, amodel, discounted_rate,
-                 create_memory=lambda shape, dtype: Memory(), policy=None):
+                 create_memory=lambda shape, dtype: Memory()):
         """Initalizes the Policy Gradient Agent.
         params:
             amodel: A keras model, which takes the state as input and outputs
@@ -1893,9 +1910,8 @@ class PGAgent(MemoryAgent):
                              future rewards should be counted for the current
                              reward
             create_memory: A function, which returns a Memory instance
-            policy: A policy instance
         """
-        MemoryAgent.__init__(self, amodel.output_shape[1:], policy)
+        MemoryAgent.__init__(self, amodel.output_shape[1:], None)
         self.amodel = amodel
         self.discounted_rate = discounted_rate
         self.states = create_memory(self.amodel.input_shape,
@@ -1908,6 +1924,13 @@ class PGAgent(MemoryAgent):
             'states': self.states, 'actions': self.actions,
             'drewards': self.drewards,
         }
+        if isinstance(self.memory['states'], ETDMemory):
+            self.time_distributed_states = np.array([
+                self.memory['states'].buffer[0]
+                for _ in range(self.memory['states'].num_time_steps)
+            ])
+        else:
+            self.time_distributed_states = 0
         self.episode_rewards = []
         self.action_identity = np.identity(self.action_shape[0])
         self.metric = tf.keras.metrics.Mean(name='loss')
@@ -1930,18 +1953,21 @@ class PGAgent(MemoryAgent):
             state: A value, which is the state to predict
                    the action for
             training: A boolean, which determines if the
-                      agent is training
+                      agent is training (does nothing)
         return: A value, which is the selected action
         """
-        def _select_action():
-            actions = self.amodel(np.expand_dims(state, axis=0),
-                                  training=False)[0].numpy()
-            return np.random.choice(np.arange(self.action_shape[0]),
-                                    p=actions)
-        if self.policy is None:
-            return _select_action()
-        return self.policy.select_action(_select_action,
-                                         training=training)
+        if (self.time_distributed_states
+                and state.shape == self.amodel.input_shape[2:]):
+            self.time_distributed_states = np.roll(
+                self.time_distributed_states, -1
+            )
+            self.time_distributed_states[-1] = state
+            state = self.time_distributed_states
+
+        actions = self.amodel(np.expand_dims(state, axis=0),
+                              training=False)[0].numpy()
+        return np.random.choice(np.arange(self.action_shape[0]),
+                                p=actions)
 
     def set_playing_data(self, training=False, memorizing=False,
                          batch_size=None, mini_batch=0, epochs=1,
@@ -2174,7 +2200,7 @@ class DDPGAgent(MemoryAgent):
                  enable_target=False):
         """Initalizes the DDPG Agent.
         params:
-            policy: A policy instance
+            policy: A NoisePolicy instance
             amodel: A keras model, which takes the state as input and outputs
                     actions (regularization losses are not applied,
                     and compiled loss are not used)
@@ -2187,6 +2213,9 @@ class DDPGAgent(MemoryAgent):
             enable_target: A boolean, which determines if a target model
                            should be used for the critic
         """
+        if not isinstance(policy, NoisePolicy):
+            raise ValueError('The policy parameter must be a '
+                             'instance of NoisePolicy.')
         print('WARNING: This implementation may be incorrect.')
         MemoryAgent.__init__(self, amodel.output_shape[1:], policy)
         self.amodel = amodel
@@ -2218,6 +2247,13 @@ class DDPGAgent(MemoryAgent):
             'actions': self.actions, 'rewards': self.rewards,
             'terminals': self.terminals
         }
+        if isinstance(self.memory['states'], ETDMemory):
+            self.time_distributed_states = np.array([
+                self.memory['states'].buffer[0]
+                for _ in range(self.memory['states'].num_time_steps)
+            ])
+        else:
+            self.time_distributed_states = 0
         self.total_steps = 0
         self.metric_c = tf.keras.metrics.Mean(name='critic_loss')
         self.metric_a = tf.keras.metrics.Mean(name='actor_loss')
@@ -2247,6 +2283,14 @@ class DDPGAgent(MemoryAgent):
         return: A value or list of values, which is the
                 selected action
         """
+        if (self.time_distributed_states
+                and state.shape == self.amodel.input_shape[2:]):
+            self.time_distributed_states = np.roll(
+                self.time_distributed_states, -1
+            )
+            self.time_distributed_states[-1] = state
+            state = self.time_distributed_states
+
         def _select_action():
             actions = self.amodel(np.expand_dims(state, axis=0),
                                   training=False)[0].numpy()

@@ -80,13 +80,13 @@ def test_blend():
 def test_plot():
     pass
 
-def test_convert_audio_to_db()
+def test_convert_audio_to_db():
     pass
 
-def test_convert_power_to_db()
+def test_convert_power_to_db():
     pass
 
-def test_convert_amplitude_to_db()
+def test_convert_amplitude_to_db():
     pass
 
 def test_trim_all():
