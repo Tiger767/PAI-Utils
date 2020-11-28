@@ -963,31 +963,6 @@ class PPOAgent(A2CAgent):
         return path
 
 
-class PGCAAgent(PGAgent):
-    """This class is a PGAgent adapted for continuous action spaces."""
-
-    def __init__(self, amodel, discounted_rate, max_action,
-                 create_memory=lambda shape, dtype: Memory(),
-                 policy=None):
-        """Initalizes the Policy Gradient Agent.
-        params:
-            amodel: A keras model, which takes the state as input and outputs
-                    actions (regularization losses are not applied,
-                    and compiled loss are not used)
-            discounted_rate: A float within 0.0-1.0, which is the rate that
-                             future rewards should be counted for the current
-                             reward
-            max_action: A float/integer, which is the max output of amodel
-            create_memory: A function, which returns a Memory instance
-        """
-        raise NotImplementedError('This Agent has not been '
-                                  'implemented in this version.')
-        PGAgent.__init__(self, amodel, discounted_rate,
-                         create_memory=create_memory,
-                         policy=None)
-        self.max_action = max_action
-
-
 class TD3Agent(DDPGAgent):
     """This class (Twin Delayed DDPG Agent) attempts to mitigate
        the problems that a DDPGAgent faces through clipping Q targets

@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 11_26_2020
+Version: 11_27_2020
 """
 
 
@@ -818,6 +818,11 @@ class Memory:
         """
         self.buffer.clear()
 
+    def end_episode(self):
+        """Tells memory an episode ended.
+        """
+        pass
+
     @staticmethod
     def create_shuffled_subset(memories, subset_size, weights=None):
         """Creates a list of numpy arrays of a shuffled subset of memories.
@@ -832,7 +837,7 @@ class Memory:
                                    size=subset_size, replace=False,
                                    p=weights)
         arrays = [np.empty((subset_size, *memory[0].shape))
-                    for memory in memories]
+                  for memory in memories]
         for ndx, rndx in enumerate(indexes):
             for array, memory in zip(arrays, memories):
                 array[ndx] = memory[rndx]
@@ -840,47 +845,49 @@ class Memory:
 
 
 class ETDMemory(Memory):
-    """This class is for efficient storage of time distributed states.
-       (uses a normal python list)
+    """This class is for the efficient storage of time distributed states.
     """
 
     def __init__(self, num_time_steps, void_state, max_len=None):
         """Initalizes the memory.
         params:
+            num_time_steps: An integer, which is the number of 
+                            states that make up a complete state
+            void_state: A ndarray, which is used when there is not
+                        enough states to create a complete state
             max_len: An integer, which is the max length of memory
                      (if reached, the oldest memory will be removed)
         """
+        if max_len is not None:
+            raise NotImplementedError('max_len is not yet implemented')
         self.num_time_steps = num_time_steps
         self.max_len = max_len
         self.buffer = [void_state]
         self.ndxs = []
+        self.step_ndxs = np.zeros(self.num_time_steps, dtype=np.int)
 
     def __len__(self):
         """Returns the number of entries in the memory.
         return: An integer
         """
-        return len(self.buffer)
+        return len(self.ndxs)
 
     def add(self, x):
         """Adds a entry to memory.
         params:
             x: A entry similar to other entries
         """
-        if self.ndxs[-1] is None:
-            self.ndxs[-1] = [0 for _ in range(self.num_time_steps - 1)]
-        self.ndxs[-1].append(len(self.buffer))
+        self.step_ndxs = np.roll(self.step_ndxs, -1)
+        self.step_ndxs[-1] = len(self.buffer)
+        self.ndxs.append(self.step_ndxs)
         self.buffer.append(x)
-
-        if (self.max_len is not None
-                and len(self.buffer) > self.max_len):
-            del self.buffer[0]
 
     def __getitem__(self, key):
         """Returns an item given a key.
         params:
             key: A valid key or index for a memory entry
         """
-        return self.buffer[key]
+        return self.buffer[key + 1 if key >= 0 else key]
 
     def __setitem__(self, key, value):
         """Sets a entry to a given key.
@@ -888,18 +895,27 @@ class ETDMemory(Memory):
             key: A valid key or index for a memory entry
             value: A entry similar to other entries
         """
-        self.buffer[key] = value
+        self.buffer[key + 1 if key >= 0 else key] = value
 
     def array(self):
         """Returns a copy of the memory.
         return: A numpy ndarray
         """
-        return np.array(self.buffer)
+        return np.array(self.buffer)[np.array(self.ndxs)]
 
     def reset(self):
         """Resets or clears the memory.
         """
+        void_state = self.buffer[0]
         self.buffer.clear()
+        self.buffer.append(void_state)
+        self.ndxs.clear()
+        self.step_ndxs = np.zeros(self.num_time_steps, dtype=np.int)
+
+    def end_episode(self):
+        """Tells memory an episode ended.
+        """
+        self.step_ndxs = np.zeros(self.num_time_steps, dtype=np.int)
 
     @staticmethod
     def create_shuffled_subset(memories, subset_size, weights=None):
@@ -914,11 +930,21 @@ class ETDMemory(Memory):
         indexes = np.random.choice(np.arange(len(memories[0])),
                                    size=subset_size, replace=False,
                                    p=weights)
-        arrays = [np.empty((subset_size, *memory[0].shape))
-                    for memory in memories]
+        arrays = []
+        for memory in memories:
+            if isinstance(memory, ETDMemory):
+                arrays.append(np.empty((subset_size,
+                                        memory.num_time_steps,
+                                        *memory.buffer[0].shape)))
+            else:
+                arrays.append(np.empty((subset_size, *memory[0].shape)))
         for ndx, rndx in enumerate(indexes):
             for array, memory in zip(arrays, memories):
-                array[ndx] = memory[rndx]
+                if isinstance(memory, ETDMemory):
+                    for andx, sndx in enumerate(memory.ndxs[rndx]):
+                        array[ndx, andx] = memory.buffer[sndx]
+                else:
+                    array[ndx] = memory[rndx]
         return arrays, indexes
 
 
@@ -1060,22 +1086,6 @@ class Agent:
         with open(os.path.join(path, 'note.txt'), 'w') as file:
             file.write(note)
         return path
-
-
-def encrypt(string):
-    """Encrpts a string with a XOR cipher.
-       (assumes security is not necessarily required)
-    params:
-        string: A string to encrypt
-    return: A bytes object
-    """
-    key = 175
-    string = map(ord, string)
-    result = []
-    for plain in string:
-        key ^= plain
-        result.append(key)
-    return bytes(result)
 
 
 class QAgent(Agent):
@@ -1391,7 +1401,81 @@ class PQAgent(QAgent):
         return path
 
 
-class DQNAgent(Agent):
+class MemoryAgent(Agent):
+    """This class is the base class for all agent that use memory.
+    """
+
+    def __init__(self, action_shape, policy):
+        """Initalizes the agent.
+        params:
+            action_shape: A tuple of integers, which is the
+                          action shape of the environment
+            policy: A policy instance
+        """
+        self.action_shape = action_shape
+        self.policy = policy
+        self.playing_data = None
+        self.memory = {}
+
+    def add_memory(self, state, action, new_state, reward, terminal):
+        """Adds information from one step in the environment to the agent.
+        params:
+            state: A value or list of values, which is the
+                   state of the environment before the
+                   action was performed
+            action: A value, which is the action the agent took
+            new_state: A value or list of values, which is the
+                       state of the environment after performing
+                       the action
+            reward: A float/integer, which is the evaluation of
+                    the action performed
+            terminal: A boolean, which determines if this call to
+                      add memory is the last for the episode
+        """
+        pass
+
+    def forget(self):
+        """Forgets or clears all memory."""
+        for memory in self.memory.items():
+            memory.reset()
+
+    def end_episode(self):
+        """Ends the episode for the agent."""
+        for memory in self.memory.items():
+            memory.end_episode()
+
+    def load(self, path, load_data=True):
+        """Loads a save from a folder.
+        params:
+            path: A string, which is the path to a folder to load
+            load_data: A boolean, which determines if the memory
+                       from a folder should be loaded
+        """
+        Agent.load(self, path)
+        if load_data:
+            with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:
+                for name, memory in self.memory.items():
+                    for element in file[name]:
+                        memory.add(element)
+
+    def save(self, path, save_data=True, note='MemoryAgent'):
+        """Saves a note and memory to a new folder.
+        params:
+            path: A string, which is the path to a folder to save within
+            save_data: A boolean, which determines if the memory
+                       should be saved
+            note: A string, which is a note to save in the folder
+        return: A string, which is the complete path of the save
+        """
+        path = Agent.save(self, path, note)
+        if save_data:
+            with h5py.File(os.path.join(path, 'data.h5'), 'w') as file:
+                for name, memory in self.memory.items():
+                    file.create_dataset(name, data=memory.array())
+        return path
+
+
+class DQNAgent(MemoryAgent):
     """This class is an Agent that uses a Deep Q Network instead of
        a table like the QAgent. This allows for generalizations and
        large environment states.
@@ -1445,7 +1529,7 @@ class DQNAgent(Agent):
                         the probabilily of being choosen and not also the
                         gradient)
         """
-        Agent.__init__(self, qmodel.output_shape[1:], policy)
+        MemoryAgent.__init__(self, qmodel.output_shape[1:], policy)
         self.qmodel = qmodel
         self.target_qmodel = None
         self.enable_target = enable_target or enable_double
@@ -1466,10 +1550,15 @@ class DQNAgent(Agent):
                                      tf.keras.backend.floatx())
         self.terminals = create_memory((None,),
                                        tf.keras.backend.floatx())
+        self.memory = {
+            'states': self.states, 'next_states': self.next_states,
+            'actions': self.actions, 'rewards': self.rewards,
+            'terminals': self.terminals
+        }
         if enable_PER:
             self.per_losses = create_memory((None,),
                                             tf.keras.backend.floatx())
-
+            self.memory['per_losses'] = self.per_losses
             # assuming the true max loss will be less than 100
             # at least at the begining
             self.max_loss = 100.0
@@ -1574,16 +1663,6 @@ class DQNAgent(Agent):
         self.terminals.add(0 if terminal else 1)
         if self.per_losses is not None:
             self.per_losses.add(self.max_loss)
-
-    def forget(self):
-        """Forgets or clears all memory."""
-        self.states.reset()
-        self.next_states.reset()
-        self.actions.reset()
-        self.rewards.reset()
-        self.terminals.reset()
-        if self.per_losses is not None:
-            self.per_losses.reset()
 
     def update_target(self, tau):
         """Updates the target Q Model weights.
@@ -1765,7 +1844,7 @@ class DQNAgent(Agent):
             load_data: A boolean, which determines if the memory
                        from a folder should be loaded
         """
-        Agent.load(self, path)
+        MemoryAgent.load(self, path, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'qmodel.json'), 'r') as file:
                 self.qmodel = model_from_json(file.read())
@@ -1775,26 +1854,6 @@ class DQNAgent(Agent):
                 self.target_qmodel.compile(optimizer='sgd', loss='mse')
             else:
                 self.target_qmodel = self.qmodel
-
-        if load_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:
-                for state in file['states']:
-                    self.states.add(state)
-                for new_state in file['next_states']:
-                    self.next_states.add(new_state)
-                for action in file['actions']:
-                    self.actions.add(action)
-                for reward in file['rewards']:
-                    self.rewards.add(reward)
-                for terminal in file['terminals']:
-                    self.terminals.add(terminal)
-                if self.per_losses is not None:
-                    if 'per_losses' in file:
-                        for loss in file['per_losses']:
-                            self.per_losses.add(loss)
-                    else:
-                        for _ in range(len(self.states)):
-                            self.per_losses.add(self.max_loss)
 
     def save(self, path, save_model=True,
              save_data=True, note='DQNAgent Save'):
@@ -1809,28 +1868,15 @@ class DQNAgent(Agent):
             note: A string, which is a note to save in the folder
         return: A string, which is the complete path of the save
         """
-        path = Agent.save(self, path, note)
+        path = MemoryAgent.save(self, path, save_data=save_data, note=note)
         if save_model:
             with open(os.path.join(path, 'qmodel.json'), 'w') as file:
                 file.write(self.qmodel.to_json())
             self.qmodel.save_weights(os.path.join(path, 'qweights.h5'))
-        if save_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'w') as file:
-                file.create_dataset('states', data=self.states.array())
-                file.create_dataset(
-                    'next_states', data=self.next_states.array()
-                )
-                file.create_dataset('actions', data=self.actions.array())
-                file.create_dataset('rewards', data=self.rewards.array())
-                file.create_dataset('terminals', data=self.terminals.array())
-                if self.per_losses is not None:
-                    file.create_dataset(
-                        'per_losses', data=self.per_losses.array()
-                    )
         return path
 
 
-class PGAgent(Agent):
+class PGAgent(MemoryAgent):
     """This class is an Agent that uses a Neural Network like the DQN Agent,
        but instead of learning to predict Q values, it predicts actions. It
        learns to predict these actions through Policy Gradients (PG).
@@ -1849,7 +1895,7 @@ class PGAgent(Agent):
             create_memory: A function, which returns a Memory instance
             policy: A policy instance
         """
-        Agent.__init__(self, amodel.output_shape[1:], policy)
+        MemoryAgent.__init__(self, amodel.output_shape[1:], policy)
         self.amodel = amodel
         self.discounted_rate = discounted_rate
         self.states = create_memory(self.amodel.input_shape,
@@ -1858,6 +1904,10 @@ class PGAgent(Agent):
                                      tf.keras.backend.floatx())
         self.drewards = create_memory((None,),
                                       tf.keras.backend.floatx())
+        self.memory = {
+            'states': self.states, 'actions': self.actions,
+            'drewards': self.drewards,
+        }
         self.episode_rewards = []
         self.action_identity = np.identity(self.action_shape[0])
         self.metric = tf.keras.metrics.Mean(name='loss')
@@ -1946,15 +1996,8 @@ class PGAgent(Agent):
         self.actions.add(self.action_identity[action])
         self.episode_rewards.append(reward)
 
-    def forget(self):
-        """Forgets or clears all memory."""
-        self.states.reset()
-        self.actions.reset()
-        self.drewards.reset()
-        self.episode_rewards.clear()
-
     def end_episode(self):
-        """Ends the episode, and creates drewards based
+        """Ends the episode and creates drewards based
            on the episodes rewards.
         """
         if len(self.episode_rewards) > 0:
@@ -1967,6 +2010,8 @@ class PGAgent(Agent):
             self.episode_rewards.clear()
             for dreward in reversed(dreward_list):
                 self.drewards.add(dreward)
+
+        MemoryAgent.end_episode(self)
 
     def _train_step(self, states, drewards, actions, entropy_coef):
         """Performs one gradient step with a batch of data.
@@ -2091,20 +2136,11 @@ class PGAgent(Agent):
             load_data: A boolean, which determines if the memory
                        from a folder should be loaded
         """
-        Agent.load(self, path)
+        MemoryAgent.load(self, path, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'amodel.json'), 'r') as file:
                 self.amodel = model_from_json(file.read())
             self.amodel.load_weights(os.path.join(path, 'aweights.h5'))
-
-        if load_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:
-                for state in file['states']:
-                    self.states.add(state)
-                for action in file['actions']:
-                    self.actions.add(action)
-                for dreward in file['drewards']:
-                    self.drewards.add(dreward)
 
     def save(self, path, save_model=True, save_data=True, note='PGAgent Save'):
         """Saves a note, model weights, and memory to a new folder.
@@ -2118,20 +2154,15 @@ class PGAgent(Agent):
             note: A string, which is a note to save in the folder
         return: A string, which is the complete path of the save
         """
-        path = Agent.save(self, path, note)
+        path = MemoryAgent.save(self, path, save_data=save_data, note=note)
         if save_model:
             with open(os.path.join(path, 'amodel.json'), 'w') as file:
                 file.write(self.amodel.to_json())
             self.amodel.save_weights(os.path.join(path, 'aweights.h5'))
-        if save_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'w') as file:
-                file.create_dataset('states', data=self.states.array())
-                file.create_dataset('actions', data=self.actions.array())
-                file.create_dataset('drewards', data=self.drewards.array())
         return path
 
 
-class DDPGAgent(Agent):
+class DDPGAgent(MemoryAgent):
     """This class (Deep Deterministic Policy Gradient Agent) is an Agent
        that uses two Neural Networks. An Actor network, which is like
        a PGAgent Network and a Critic Network like the DQNAgent
@@ -2157,7 +2188,7 @@ class DDPGAgent(Agent):
                            should be used for the critic
         """
         print('WARNING: This implementation may be incorrect.')
-        Agent.__init__(self, amodel.output_shape[1:], policy)
+        MemoryAgent.__init__(self, amodel.output_shape[1:], policy)
         self.amodel = amodel
         self.cmodel = cmodel
         self.target_cmodel = None
@@ -2182,6 +2213,11 @@ class DDPGAgent(Agent):
                                      tf.keras.backend.floatx())
         self.terminals = create_memory((None,),
                                        tf.keras.backend.floatx())
+        self.memory = {
+            'states': self.states, 'next_states': self.next_states,
+            'actions': self.actions, 'rewards': self.rewards,
+            'terminals': self.terminals
+        }
         self.total_steps = 0
         self.metric_c = tf.keras.metrics.Mean(name='critic_loss')
         self.metric_a = tf.keras.metrics.Mean(name='actor_loss')
@@ -2282,14 +2318,6 @@ class DDPGAgent(Agent):
         self.actions.add(action)
         self.rewards.add(reward)
         self.terminals.add(0 if terminal else 1)
-
-    def forget(self):
-        """Forgets or clears all memory."""
-        self.states.reset()
-        self.next_states.reset()
-        self.actions.reset()
-        self.rewards.reset()
-        self.terminals.reset()
 
     def update_target(self, tau):
         """Updates the target Actor and Critic Model weights.
@@ -2461,7 +2489,7 @@ class DDPGAgent(Agent):
             load_data: A boolean, which determines if the memory
                        from a folder should be loaded
         """
-        Agent.load(self, path)
+        MemoryAgent.load(self, path, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'amodel.json'), 'r') as file:
                 self.amodel = model_from_json(file.read())
@@ -2469,18 +2497,6 @@ class DDPGAgent(Agent):
                 self.cmodel = model_from_json(file.read())
             self.amodel.load_weights(os.path.join(path, 'aweights.h5'))
             self.cmodel.load_weights(os.path.join(path, 'cweights.h5'))
-        if load_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:
-                for state in file['states']:
-                    self.states.add(state)
-                for new_state in file['next_states']:
-                    self.next_states.add(new_state)
-                for action in file['actions']:
-                    self.actions.add(action)
-                for reward in file['rewards']:
-                    self.rewards.add(reward)
-                for terminal in file['terminals']:
-                    self.terminals.add(terminal)
 
     def save(self, path, save_model=True, save_data=True,
              note='DDPGAgent Save'):
@@ -2495,7 +2511,7 @@ class DDPGAgent(Agent):
             note: A string, which is a note to save in the folder
         return: A string, which is the complete path of the save
         """
-        path = Agent.save(self, path, note)
+        path = MemoryAgent.save(self, path, save_data=save_data, note=note)
         if save_model:
             with open(os.path.join(path, 'amodel.json'), 'w') as file:
                 file.write(self.amodel.to_json())
@@ -2503,12 +2519,4 @@ class DDPGAgent(Agent):
                 file.write(self.cmodel.to_json())
             self.amodel.save_weights(os.path.join(path, 'aweights.h5'))
             self.cmodel.save_weights(os.path.join(path, 'cweights.h5'))
-        if save_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'w') as file:
-                file.create_dataset('states', data=self.states.array())
-                file.create_dataset('next_states',
-                                    data=self.next_states.array())
-                file.create_dataset('actions', data=self.actions.array())
-                file.create_dataset('rewards', data=self.rewards.array())
-                file.create_dataset('terminals', data=self.terminals.array())
         return path

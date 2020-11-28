@@ -12,7 +12,6 @@ paiutils/neural_network.py
 paiutils/reinforcement.py
 paiutils/reinforcement_agents.py
 paiutils/util_funcs.py
-paiutils/vae.py
 paiutils.egg-info/PKG-INFO
 paiutils.egg-info/SOURCES.txt
 paiutils.egg-info/dependency_links.txt
@@ -37,3 +36,14 @@ paiutils/sox/sox.exe
 paiutils/sox/wget.exe
 paiutils/sox/wget.ini
 paiutils/sox/zlib1.dll
+tests/__init__.py
+tests/test_analytics.py
+tests/test_audio.py
+tests/test_autoencoder.py
+tests/test_evolution_algorithm.py
+tests/test_gan.py
+tests/test_image.py
+tests/test_neural_network.py
+tests/test_reinforcement.py
+tests/test_reinforcement_agents.py
+tests/test_util_funcs.py

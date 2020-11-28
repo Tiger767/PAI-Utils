@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 11_26_2020
+Version: 11_27_2020
 """
 
 
@@ -17,7 +17,7 @@ try:
     )
 except ImportError:
     from reinforcement import (
-        Memory, PlayingData, DQNAgent,
+        Memory, PlayingData, DQNAgent, MemoryAgent,
         PGAgent, DDPGAgent, NoisePolicy,
     )
 
@@ -63,6 +63,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
         self.uses_dqn_method = True
         self.drewards = create_memory((None,),
                                       tf.keras.backend.floatx())
+        self.memory['drewards'] = self.drewards
         self.episode_rewards = []
         self.pg_metric = tf.keras.metrics.Mean(name='pg_loss')
         self._tf_train_step = tf.function(
@@ -131,23 +132,13 @@ class DQNPGAgent(DQNAgent, PGAgent):
     def forget(self):
         """Forgets or clears all memory."""
         DQNAgent.forget(self)
-        self.drewards.reset()
         self.episode_rewards.clear()
 
     def end_episode(self):
         """Ends the episode, and creates drewards based
            on the episodes rewards.
         """
-        if len(self.episode_rewards) > 0:
-            dreward = 0
-            dreward_list = []
-            for reward in reversed(self.episode_rewards):
-                dreward *= self.discounted_rate
-                dreward += reward
-                dreward_list.append(dreward)
-            self.episode_rewards.clear()
-            for dreward in reversed(dreward_list):
-                self.drewards.add(dreward)
+        PGAgent.end_episode(self)
 
     def _train_step(self, states, next_states, actions,
                     terminals, rewards, drewards):
@@ -344,34 +335,13 @@ class DQNPGAgent(DQNAgent, PGAgent):
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
         """
-        DQNAgent.load(self, path, load_model=load_model, load_data=False)
+        DQNAgent.load(self, path, load_model=load_model, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'amodel.json'), 'r') as file:
                 self.amodel = model_from_json(
                     file.read(), custom_objects=custom_objects
                 )
             self.amodel.load_weights(os.path.join(path, 'aweights.h5'))
-        if load_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:
-                for state in file['states']:
-                    self.states.add(state)
-                for new_state in file['next_states']:
-                    self.next_states.add(new_state)
-                for action in file['actions']:
-                    self.actions.add(action)
-                for reward in file['rewards']:
-                    self.rewards.add(reward)
-                for dreward in file['drewards']:
-                    self.drewards.add(dreward)
-                for terminal in file['terminals']:
-                    self.terminals.add(terminal)
-                if self.per_losses is not None:
-                    if 'per_losses' in file:
-                        for loss in file['per_losses']:
-                            self.per_losses.add(loss)
-                    else:
-                        for _ in range(len(self.states)):
-                            self.per_losses.add(self.max_loss)
 
     def save(self, path, save_model=True,
              save_data=True, note='DQNPGAgent Save'):
@@ -387,24 +357,11 @@ class DQNPGAgent(DQNAgent, PGAgent):
         return: A string, which is the complete path of the save
         """
         path = DQNAgent.save(self, path, save_model=save_model,
-                             save_data=False, note=note)
+                             save_data=save_data, note=note)
         if save_model:
             with open(os.path.join(path, 'amodel.json'), 'w') as file:
                 file.write(self.amodel.to_json())
             self.amodel.save_weights(os.path.join(path, 'aweights.h5'))
-        if save_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'w') as file:
-                file.create_dataset('states', data=self.states.array())
-                file.create_dataset('next_states',
-                                    data=self.next_states.array())
-                file.create_dataset('actions', data=self.actions.array())
-                file.create_dataset('rewards', data=self.rewards.array())
-                file.create_dataset('drewards', data=self.drewards.array())
-                file.create_dataset('terminals', data=self.terminals.array())
-                if self.per_losses is not None:
-                    file.create_dataset(
-                        'per_losses', data=self.per_losses.array()
-                    )
         return path
 
 
@@ -436,10 +393,13 @@ class A2CAgent(PGAgent):
                          policy=None)
         self.cmodel = cmodel
         self.lambda_rate = lambda_rate
-        self.terminals = create_memory((None,),
-                                       tf.keras.backend.floatx())
-        self.rewards = create_memory((None,),
-                                     tf.keras.backend.floatx())
+        if lambda_rate != 0:
+            self.terminals = create_memory((None,),
+                                        tf.keras.backend.floatx())
+            self.rewards = create_memory((None,),
+                                        tf.keras.backend.floatx())
+            self.memory['terminals'] = self.terminals
+            self.memory['rewards'] = self.rewards
         self.metric_c = tf.keras.metrics.Mean(name='critic_loss')
         self._tf_train_step = tf.function(
             self._train_step,
@@ -477,12 +437,6 @@ class A2CAgent(PGAgent):
             self.terminals.add(terminal)
             self.rewards.add(reward)
 
-    def forget(self):
-        """Forgets or clears all memory."""
-        PGAgent.forget(self)
-        self.terminals.reset()
-        self.rewards.reset()
-
     def end_episode(self):
         """Ends the episode, and creates drewards based
            on the episodes rewards.
@@ -499,6 +453,8 @@ class A2CAgent(PGAgent):
                 self.drewards.add(dreward)
             if self.lambda_rate > 0:
                 self.terminals[-1] = True
+
+        MemoryAgent.end_episode(self)
 
     def _train_step(self, states, drewards, advantages,
                     actions, entropy_coef):
@@ -678,26 +634,13 @@ class A2CAgent(PGAgent):
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
         """
-        PGAgent.load(self, path, load_model=load_model, load_data=False)
+        PGAgent.load(self, path, load_model=load_model, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'cmodel.json'), 'r') as file:
                 self.amodel = model_from_json(
                     file.read(), custom_objects=custom_objects
                 )
             self.cmodel.load_weights(os.path.join(path, 'cweights.h5'))
-        if load_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:
-                for state in file['states']:
-                    self.states.add(state)
-                for action in file['actions']:
-                    self.actions.add(action)
-                for dreward in file['drewards']:
-                    self.drewards.add(dreward)
-                if self.lambda_rate > 0:
-                    for reward in file['rewards']:
-                        self.rewards.add(reward)
-                    for terminal in file['terminals']:
-                        self.terminals.add(terminal)
 
     def save(self, path, save_model=True,
              save_data=True, note='A2CAgent Save'):
@@ -713,20 +656,11 @@ class A2CAgent(PGAgent):
         return: A string, which is the complete path of the save
         """
         path = PGAgent.save(self, path, save_model=save_model,
-                            save_data=False, note=note)
+                            save_data=save_data, note=note)
         if save_model:
             with open(os.path.join(path, 'cmodel.json'), 'w') as file:
                 file.write(self.cmodel.to_json())
             self.cmodel.save_weights(os.path.join(path, 'cweights.h5'))
-        if save_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'w') as file:
-                file.create_dataset('states', data=self.states.array())
-                file.create_dataset('actions', data=self.actions.array())
-                file.create_dataset('drewards', data=self.drewards.array())
-                if self.lambda_rate > 0:
-                    file.create_dataset('rewards', data=self.rewards.array())
-                    file.create_dataset('terminals',
-                                        data=self.terminals.array())
         return path
 
 
@@ -762,6 +696,7 @@ class PPOAgent(A2CAgent):
         self.clip_ratio = clip_ratio
         self.old_probs = create_memory((None,),
                                        tf.keras.backend.floatx())
+        self.memory['old_probs'] = self.old_probs
         self.prob = None
         self._tf_train_step = tf.function(
             self._train_step,
@@ -824,11 +759,6 @@ class PPOAgent(A2CAgent):
         else:
             self.old_probs.add(self.prob)
             self.prob = None
-
-    def forget(self):
-        """Forgets or clears all memory."""
-        A2CAgent.forget(self)
-        self.old_probs.forget()
 
     def _train_step(self, states, drewards, advantages, actions,
                     old_probs, entropy_coef):
@@ -1015,33 +945,6 @@ class PPOAgent(A2CAgent):
             for ndx in range(length):
                 self.old_probs[indexes[ndx]] = new_probs[ndx]
 
-    def load(self, path, load_model=True, load_data=True):
-        """Loads a save from a folder.
-        params:
-            path: A string, which is the path to a folder to load
-            load_model: A boolean, which determines if the model
-                        architectures and weights
-                        should be loaded
-            load_data: A boolean, which determines if the memory
-                       from a folder should be loaded
-        """
-        A2CAgent.load(self, path, load_model=load_model, load_data=False)
-        if load_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:
-                for state in file['states']:
-                    self.states.add(state)
-                for action in file['actions']:
-                    self.actions.add(action)
-                for dreward in file['drewards']:
-                    self.drewards.add(dreward)
-                for old_prob in file['old_probs']:
-                    self.old_probs.add(old_prob)
-                if self.lambda_rate > 0:
-                    for reward in file['rewards']:
-                        self.rewards.add(reward)
-                    for terminal in file['terminals']:
-                        self.terminals.add(terminal)
-
     def save(self, path, save_model=True,
              save_data=True, note='PPOAgent Save'):
         """Saves a note, models, weights, and memory to a new folder.
@@ -1056,44 +959,8 @@ class PPOAgent(A2CAgent):
         return: A string, which is the complete path of the save
         """
         path = A2CAgent.save(self, path, save_model=save_model,
-                             save_data=False, note=note)
-        if save_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'w') as file:
-                file.create_dataset('states', data=self.states.array())
-                file.create_dataset('actions', data=self.actions.array())
-                file.create_dataset('drewards', data=self.drewards.array())
-                file.create_dataset('old_probs',
-                                    data=self.old_probs.array())
-                if self.lambda_rate > 0:
-                    file.create_dataset('rewards', data=self.rewards.array())
-                    file.create_dataset('terminals',
-                                        data=self.terminals.array())
+                             save_data=save_data, note=note)
         return path
-
-
-class PGCAAgent(PGAgent):
-    """This class is a PGAgent adapted for continuous action spaces."""
-
-    def __init__(self, amodel, discounted_rate, max_action,
-                 create_memory=lambda shape, dtype: Memory(),
-                 policy=None):
-        """Initalizes the Policy Gradient Agent.
-        params:
-            amodel: A keras model, which takes the state as input and outputs
-                    actions (regularization losses are not applied,
-                    and compiled loss are not used)
-            discounted_rate: A float within 0.0-1.0, which is the rate that
-                             future rewards should be counted for the current
-                             reward
-            max_action: A float/integer, which is the max output of amodel
-            create_memory: A function, which returns a Memory instance
-        """
-        raise NotImplementedError('This Agent has not been '
-                                  'implemented in this version.')
-        PGAgent.__init__(self, amodel, discounted_rate,
-                         create_memory=create_memory,
-                         policy=None)
-        self.max_action = max_action
 
 
 class TD3Agent(DDPGAgent):
@@ -1395,7 +1262,7 @@ class TD3Agent(DDPGAgent):
                 self.update_target(tau)
 
     def save(self, path, save_model=True, save_data=True,
-             note='DDPGAgent Save'):
+             note='T3DAgent Save'):
         """Saves a note, weights of the models, and memory to a new folder.
         params:
             path: A string, which is the path to a folder to save within
@@ -1408,4 +1275,4 @@ class TD3Agent(DDPGAgent):
         return: A string, which is the complete path of the save
         """
         return DDPGAgent.save(self, path, save_model=save_model,
-                              save_data=save_data, note='T3DAgent Save')
+                              save_data=save_data, note=note)

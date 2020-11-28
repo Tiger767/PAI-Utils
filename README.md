@@ -39,9 +39,9 @@ Package Features
   - OpenAI Gym wrapper
   - Multi-agent adverserial environment
   - Greedy, ascetic, and stochastic policies
-  - Noise Policies
+  - Noise policies
   - Exponential, linear, and constant decay
-  - Ring and normal memory
+  - Normal memory and efficient time distributed memory (for stacked states)
   - Agents
     - QAgent: Q-learning with a table
     - DQNAgent Q-learning with a neural network model
