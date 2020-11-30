@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="paiutils",
-    version="3.1.1",
+    version="4.0.0",
     author="Travis Hammond",
     description="An artificial intelligence utilities package built to remove the delays of machine learning research.",
     long_description=long_description,

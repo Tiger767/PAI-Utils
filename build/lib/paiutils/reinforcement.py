@@ -278,7 +278,7 @@ class MultiSeqAgentEnvironment(Environment):
                 and a boolean (terminal state)
         """
         state = None
-        return state, 0,, False
+        return state, 0, False
 
     def play_episode(self, agents, max_steps, shuffle=True, 
                      random=False, random_bounds=None,
@@ -691,9 +691,9 @@ class Decay:
             step_every_call: A boolean, which determines if each call should
                              step the decay
         """
-        assert initial_value >= min_value, (
-            'initial_value must be greater or equal to min_value'
-        )
+        if initial_value < min_value:
+            raise ValueError(f'initial_value {initial_value} must '
+                             f'be greater or equal to min_value {min_value}')
         self.initial_value = initial_value
         self.constant = constant
         self.min_value = min_value
@@ -712,10 +712,10 @@ class Decay:
         """Returns the current value with regard to the state of decay.
         return: A float
         """
+        value = self.initial_value - self.constant * self.steps
         if self.step_ever_call:
             self.step()
-        value = self.initial_value - self.constant * self.steps
-        return np.max([value, self.min_value])
+        return np.maximum(value, self.min_value)
 
 
 class ExponentialDecay(Decay):
@@ -734,9 +734,9 @@ class ExponentialDecay(Decay):
             step_every_call: A boolean, which determines if each call should
                              step the decay
         """
-        assert initial_value >= min_value, (
-            'initial_value must be greater or equal to min_value'
-        )
+        if initial_value < min_value:
+            raise ValueError(f'initial_value {initial_value} must '
+                             f'be greater or equal to min_value {min_value}')
         self.initial_value = initial_value
         self.rate = rate
         self.min_value = min_value
@@ -747,10 +747,10 @@ class ExponentialDecay(Decay):
         """Returns the current value with regard to the state of decay.
         return: A float
         """
+        value = self.initial_value * (1 - self.rate)**self.steps
         if self.step_ever_call:
             self.step()
-        return np.maximum(self.initial_value * (1 - self.rate)**self.steps,
-                          self.min_value)
+        return np.maximum(value, self.min_value)
 
 
 class LinearDecay(Decay):
@@ -787,10 +787,10 @@ class LinearDecay(Decay):
         """Returns the current value with regard to the state of decay.
         return: A float
         """
+        value = self.a * self.steps + self.initial_value
         if self.step_ever_call:
             self.step()
-        value = self.a * self.steps + self.initial_value
-        return np.max([value, self.min_value])
+        return np.maximum(value, self.min_value)
 
 
 class Memory:
@@ -858,13 +858,23 @@ class Memory:
     def create_shuffled_subset(memories, subset_size, weights=None):
         """Creates a list of numpy arrays of a shuffled subset of memories.
         params:
-            memories: A list of Memeory Objects (not asserted but assumed)
+            memories: A list of Memeory Objects
             subset_size: A integer, which is the size of the
                          outer dimension of each ndarray
             weights: A list of probabilities that add up to 1
         return: arrays and shuffled indexes
         """
-        indexes = np.random.choice(np.arange(len(memories[0])),
+        length = len(memories[0])
+        if subset_size > length:
+            raise ValueError(f'Subset size {subset_size} is '
+                             f'greater than memory length {length}')
+        for memory in memories:
+            if len(memory) != length:
+                raise ValueError('Memories are not all the same length.')
+            if not isinstance(memory, Memory):
+                raise TypeError('Memories must also be Memory '
+                                'or subclass instances')
+        indexes = np.random.choice(np.arange(length),
                                    size=subset_size, replace=False,
                                    p=weights)
         arrays = [np.empty((subset_size, *memory[0].shape))
@@ -958,6 +968,16 @@ class ETDMemory(Memory):
             weights: A list of probabilities that add up to 1
         return: arrays and shuffled indexes
         """
+        length = len(memories[0])
+        if subset_size > length:
+            raise ValueError(f'Subset size {subset_size} is '
+                             f'greater than memory length {length}')
+        for memory in memories:
+            if len(memory) != length:
+                raise ValueError('Memories are not all the same length.')
+            if not isinstance(memory, Memory):
+                raise TypeError('Memories must also be Memory '
+                                'or subclass instances')
         indexes = np.random.choice(np.arange(len(memories[0])),
                                    size=subset_size, replace=False,
                                    p=weights)
@@ -980,7 +1000,13 @@ class ETDMemory(Memory):
 
 
 class RingMemory(Memory):
-    pass
+    def __init__(self, max_len):
+        """Initalizes the memory.
+        params:
+            max_len: An integer, which is the max length of memory
+                     (if reached, the oldest memory will be removed)
+        """
+        Memory.__init__(self, max_len=max_len)
 
 
 class PlayingData:
@@ -1004,21 +1030,19 @@ class PlayingData:
             learning_params: A dictionary of parameters for the agent's
                              learn method
         """
-        assert training is True or training is False, (
-            'Invalid training value. Must be True or False.'
-        )
-        assert memorizing is True or memorizing is False, (
-            'Invalid memorizing value. Must be True or False.'
-        )
-        assert epochs >= 0, (
-            'Invalid epoch value. Must be greater or equal to zero.'
-        )
-        assert learns_in_episode is True or learns_in_episode is False, (
-            'Invalid learns_in_episode value. Must be True or False.'
-        )
-        assert isinstance(learning_params, dict), (
-            'Invalid learning_params value. Must be a dictionary.'
-        )
+        if not (training is True or training is False):
+            raise ValueError('Invalid training value. Must be True or False.')
+        if not (memorizing is True or memorizing is False):
+            raise ValueError('Invalid memorizing value. Must be True or False.')
+        if epochs < 0:
+            raise ValueError('Invalid epoch value. Must '
+                             'be greater or equal to zero.')
+        if not (learns_in_episode is True or learns_in_episode is False):
+            raise ValueError('Invalid learns_in_episode value. '
+                             'Must be True or False.')
+        if not isinstance(learning_params, dict):
+            raise TypeError('Invalid learning_params value. '
+                            'Must be a dictionary.')
         self.training = training
         self.memorizing = memorizing
         self.epochs = epochs

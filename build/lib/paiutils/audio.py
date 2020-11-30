@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 11_20_2019
+Version: 11_28_2019
 """
 
 
@@ -18,10 +18,10 @@ except ModuleNotFoundError:
           'Therefore, vad_trim_all, vad_trim_sides, '
           'and vad_split cannot be used.')
 
-use_pyaudio = False
+USE_PYAUDIO = False
 try:
     import pyaudio
-    use_pyaudio = True
+    USE_PYAUDIO = True
 except ModuleNotFoundError:
     print('ModuleError: pyaudio could not be found. '
           'Therefore, sox will be used for recording and playing audio.')
@@ -29,15 +29,15 @@ except ModuleNotFoundError:
 util_dir = os.path.dirname(__file__)
 
 if os.name == 'nt':
-    sox_path = os.path.join(util_dir, 'sox', 'sox.exe')
-    if not os.path.exists(sox_path):
+    SOX_PATH = os.path.join(util_dir, 'sox', 'sox.exe')
+    if not os.path.exists(SOX_PATH):
         print(f'SoX does not exist or is not in the '
-              f'location: {sox_path}\nDownload SoX: '
+              f'location: {SOX_PATH}\nDownload SoX: '
               f'https://sourceforge.net/projects/sox/\n'
               f'Some functionally will be disabled until resolved.')
 else:
-    sox_path = None
-    if sox_path is None:
+    SOX_PATH = None
+    if SOX_PATH is None:
         print('SoX is only configured to work with Windows, '
               'so some functionally will be disabled.')
 
@@ -45,44 +45,32 @@ else:
 CHUNK = 1000
 
 
-def convert_width_to_atype(width, signed=True):
+def convert_width_to_atype(width):
     """Converts a number of bytes to an audio type.
     params:
-        width: An integer within 1-4 (inclusive)
-        signed: A boolean, which determines if the type is signed
+        width: An integer, which is the number of bytes wide
     return: A string, which is the audio type
     """
     if width == 1:
         atype = 'int8'
     elif width == 2:
         atype = 'int16'
-    elif width == 3:
-        atype = 'int24'
-    elif width == 4:
-        atype = 'float32'
     else:
-        raise ValueError('width can only 1, 2, 3, or 4')
-    if signed:
-        return atype
-    return 'u' + atype
+        raise ValueError('Supported widths are either 1 or 2')
+    return atype
 
 
 def convert_atype_to_width(atype):
     """Converts an audio type to the number of bytes each value takes.
     params:
         atype: A string, which is an audio type
-    return: An integer within 1-4 (inclusive)
+    return: An integer, which is the number of bytes wide
     """
     if atype == 'int8':
         return 1
-    if atype == 'uint8':
-        return 1
     if atype == 'int16':
         return 2
-    if atype == 'int24':
-        return 3
-    if atype == 'float32':
-        return 4
+    raise ValueError('Supported atypes are either int8 or int16')
 
 
 def change_rate(audio, rate, new_rate, atype=None):
@@ -92,26 +80,16 @@ def change_rate(audio, rate, new_rate, atype=None):
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
         new_rate: An integer, which is the rate to change the audio to
-    return: A tuple of the new audio and rate
+    return: A tuple of the loaded audio, rate, and atype
     """
     if rate == new_rate:
         return audio, rate
     temp_filename = os.path.join(
-            util_dir, str(np.random.randint(10000, 100000))+'.wav'
+            util_dir, str(np.random.randint(10000, 100000)) + '.wav'
     )
     save(temp_filename, audio, rate, atype=atype)
-    try:
-        cmd = [sox_path, temp_filename, '-r ' + str(new_rate), temp_filename]
-        subprocess.run(cmd, stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL)
-        with wave.open(temp_filename, 'r') as file:
-            atype = convert_width_to_atype(file.getsampwidth())
-            rate = file.getframerate()
-            audio = file.readframes(file.getnframes())
-            audio = np.frombuffer(audio, dtype=atype) / np.iinfo(atype).max
-    finally:
-        os.remove(temp_filename)
-    return audio, rate
+    audio, rate, atype = load(temp_filename, new_rate)
+    return audio, rate, atype
 
 
 def load(filename, rate=None, assert_mono=True):
@@ -146,9 +124,9 @@ def load(filename, rate=None, assert_mono=True):
             util_dir, str(np.random.randint(10000, 100000))+'.wav'
         )
         if rate is None:
-            cmd = [sox_path, filename, '-c 1', temp_filename]
+            cmd = [SOX_PATH, filename, '-c 1', temp_filename]
         else:
-            cmd = [sox_path, filename, '-r ' + str(rate), '-c 1',
+            cmd = [SOX_PATH, filename, '-r ' + str(rate), '-c 1',
                    temp_filename]
         subprocess.run(cmd, stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL)
@@ -197,14 +175,9 @@ def file_record(filename, seconds, rate, atype=None,
     """
     if atype is None:
         atype = 'int16'
-    cmd = [sox_path, f'-b {convert_atype_to_width(atype) * 8}',
-           '-c 1', f'-r {rate}', f'-t waveaudio {recording_device_name}']
-    if atype[0] == 'u':
-        cmd += ['-e unsigned-integer']
-    elif atype[0] == 'i':
-        cmd += ['-e signed-integer']
-    elif atype[0] == 'f':
-        cmd += ['-e floating-point']
+    cmd = [SOX_PATH, f'-b {convert_atype_to_width(atype) * 8}',
+           '-c 1', f'-r {rate}', f'-t waveaudio {recording_device_name}',
+           '-e signed-integer']
     cmd += [f'"{filename}"']
     cmd += [f'trim 0 {seconds}']
     subprocess.run(' '.join(cmd), stdout=subprocess.DEVNULL,
@@ -221,11 +194,17 @@ def record(seconds, rate, atype=None, recording_device_name='Microphone'):
                                recording device
     return: A tuple of the loaded audio, rate, and atype
     """
-    global CHUNK, use_pyaudio
-    if use_pyaudio:
+    global CHUNK, USE_PYAUDIO
+    if USE_PYAUDIO:
         p = pyaudio.PyAudio()
 
-        stream = p.open(format=pyaudio.paInt16,
+        if atype == 'int16':
+            patype = pyaudio.paInt16
+        elif atype == 'int8':
+            patype = pyaudio.paInt8
+        else:
+            raise ValueError('Supported atypes are either int8 or int16')
+        stream = p.open(format=patype,
                         channels=1,
                         rate=rate, 
                         input=True,
@@ -238,8 +217,7 @@ def record(seconds, rate, atype=None, recording_device_name='Microphone'):
         stream.stop_stream()
         stream.close()
         p.terminate()
-        audio = np.frombuffer(b''.join(frames), dtype=np.int16) / np.iinfo(np.int16).max
-        atype = 'int16'
+        audio = np.frombuffer(b''.join(frames), dtype=atype) / np.iinfo(atype).max
     else:
         temp_filename = os.path.join(
             util_dir, str(np.random.randint(10000, 100000))+'.wav'
@@ -263,7 +241,7 @@ def file_play(filename):
         filename: A string, which is the directory or filename of the
                   file to load
     """
-    cmd = [sox_path, f'"{filename}"', '-t waveaudio']
+    cmd = [SOX_PATH, f'"{filename}"', '-t waveaudio']
     subprocess.run(' '.join(cmd), stdout=subprocess.DEVNULL,
                    stderr=subprocess.DEVNULL)
 
@@ -276,16 +254,23 @@ def play(audio, rate, atype=None):
         rate: An integer, which is the rate at which samples are taken
         atype: A string, which is the audio type (default: int16)
     """
-    global CHUNK, use_pyaudio
-    if use_pyaudio:
+    global CHUNK, USE_PYAUDIO
+    if USE_PYAUDIO:
         p = pyaudio.PyAudio()
-        
-        stream = p.open(format=pyaudio.paInt16,
+
+        if atype == 'int16':
+            patype = pyaudio.paInt16
+        elif atype == 'int8':
+            patype = pyaudio.paInt8
+        else:
+            raise ValueError('Supported atypes are either int8 or int16')
+        stream = p.open(format=patype,
                         channels=1,
                         rate=rate, 
                         output=True)
         
-        data = np.array_split((audio * np.iinfo(np.int16).max).astype(np.int16), CHUNK)
+        data = np.array_split((audio * np.iinfo(atype).max).astype(atype),
+                              CHUNK)
         for frame in data:
             stream.write(frame.tobytes())
         
@@ -294,7 +279,7 @@ def play(audio, rate, atype=None):
         p.terminate()
     else:
         temp_filename = os.path.join(
-            util_dir, str(np.random.randint(10000, 100000))+'.wav'
+            util_dir, str(np.random.randint(10000, 100000)) + '.wav'
         )
         audio = np.pad(audio, (0, rate), 'constant')
         save(temp_filename, audio, rate, atype=atype)

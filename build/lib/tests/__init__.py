@@ -6,4 +6,4 @@ from tests import (
     test_util_funcs,
 )
 
-__version__ = '3.1.1'
+__version__ = '4.0.0-develop'

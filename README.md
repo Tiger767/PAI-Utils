@@ -22,12 +22,11 @@ Package Features
 - Autoencoder
   - Trainer and Predictor
   - Trainer with extra decoder
+  - VAE Trainer
   - Basic network architecture creation
 - Evolution Algorithm
   - One dimensional evolution algorithm
   - Hyperparameter tuner
-- VAE
-  - Trainer
 - GAN
   - Trainer and Predictor
   - GANI Trainer (GAN which takes provided Inputs)
