@@ -5,7 +5,6 @@ artificial intelligence and machine learning programming easier through
 abstractions of extensive APIs, research paper implementations, and data
 manipulation.
 
-Modules in this package are used extensively in [this playlist](https://www.youtube.com/watch?v=4_oJMTfTBYY&list=PLZkmLNZl0Wkw9KSJMBhbalbsxmrjdlgv3).
 The reinforcement modules are used [here](https://github.com/Tiger767/OpenAIGymResults).
 
 Package Features

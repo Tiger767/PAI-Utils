@@ -716,7 +716,7 @@ class PPOAgent(A2CAgent):
                       agent is training
         return: A value, which is the selected action
         """
-        if (self.time_distributed_states
+        if (self.time_distributed_states is not None
                 and state.shape == self.amodel.input_shape[2:]):
             self.time_distributed_states = np.roll(
                 self.time_distributed_states, -1

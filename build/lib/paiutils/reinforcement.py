@@ -854,6 +854,23 @@ class Memory:
         """
         pass
 
+    def save(self, file, name):
+        """Creates a h5py dataset with the memory data
+        params:
+            file: A h5py open file for writing
+            name: A string, which is the dataset name
+        """
+        file.create_dataset(name, data=self.array())
+
+    def load(self, file, name):
+        """Loads a h5py dataset with the saved memory data
+        params:
+            file: A h5py open file for reading
+            name: A string, which is the dataset name
+        """
+        for element in file[name]:
+            self.add(element)
+
     @staticmethod
     def create_shuffled_subset(memories, subset_size, weights=None):
         """Creates a list of numpy arrays of a shuffled subset of memories.
@@ -878,6 +895,8 @@ class Memory:
                                    size=subset_size, replace=False,
                                    p=weights)
         arrays = [np.empty((subset_size, *memory[0].shape))
+                  if isinstance(memory[0], np.ndarray)
+                  else np.empty(subset_size)
                   for memory in memories]
         for ndx, rndx in enumerate(indexes):
             for array, memory in zip(arrays, memories):
@@ -887,6 +906,7 @@ class Memory:
 
 class ETDMemory(Memory):
     """This class is for the efficient storage of time distributed states.
+       This type of memory should only be used for states.
     """
 
     def __init__(self, num_time_steps, void_state, max_len=None):
@@ -958,6 +978,30 @@ class ETDMemory(Memory):
         """
         self.step_ndxs = np.zeros(self.num_time_steps, dtype=np.int)
 
+    def save(self, file, name):
+        """Creates a h5py dataset with the memory data
+        params:
+            file: A h5py open file for writing
+            name: A string, which is the dataset name
+        """
+        file.create_dataset(f'{name}_buffer', data=np.array(self.buffer))
+        file.create_dataset(f'{name}_ndxs', data=np.array(self.ndxs))
+
+    def load(self, file, name):
+        """Loads a h5py dataset with the saved memory data
+        params:
+            file: A h5py open file for reading
+            name: A string, which is the dataset name
+        """
+        for element in file[f'{name}_ndxs']:
+            self.ndxs.append(element)
+            if element.shape != (self.num_time_steps,):
+                raise ValueError('Cannot load dataset: '
+                                 'invalid number of time steps')
+
+        for element in file[f'{name}_buffer']:
+            self.buffer.append(element)
+
     @staticmethod
     def create_shuffled_subset(memories, subset_size, weights=None):
         """Creates a list of numpy arrays of a shuffled subset of memories.
@@ -987,8 +1031,10 @@ class ETDMemory(Memory):
                 arrays.append(np.empty((subset_size,
                                         memory.num_time_steps,
                                         *memory.buffer[0].shape)))
-            else:
+            elif isinstance(memory[0], np.ndarray):
                 arrays.append(np.empty((subset_size, *memory[0].shape)))
+            else:
+                arrays.append(np.empty(subset_size))
         for ndx, rndx in enumerate(indexes):
             for array, memory in zip(arrays, memories):
                 if isinstance(memory, ETDMemory):
@@ -1062,6 +1108,10 @@ class Agent:
                           action shape of the environment
             policy: A policy instance
         """
+        if not isinstance(action_shape, tuple):
+            raise TypeError('action_shape must be a tuple')
+        if not isinstance(policy, Policy):
+            raise TypeError('policy must be a Policy instance')
         self.action_shape = action_shape
         self.policy = policy
         self.playing_data = None
@@ -1096,7 +1146,7 @@ class Agent:
             new_state: A value or list of values, which is the
                        state of the environment after performing
                        the action
-            reward: A float/integer, which is the evaluation of
+            reward: A float, which is the evaluation of
                     the action performed
             terminal: A boolean, which determines if this call to
                       add memory is the last for the episode
@@ -1152,7 +1202,8 @@ class QAgent(Agent):
                  policy, discounted_rate):
         """Initalizes the Q-learning agent.
         params:
-            discrete_state_space: An integer, which
+            discrete_state_space: An integer, which is the size of
+                                  the state space
             action_size: An integers, which is the
                          action size of the environment
             policy: A policy instance
@@ -1215,7 +1266,7 @@ class QAgent(Agent):
             new_state: A value or list of values, which is the
                        state of the environment after performing
                        the action
-            reward: A float/integer, which is the evaluation of
+            reward: A float, which is the evaluation of
                     the action performed
             terminal: A boolean, which determines if this call to
                       add memory is the last for the episode
@@ -1469,17 +1520,18 @@ class MemoryAgent(Agent):
         """
         Agent.__init__(self, action_shape, policy)
         self.memory = {}
+        self.time_distributed_states = None
 
     def forget(self):
         """Forgets or clears all memory."""
         Agent.end_episode(self)
-        for memory in self.memory.items():
+        for memory in self.memory.values():
             memory.reset()
 
     def end_episode(self):
         """Ends the episode for the agent."""
         Agent.end_episode(self)
-        for memory in self.memory.items():
+        for memory in self.memory.values():
             memory.end_episode()
         if ('states' in self.memory
                 and isinstance(self.memory['states'], ETDMemory)):
@@ -1499,8 +1551,7 @@ class MemoryAgent(Agent):
         if load_data:
             with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:
                 for name, memory in self.memory.items():
-                    for element in file[name]:
-                        memory.add(element)
+                    memory.load(file, name)
 
     def save(self, path, save_data=True, note='MemoryAgent'):
         """Saves a note and memory to a new folder.
@@ -1515,7 +1566,7 @@ class MemoryAgent(Agent):
         if save_data:
             with h5py.File(os.path.join(path, 'data.h5'), 'w') as file:
                 for name, memory in self.memory.items():
-                    file.create_dataset(name, data=memory.array())
+                    memory.save(file, name)
         return path
 
 
@@ -1553,7 +1604,7 @@ class DQNAgent(MemoryAgent):
     def __init__(self, policy, qmodel, discounted_rate,
                  create_memory=lambda shape, dtype: Memory(),
                  enable_target=True, enable_double=False,
-                 enable_PER=False):
+                 enable_per=False):
         """Initalizes the Deep Q Network Agent.
         params:
             policy: A policy instance
@@ -1567,7 +1618,7 @@ class DQNAgent(MemoryAgent):
                            should be used
             enable_double: A boolean, which determiens if the Double Deep Q
                            Network should be used
-            enable_PER: A boolean, which determines if prioritized experience
+            enable_per: A boolean, which determines if prioritized experience
                         replay should be used (The implementation for this is
                         not the normal tree implementation, and only weights
                         the probabilily of being choosen and not also the
@@ -1604,9 +1655,7 @@ class DQNAgent(MemoryAgent):
                 self.memory['states'].buffer[0]
                 for _ in range(self.memory['states'].num_time_steps)
             ])
-        else:
-            self.time_distributed_states = 0
-        if enable_PER:
+        if enable_per:
             self.per_losses = create_memory((None,),
                                             tf.keras.backend.floatx())
             self.memory['per_losses'] = self.per_losses
@@ -1643,7 +1692,7 @@ class DQNAgent(MemoryAgent):
                       agent is training
         return: A value, which is the selected action
         """
-        if (self.time_distributed_states
+        if (self.time_distributed_states is not None
                 and state.shape == self.qmodel.input_shape[2:]):
             self.time_distributed_states = np.roll(
                 self.time_distributed_states, -1
@@ -1710,7 +1759,7 @@ class DQNAgent(MemoryAgent):
             new_state: A value or list of values, which is the
                        state of the environment after performing
                        the action
-            reward: A float/integer, which is the evaluation of
+            reward: A float, which is the evaluation of
                     the action performed
             terminal: A boolean, which determines if this call to
                       add memory is the last for the episode
@@ -1759,6 +1808,8 @@ class DQNAgent(MemoryAgent):
             qvalues = self.target_qmodel(next_states, training=False)
             qvalues = tf.squeeze(tf.gather(qvalues, actions[:, tf.newaxis],
                                            axis=-1, batch_dims=1))
+            actions = tf.one_hot(actions, self.action_shape[0],
+                                 dtype=qvalues.dtype)
         else:
             qvalues = self.target_qmodel(next_states, training=False)
             qvalues = tf.reduce_max(qvalues, axis=-1)
@@ -1971,8 +2022,6 @@ class PGAgent(MemoryAgent):
                 self.memory['states'].buffer[0]
                 for _ in range(self.memory['states'].num_time_steps)
             ])
-        else:
-            self.time_distributed_states = 0
         self.episode_rewards = []
         self.action_identity = np.identity(self.action_shape[0])
         self.metric = tf.keras.metrics.Mean(name='loss')
@@ -1998,7 +2047,7 @@ class PGAgent(MemoryAgent):
                       agent is training (does nothing)
         return: A value, which is the selected action
         """
-        if (self.time_distributed_states
+        if (self.time_distributed_states is not None
                 and state.shape == self.amodel.input_shape[2:]):
             self.time_distributed_states = np.roll(
                 self.time_distributed_states, -1
@@ -2054,7 +2103,7 @@ class PGAgent(MemoryAgent):
             new_state: A value or list of values, which is the
                        state of the environment after performing
                        the action (discarded)
-            reward: A float/integer, which is the evaluation of
+            reward: A float, which is the evaluation of
                     the action performed
             terminal: A boolean, which determines if this call to
                       add memory is the last for the episode
@@ -2294,8 +2343,6 @@ class DDPGAgent(MemoryAgent):
                 self.memory['states'].buffer[0]
                 for _ in range(self.memory['states'].num_time_steps)
             ])
-        else:
-            self.time_distributed_states = 0
         self.total_steps = 0
         self.metric_c = tf.keras.metrics.Mean(name='critic_loss')
         self.metric_a = tf.keras.metrics.Mean(name='actor_loss')
@@ -2325,7 +2372,7 @@ class DDPGAgent(MemoryAgent):
         return: A value or list of values, which is the
                 selected action
         """
-        if (self.time_distributed_states
+        if (self.time_distributed_states is not None
                 and state.shape == self.amodel.input_shape[2:]):
             self.time_distributed_states = np.roll(
                 self.time_distributed_states, -1
@@ -2394,7 +2441,7 @@ class DDPGAgent(MemoryAgent):
             new_state: A value or list of values, which is the
                        state of the environment after performing
                        the action
-            reward: A float/integer, which is the evaluation of
+            reward: A float, which is the evaluation of
                     the action performed
             terminal: A boolean, which determines if this call to
                       add memory is the last for the episode

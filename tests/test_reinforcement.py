@@ -108,7 +108,7 @@ def test_memory():
     memory = Memory()
     assert len(memory) == 0
     for _ in range(10000):
-        memory.add(np.empty(512))
+        memory.add(np.random.random(512))
     assert len(memory) == 10000
     assert memory[0].shape == (512,)
     assert memory[-1].shape == (512,)
@@ -126,7 +126,7 @@ def test_memory():
     memory = Memory(max_len=100)
     assert len(memory) == 0
     for _ in range(1000):
-        memory.add(np.empty(512))
+        memory.add(np.random.random(512))
     assert len(memory) == 100
 
     arrays, indexes = Memory.create_shuffled_subset([memory], 50)
@@ -144,7 +144,7 @@ def test_memory():
 
     memory2 = Memory(max_len=50)
     for _ in range(50):
-        memory2.add(np.empty(10))
+        memory2.add(np.random.random(10))
     with pytest.raises(ValueError):
         Memory.create_shuffled_subset([memory, memory2], 40)
 
@@ -156,7 +156,7 @@ def test_etd_memory():
     memory = ETDMemory(10, np.zeros(512))
     assert len(memory) == 0
     for _ in range(10000):
-        memory.add(np.empty(512))
+        memory.add(np.random.random(512))
     assert len(memory) == 10000
     assert memory[0].shape == (512,)
     assert memory[-1].shape == (512,)
@@ -173,7 +173,7 @@ def test_etd_memory():
 
     for _ in range(100):
         for _ in range(100):
-            memory.add(np.empty(512))
+            memory.add(np.random.random(512))
         memory.end_episode()
     assert memory.array().shape == (10000, 10, 512)
 
@@ -183,7 +183,7 @@ def test_etd_memory():
 
     memory.reset()
     for _ in range(50):
-        memory.add(np.empty(512))
+        memory.add(np.random.random(512))
 
     arrays, indexes = ETDMemory.create_shuffled_subset(
         [memory], 50, weights=np.ones(len(memory)) / len(memory)
@@ -200,7 +200,7 @@ def test_etd_memory():
 
     memory2 = ETDMemory(10, np.zeros(512))
     for _ in range(50):
-        memory2.add(np.empty(10))
+        memory2.add(np.random.random(10))
     with pytest.raises(ValueError):
         ETDMemory.create_shuffled_subset([memory, memory2], 40)
 
@@ -211,14 +211,14 @@ def test_etd_memory():
         memory = ETDMemory(10, np.zeros(512), max_len=100)
         assert len(memory) == 0
         for _ in range(1000):
-            memory.add(np.empty(512))
+            memory.add(np.random.random(512))
         assert len(memory) == 100
 
 def test_ring_memory():
     memory = RingMemory(max_len=100)
     assert len(memory) == 0
     for _ in range(1000):
-        memory.add(np.empty(512))
+        memory.add(np.random.random(512))
     assert len(memory) == 100
 
 def test_playingdata():
@@ -241,7 +241,28 @@ def test_playingdata():
         PlayingData(True, True, 10, False, [True])
 
 def test_agent():
-    pass
+    with pytest.raises(TypeError):
+        Agent(5, Policy())
+
+    with pytest.raises(TypeError):
+        Agent((5,), lambda x: 5)
+    
+    agent = Agent((5,), GreedyPolicy())
+    for _ in range(10):
+        assert 0 <= agent.select_action(5, training=True) <= 4
+
+    agent.set_playing_data()
+    assert isinstance(agent.playing_data, PlayingData)
+
+    agent.add_memory(None, None, None, None, None)
+    agent.forget()
+    agent.end_episode()
+    agent.learn()
+    path = agent.save('', 'hello')
+    agent.load(path)
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)
 
 def test_q_agent():
     pass
@@ -250,10 +271,107 @@ def test_pq_agent():
     pass
 
 def test_memory_agent():
-    pass
+    with pytest.raises(TypeError):
+        MemoryAgent(5, Policy())
+
+    with pytest.raises(TypeError):
+        MemoryAgent((5,), lambda x: 5)
+    
+    agent = MemoryAgent((5,), GreedyPolicy())
+    for _ in range(10):
+        assert 0 <= agent.select_action(np.random.random(512),
+                                        training=True) <= 4
+    for _ in range(10):
+        assert 0 <= agent.select_action(np.random.random(512),
+                                        training=False) <= 4
+
+    agent.set_playing_data()
+    assert isinstance(agent.playing_data, PlayingData)
+
+    agent.add_memory(None, None, None, None, None)
+
+    agent.memory['test'] = Memory()
+    for _ in range(10):
+        agent.memory['test'].add(np.random.random(512))
+    assert len(agent.memory['test']) == 10
+    agent.end_episode()
+    agent.forget()
+    assert len(agent.memory['test']) == 0
+
+    agent.learn()
+    path = agent.save('', 'hello')
+    agent.load(path)
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)
+    assert agent.time_distributed_states is None
+
+    agent.memory['states'] = ETDMemory(10, np.zeros(512))
+    for _ in range(10):
+        for _ in range(10):
+            agent.memory['states'].add(np.random.random(512))
+        agent.end_episode()
+        assert agent.time_distributed_states.shape == (10, 512)
+    assert len(agent.memory['states']) == 100
+
+    agent.learn()
+    path = agent.save('', 'hello')
+    agent.forget()
+    agent.load(path)
+    assert agent.memory['states'].array().shape == (100, 10, 512)
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)
  
 def test_dqn_agent():
-    pass
+    inputs = keras.layers.Input((512,))
+    x = keras.layers.Dense(1024)(inputs)
+    outputs = keras.layers.Dense(5, activation='softmax')(x)
+    qmodel = keras.models.Model(inputs=[inputs], outputs=[outputs])
+    qmodel.compile(optimizer='adam', loss=keras.losses.MeanSquaredError())
+    agent = DQNAgent(GreedyPolicy(), qmodel, .99)
+    agent = DQNAgent(GreedyPolicy(), qmodel, .99, enable_target=True)
+    agent = DQNAgent(GreedyPolicy(), qmodel, .99, enable_per=True)
+    agent = DQNAgent(GreedyPolicy(), qmodel, .99, enable_double=True)
+
+    for _ in range(10):
+        assert 0 <= agent.select_action(np.random.random(512),
+                                        training=True) <= 4
+    for _ in range(10):
+        assert 0 <= agent.select_action(np.random.random(512),
+                                        training=False) <= 4
+
+    agent.set_playing_data()
+    assert isinstance(agent.playing_data, PlayingData)
+
+    for _ in range(10):
+        for _ in range(10):
+            agent.add_memory(np.random.random(512), np.random.randint(0, 5),
+                             np.random.random(512), np.random.random(), False)
+        agent.add_memory(np.random.random(512), np.random.randint(0, 5),
+                         np.random.random(512), np.random.random(), True)
+        agent.end_episode()
+
+    agent.learn(batch_size=2, epochs=5)
+    agent.learn(batch_size=2, epochs=5, tau=.5)
+    agent.learn(batch_size=2, epochs=2, repeat=2)
+
+    agent = DQNAgent(GreedyPolicy(), qmodel, .99, enable_per=True)
+    for _ in range(10):
+        for _ in range(10):
+            agent.add_memory(np.random.random(512), np.random.randint(0, 5),
+                             np.random.random(512), np.random.random(), False)
+        agent.add_memory(np.random.random(512), np.random.randint(0, 5),
+                         np.random.random(512), np.random.random(), True)
+        agent.end_episode()
+
+    agent.set_playing_data()
+    assert isinstance(agent.playing_data, PlayingData)
+
+    agent.learn(batch_size=2, epochs=5)
+    agent.learn(batch_size=2, epochs=5)
+    agent.learn(batch_size=2, epochs=2, repeat=2)
+
  
 def test_pg_agent():
     pass
