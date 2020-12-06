@@ -1,4 +1,4 @@
-# PAI-Utils
+![](./logo.png)
 
 Programming Artificial Intelligence Utilities is a package that aims to make
 artificial intelligence and machine learning programming easier through
