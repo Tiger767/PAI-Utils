@@ -2004,7 +2004,7 @@ class PGAgent(MemoryAgent):
                              reward
             create_memory: A function, which returns a Memory instance
         """
-        MemoryAgent.__init__(self, amodel.output_shape[1:], None)
+        MemoryAgent.__init__(self, amodel.output_shape[1:], Policy())
         self.amodel = amodel
         self.discounted_rate = discounted_rate
         self.states = create_memory(self.amodel.input_shape,

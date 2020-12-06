@@ -372,9 +372,113 @@ def test_dqn_agent():
     agent.learn(batch_size=2, epochs=5)
     agent.learn(batch_size=2, epochs=2, repeat=2)
 
+    path = agent.save('')
+    agent.load(path)
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)
+
+    inputs = keras.layers.Input((512,))
+    x = keras.layers.Dense(1024)(inputs)
+    x1 = keras.layers.Dense(128)(x)
+    x2 = keras.layers.Dense(128)(x)
+    outputs = DQNAgent.get_dueling_output_layer((5,),
+                                                dueling_type='avg')(x1, x2)
+    qmodel = keras.models.Model(inputs=[inputs], outputs=[outputs])
+    qmodel.compile(optimizer='adam', loss=keras.losses.MeanSquaredError())
+    agent = DQNAgent(GreedyPolicy(), qmodel, .99, enable_target=True)
+    for _ in range(10):
+        for _ in range(10):
+            agent.add_memory(np.random.random(512), np.random.randint(0, 5),
+                             np.random.random(512), np.random.random(), False)
+        agent.add_memory(np.random.random(512), np.random.randint(0, 5),
+                         np.random.random(512), np.random.random(), True)
+        agent.end_episode()
+    agent.learn(batch_size=2, epochs=5)
  
 def test_pg_agent():
-    pass
- 
+    inputs = keras.layers.Input((512,))
+    x = keras.layers.Dense(1024)(inputs)
+    outputs = keras.layers.Dense(5, activation='softmax')(x)
+    amodel = keras.models.Model(inputs=[inputs], outputs=[outputs])
+    amodel.compile(optimizer='adam', loss='mse')
+
+    agent = PGAgent(amodel, .97)
+
+    for _ in range(10):
+        assert 0 <= agent.select_action(np.random.random(512),
+                                        training=True) <= 4
+    for _ in range(10):
+        assert 0 <= agent.select_action(np.random.random(512),
+                                        training=False) <= 4
+    
+    agent.set_playing_data()
+    assert isinstance(agent.playing_data, PlayingData)
+
+    for _ in range(10):
+        for _ in range(10):
+            agent.add_memory(np.random.random(512), np.random.random((1, 1)),
+                             np.random.random(512), np.random.random(), False)
+        agent.add_memory(np.random.random(512), np.random.random((1, 1)),
+                         np.random.random(512), np.random.random(), True)
+        agent.end_episode()
+
+    agent.learn(batch_size=2, epochs=5)
+    agent.learn(batch_size=2, epochs=5, entropy_coef=.01)
+    agent.learn(batch_size=2, epochs=2, repeat=2)
+
+    path = agent.save('')
+    agent.load(path)
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)
+
 def test_ddpg_agent():
-    pass
+    inputs = keras.layers.Input((512,))
+    x = keras.layers.Dense(1024)(inputs)
+    outputs = keras.layers.Dense(1, activation='softmax')(x)
+    amodel = keras.models.Model(inputs=[inputs], outputs=[outputs])
+    amodel.compile(optimizer='adam', loss='mse')
+
+    state_inputs = keras.layers.Input((512,))
+    action_inputs = keras.layers.Input((1,))
+    x1 = keras.layers.Dense(64)(state_inputs)
+    x2 = keras.layers.Dense(64)(action_inputs)
+    x = keras.layers.Concatenate()([x1, x2])
+    x = keras.layers.Dense(128)(x)
+    outputs = keras.layers.Dense(1)(x)
+    cmodel = keras.models.Model(inputs=[state_inputs, action_inputs],
+                                outputs=[outputs])
+    cmodel.compile(optimizer='adam', loss=keras.losses.MeanSquaredError())
+
+    policy = NoisePolicy(ExponentialDecay(1.0, .001, .1), .001, (-1, 1))
+    agent = DDPGAgent(policy, amodel, cmodel, .97)
+    agent = DDPGAgent(policy, amodel, cmodel, .97, enable_target=True)
+
+    for _ in range(10):
+        assert -1 <= agent.select_action(np.random.random(512),
+                                        training=True) <= 1
+    for _ in range(10):
+        assert -1 <= agent.select_action(np.random.random(512),
+                                        training=False) <= 1
+    
+    agent.set_playing_data()
+    assert isinstance(agent.playing_data, PlayingData)
+
+    for _ in range(10):
+        for _ in range(10):
+            agent.add_memory(np.random.random(512), np.random.randint(0, 5),
+                             np.random.random(512), np.random.random(), False)
+        agent.add_memory(np.random.random(512), np.random.randint(0, 5),
+                         np.random.random(512), np.random.random(), True)
+        agent.end_episode()
+
+    agent.learn(batch_size=2, epochs=5)
+    agent.learn(batch_size=2, epochs=5, tau=.1)
+    agent.learn(batch_size=2, epochs=2, repeat=2)
+
+    path = agent.save('')
+    agent.load(path)
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)

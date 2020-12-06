@@ -5,7 +5,7 @@ Summary: An artificial intelligence utilities package built to remove the delays
 Home-page: https://github.com/Tiger767/PAI-Utils
 Author: Travis Hammond
 License: UNKNOWN
-Description: # PAI-Utils
+Description: ![](./logo.png)
         
         Programming Artificial Intelligence Utilities is a package that aims to make
         artificial intelligence and machine learning programming easier through
