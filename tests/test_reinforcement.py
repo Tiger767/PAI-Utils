@@ -1,9 +1,10 @@
 """
 Author: Travis Hammond
-Version: 12_28_2020
+Version: 12_6_2020
 """
 
 import pytest
+import gym
 
 from paiutils.reinforcement import *
 
@@ -16,7 +17,7 @@ def test_environment():
     env.state = 5
     env.reset()
     assert env.state == None
-    assert len(env.step(3)) == 3
+    assert len(env.step(0)) == 3
 
     agent = Agent((3,), GreedyPolicy())
     agent.set_playing_data()
@@ -36,10 +37,63 @@ def test_environment():
     env.close()
 
 def test_gym_wrapper():
-    pass
+    env = gym.make('CartPole-v0')
+    env = GymWrapper(env, env.observation_space.shape, (env.action_space.n,))
+    assert env.state_shape == (4,)
+    assert env.action_shape == (2,)
+    assert env.discrete_state_space == None
+    env.reset()
+    assert env.state.shape == (4,)
+    assert len(env.step(0)) == 3
+
+    agent = Agent((2,), GreedyPolicy())
+    agent.set_playing_data()
+    env.play_episode(agent, 1, random=True)
+    env.play_episode(agent, 1, render=True)
+    env.play_episode(agent, 10)
+
+    env.play_episodes(agent, 10, 10)
+
+    with pytest.raises(TypeError):
+        env.play_episode([1], 1)
+    agent = Agent((3,), GreedyPolicy())
+    with pytest.raises(ValueError):
+        env.play_episode(agent, 1)
+
+    env.render()
+    env.close()
 
 def test_multiseq_agent_environment():
-    pass
+    env = MultiSeqAgentEnvironment((5, 10), (3,))
+    assert env.state_shape == (5, 10)
+    assert env.action_shape == (3,)
+    assert env.discrete_state_space == None
+    env.state = 5
+    assert len(env.reset(5)) == 5
+    assert env.state == None
+    assert len(env.step(0, 0)) == 3
+    assert len(env.step(4, 0)) == 3
+
+    agent1 = Agent((3,), GreedyPolicy())
+    agent1.set_playing_data()
+    agent2 = Agent((3,), GreedyPolicy())
+    agent2.set_playing_data()
+    agent3 = Agent((3,), GreedyPolicy())
+    agent3.set_playing_data()
+    env.play_episode([agent1], 1, random=True)
+    env.play_episode([agent1, agent2], 1, render=True)
+    env.play_episode([agent1, agent2, agent3], 10)
+
+    env.play_episodes([agent1, agent2, agent3], 10, 10)
+
+    with pytest.raises(TypeError):
+        env.play_episode([agent1, 1], 1)
+    agent = Agent((3,), GreedyPolicy())
+    with pytest.raises(ValueError):
+        env.play_episode([agent1, agent], 1)
+
+    env.render()
+    env.close()
  
 def test_policy():
     policy = Policy()
@@ -70,13 +124,50 @@ def test_stochastic_policy():
     policy.end_episode()
 
 def test_noise_policy():
-    pass
+    policy = NoisePolicy(Decay(2, .5, step_every_call=False), 0, (-5, 5))
+    assert policy.select_action(lambda: [.9], False) - .9 < .000001
+    for _ in range(1000):
+        assert -5 <= policy.select_action(lambda: [.9], True) <= 5
+    for _ in range(5):
+        policy.end_episode()
+    assert policy.select_action(lambda: [.9], True) - .9 < .000001
+    policy.reset()
+    policy.end_episode()
 
 def test_uniform_noise_policy():
-    pass
+    policy = UniformNoisePolicy(Decay(2, .5, step_every_call=False),
+                                0, (-5, 5))
+    assert policy.select_action(lambda: [.9], False) - .9 < .000001
+    for _ in range(1000):
+        assert -5 <= policy.select_action(lambda: [.9], True) <= 5
+    for _ in range(5):
+        policy.end_episode()
+    assert policy.select_action(lambda: [.9], True) - .9 < .000001
+    policy.reset()
+    policy.end_episode()
+
+    policy = UniformNoisePolicy(Decay(2, .5, step_every_call=False),
+                                0, (-5, 5), additive=True)
+    assert policy.select_action(lambda: [.9], False) - .9 < .000001
+    for _ in range(1000):
+        assert -5 <= policy.select_action(lambda: [.9], True) <= 5
+    for _ in range(5):
+        policy.end_episode()
+    assert policy.select_action(lambda: [.9], True) - .9 < .000001
+    policy.reset()
+    policy.end_episode()
 
 def test_temporal_noise_policy():
-    pass
+    policy = TemporalNoisePolicy(Decay(2, .5, step_every_call=False),
+                                 0, (-5, 5))
+    assert policy.select_action(lambda: [.9], False) - .9 < .000001
+    for _ in range(1000):
+        assert -5 <= policy.select_action(lambda: [.9], True) <= 5
+    for _ in range(5):
+        policy.end_episode()
+    assert policy.select_action(lambda: [.9], True) - .9 < .000001
+    policy.reset()
+    policy.end_episode()
 
 def test_decay():
     decay = Decay(1, .1)
@@ -99,10 +190,50 @@ def test_decay():
         Decay(.5, .1, .6)
 
 def test_exponential_decay():
-    pass
+    decay = ExponentialDecay(1, .1)
+    for step in range(10):
+        assert decay() == 1 * (1 - .1)**step
+    decay.reset()
+    assert decay() == 1
+    for step in range(100000):
+        decay.step()
+    assert decay() == 0
+
+    decay = ExponentialDecay(1, .1, .1, step_every_call=False)
+    for step in range(10):
+        assert decay() == 1
+    for step in range(30):
+        decay.step()
+    assert decay() == .1
+
+    with pytest.raises(ValueError):
+        ExponentialDecay(.5, .1, .6)
 
 def test_linear_decay():
-    pass
+    decay = LinearDecay(1, 100)
+    last_decay = 1.1
+    for step in range(100):
+        decayv = decay()
+        assert decayv < last_decay
+        last_decay = decayv
+    decay.reset()
+    assert decay() == 1
+    for step in range(101):
+        decay.step()
+    assert decay() == 0
+
+    decay = LinearDecay(1, 10, .1, step_every_call=False)
+    for step in range(10):
+        assert decay() == 1
+    for step in range(15):
+        decay.step()
+    assert decay() == .1
+
+    with pytest.raises(ValueError):
+        LinearDecay(.5, 100, .6)
+
+    with pytest.raises(TypeError):
+        LinearDecay(1, 100.5, .1)
 
 def test_memory():
     memory = Memory()
@@ -150,7 +281,6 @@ def test_memory():
 
     with pytest.raises(TypeError):
         Memory.create_shuffled_subset([memory, None], 40)
-
 
 def test_etd_memory():
     memory = ETDMemory(10, np.zeros(512))
@@ -265,10 +395,56 @@ def test_agent():
     os.rmdir(path)
 
 def test_q_agent():
-    pass
+    agent = QAgent(10, 5, GreedyPolicy(), .97)
+    for _ in range(10):
+        assert 0 <= agent.select_action(np.random.randint(10),
+                                        training=True) <= 4
+    agent.set_playing_data()
+    assert isinstance(agent.playing_data, PlayingData)
+
+    for _ in range(10):
+        for _ in range(10):
+            agent.add_memory(np.random.randint(10), np.random.randint(0, 5),
+                             np.random.randint(10), np.random.random(), False)
+        agent.add_memory(np.random.randint(10), np.random.randint(0, 5),
+                         np.random.randint(10), np.random.random(), True)
+        agent.end_episode()
+
+    agent.learn(.5)
+
+    path = agent.save('')
+    agent.forget()
+    agent.load(path)
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)
 
 def test_pq_agent():
-    pass
+    agent = PQAgent(10, 5, GreedyPolicy(), [.97, .9, .3], [.01, .05, .03, .1])
+    for _ in range(10):
+        assert 0 <= agent.select_action(np.random.randint(10),
+                                        training=True) <= 4
+    agent.set_playing_data()
+    assert isinstance(agent.playing_data, PlayingData)
+
+    for _ in range(10):
+        for _ in range(10):
+            agent.add_memory(np.random.randint(10), np.random.randint(0, 5),
+                             np.random.randint(10), np.random.random(), False)
+        agent.add_memory(np.random.randint(10), np.random.randint(0, 5),
+                         np.random.randint(10), np.random.random(), True)
+        agent.end_episode()
+
+    agent.learn()
+    agent.learn(1, 1)
+    agent.learn(3, 2)
+
+    path = agent.save('')
+    agent.forget()
+    agent.load(path)
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)
 
 def test_memory_agent():
     with pytest.raises(TypeError):

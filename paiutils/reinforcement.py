@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 11_28_2020
+Version: 12_6_2020
 """
 
 
@@ -206,11 +206,11 @@ class GymWrapper(Environment):
         """Resets the environment to its initialized state.
         return: A numpy ndarray, which is the state
         """
-        state = self.gym.reset()
+        self.state = self.gym.reset()
         if self.discrete_state_space is None:
-            return state
+            return self.state
         else:
-            return [state]
+            return [self.state]
 
     def step(self, action):
         """Moves the current state one step forward
@@ -220,11 +220,11 @@ class GymWrapper(Environment):
         return: A tuple of a ndarray (state), a float/integer (reward),
                 and a boolean (terminal state)
         """
-        state, reward, terminal, _ = self.gym.step(action)
+        self.state, reward, terminal, _ = self.gym.step(action)
         if self.discrete_state_space is None:
-            return state, reward, terminal
+            return self.state, reward, terminal
         else:
-            return [state], reward, terminal
+            return [self.state], reward, terminal
 
     def close(self):
         """Closes any threads or loose ends of the environment.
@@ -264,8 +264,8 @@ class MultiSeqAgentEnvironment(Environment):
             num_agents: An integer, which is the number of states needed
         return: A numpy ndarray, which is the state
         """
-        state = None
-        return [state] * num_agents
+        self.state = None
+        return [self.state] * num_agents
 
     def step(self, agent_ndx, action):
         """Moves the current state one step forward
@@ -277,8 +277,8 @@ class MultiSeqAgentEnvironment(Environment):
         return: A tuple of a ndarray (state), a float/integer (reward),
                 and a boolean (terminal state)
         """
-        state = None
-        return state, 0, False
+        self.state = None
+        return self.state, 0, False
 
     def play_episode(self, agents, max_steps, shuffle=True, 
                      random=False, random_bounds=None,
@@ -307,12 +307,12 @@ class MultiSeqAgentEnvironment(Environment):
         if shuffle:
             np.random.shuffle(ndxs)
         for ndx in ndxs:
-            assert isinstance(agents[ndx], Agent), (
-                'The instance agent is not a child of Agent.'
-            )
-            assert isinstance(agents[ndx].playing_data, PlayingData), (
-                'Invalid playing_data value.'
-            )
+            if not isinstance(agents[ndx], Agent):
+                raise TypeError(f'The instance agent ({ndx}) is '
+                                f'not a child of Agent.')
+            if not isinstance(agents[ndx].playing_data, PlayingData):
+                raise ValueError(f'Invalid playing_data value for agent '
+                                 f'{ndx}. (Forgot to set playing_data?)')
         total_rewards = [0] * num_agents
         states = self.reset(num_agents)
         if render:
@@ -553,7 +553,7 @@ class NoisePolicy(Policy):
             training: A boolean, which determines if the
                       Agent is in a training states
         """
-        actions = action_func()
+        actions = np.asarray(action_func())
         if training:
             noise_scale = self.noise_scale_decay_training()
         else:
@@ -600,7 +600,7 @@ class UniformNoisePolicy(NoisePolicy):
             training: A boolean, which determines if the
                       Agent is in a training states
         """
-        actions = action_func()
+        actions = np.asarray(action_func())
         noise = np.random.uniform(*self.action_bounds,
                                   size=actions.shape)
         if training:
@@ -610,10 +610,10 @@ class UniformNoisePolicy(NoisePolicy):
         if self.additive:
             return np.clip(actions + noise * noise_scale, *self.action_bounds)
         else:
-            if np.random.uniform() < noise_scale:
-                return noise
-            else:
-                return actions
+            return np.where(
+                np.random.uniform(size=actions.shape) < noise_scale,
+                noise, actions
+            )
 
 
 class TemporalNoisePolicy(NoisePolicy):
@@ -653,7 +653,7 @@ class TemporalNoisePolicy(NoisePolicy):
             training: A boolean, which determines if the
                       Agent is in a training states
         """
-        actions = action_func()
+        actions = np.asarray(action_func())
         if self.init_noise is None:
             self.init_noise = np.full(actions.shape,
                                       np.mean(self.action_bounds))
@@ -662,6 +662,8 @@ class TemporalNoisePolicy(NoisePolicy):
             noise_scale = self.noise_scale_decay_training()
         else:
             noise_scale = self.noise_scale_testing
+        if noise_scale == 0:
+            return actions
         noise = np.random.normal(scale=noise_scale, size=actions.shape)
         noise = (self.last_noise +
                  self.theta * -self.last_noise * self.dt +
@@ -772,9 +774,11 @@ class LinearDecay(Decay):
             step_every_call: A boolean, which determines if each call should
                              step the decay
         """
-        assert initial_value >= min_value, (
-            'initial_value must be greater or equal to min_value'
-        )
+        if initial_value < min_value:
+            raise ValueError(f'initial_value {initial_value} must '
+                             f'be greater or equal to min_value {min_value}')
+        if not isinstance(total_steps, int):
+            raise TypeError('total_steps should be an integer')
         self.initial_value = initial_value
         self.total_steps = total_steps
         self.min_value = min_value
@@ -1211,11 +1215,11 @@ class QAgent(Agent):
                              future rewards should be counted for the current
                              reward
         """
-        Agent.__init__(self, action_size, policy)
+        Agent.__init__(self, (action_size,), policy)
         self.discrete_state_space = discrete_state_space
         self.discounted_rate = discounted_rate
         self.qtable = np.zeros((self.discrete_state_space,
-                                self.action_shape))
+                                self.action_shape[0]))
         self.state = None
         self.action = None
         self.new_state = None
@@ -1297,9 +1301,8 @@ class QAgent(Agent):
             verbose: A boolean, which determines if information
                      should be printed to the screen
         """
-        assert self.state is not None, (
-            'Memory is empty.'
-        )
+        if self.state is None:
+            raise ValueError('Memory is empty')
         discounted_reward = 0
         if not self.terminal:
             discounted_reward = (self.discounted_rate *
@@ -1351,7 +1354,7 @@ class PQAgent(QAgent):
                            that the table is updated with the currect
                            Q reward
         """
-        Agent.__init__(self, action_size, policy)
+        Agent.__init__(self, (action_size,), policy)
         self.discrete_state_space = discrete_state_space
         self.discounted_rates = np.array(discounted_rates)
         self.learning_rates = np.array(learning_rates)
@@ -1359,8 +1362,8 @@ class PQAgent(QAgent):
         self.qtables = np.zeros((len(self.learning_rates),
                                  len(self.discounted_rates),
                                  self.discrete_state_space,
-                                 self.action_shape))
-        self.selected_qtable = None
+                                 self.action_shape[0]))
+        self.selected_qtable = lambda: self.qtables[0, 0]
         self.state = None
         self.action = None
         self.new_state = None
@@ -1401,10 +1404,8 @@ class PQAgent(QAgent):
         lrn = 0
         drn = 0
         if learning_rate_ndx is not None:
-            self.learning_rates[learning_rate_ndx]
             lrn = learning_rate_ndx
         if discounted_rate_ndx is not None:
-            self.discounted_rates[discounted_rate_ndx]
             drn = discounted_rate_ndx
         self.selected_qtable = lambda: self.qtables[lrn, drn]
         self.playing_data = PlayingData(
@@ -1425,9 +1426,8 @@ class PQAgent(QAgent):
             verbose: A boolean, which determines if information
                      should be printed to the screen
         """
-        assert self.state is not None, (
-            'Memory is empty.'
-        )
+        if self.state is None:
+            raise ValueError('Memory is empty')
         lrn = learning_rate_ndx
         drn = discounted_rate_ndx
         if lrn is None and drn is None:
