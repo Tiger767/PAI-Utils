@@ -381,8 +381,7 @@ class A2CAgent(PGAgent):
             create_memory: A function, which returns a Memory instance
         """
         PGAgent.__init__(self, amodel, discounted_rate,
-                         create_memory=create_memory,
-                         policy=None)
+                         create_memory=create_memory)
         self.cmodel = cmodel
         self.lambda_rate = lambda_rate
         if lambda_rate != 0:

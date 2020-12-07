@@ -161,11 +161,17 @@ class Environment:
                 best_reward = total_reward
             if verbose:
                 str_time = datetime.now().strftime(r'%H:%M:%S')
+                if isinstance(agent, MemoryAgent):
+                    mem_len = len(next(iter(agent.memory.values())))
+                    mem_str = f' - Memory Size: {mem_len}'
+                else:
+                    mem_str = ''
                 print(f'Time: {str_time} - Episode: {episode} - '
                       f'Steps: {step} - '
                       f'Total Reward: {total_reward} - '
                       f'Best Total Reward: {best_reward} - '
-                      f'Average Total Reward: {total_rewards / episode}')
+                      f'Average Total Reward: {total_rewards / episode}'
+                      f'{mem_str}')
         return total_rewards / episode
 
     def close(self):
