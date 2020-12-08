@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 11_28_2020
+Version: 12_7_2020
 """
 
 
@@ -31,7 +31,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
     def __init__(self, policy, qmodel, amodel, discounted_rate,
                  create_memory=lambda shape, dtype: Memory(),
                  enable_target=True, enable_double=False,
-                 enable_PER=False):
+                 enable_per=False):
         """Initalizes the Deep Q Network and Policy Gradient Agent.
         params:
             policy: A policy instance (for DQN Agent)
@@ -48,7 +48,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
                            should be used
             enable_double: A boolean, which determiens if the Double Deep Q
                            Network should be used
-            enable_PER: A boolean, which determines if prioritized experience
+            enable_per: A boolean, which determines if prioritized experience
                         replay should be used
                         (The implementation for this is not the normal tree
                          implementation, and only weights the probabilily of
@@ -58,7 +58,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
                           create_memory=create_memory,
                           enable_target=enable_target,
                           enable_double=enable_double,
-                          enable_PER=enable_PER)
+                          enable_per=enable_per)
         self.amodel = amodel
         self.uses_dqn_method = True
         self.drewards = create_memory((None,),
@@ -154,6 +154,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
             qvalues = self.target_qmodel(next_states, training=False)
             qvalues = tf.squeeze(tf.gather(qvalues, actions[:, tf.newaxis],
                                            axis=-1, batch_dims=1))
+            actions = tf.one_hot(actions, self.action_shape[0],
+                                 dtype=qvalues.dtype)
         else:
             qvalues = self.target_qmodel(next_states, training=False)
             qvalues = tf.reduce_max(qvalues, axis=-1)
@@ -987,6 +989,9 @@ class TD3Agent(DDPGAgent):
         DDPGAgent.__init__(self, policy, amodel, cmodel, discounted_rate,
                            create_memory=create_memory,
                            enable_target=True)
+        coutput_shape = self.cmodel.output_shape
+        if not isinstance(coutput_shape, list) or len(coutput_shape) != 2:
+            raise ValueError('cmodel should have two outputs')
         self._tf_train_step = tf.function(
             self._train_step,
             input_signature=(tf.TensorSpec(shape=self.amodel.input_shape,
@@ -1229,7 +1234,7 @@ class TD3Agent(DDPGAgent):
                                the normal noise added to target actions
                                for gradient steps
             actor_update_infreq: An integer, which is the infrequency that
-                               the actor is updated compared to the critic
+                                 the actor is updated compared to the critic
             verbose: A boolean, which determines if training
                      should be verbose (print information to the screen)
         """
