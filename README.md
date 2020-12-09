@@ -29,6 +29,7 @@ Package Features
 - GAN
   - Trainer and Predictor
   - GANI Trainer (GAN which takes provided Inputs)
+  - Cycle GAN Trainer
 - Neural Network
   - Trainer and Predictor
   - Dense layers that combine batch norm
