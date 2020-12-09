@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_8_2020
+Version: 12_9_2020
 """
 
 
@@ -88,7 +88,10 @@ def change_rate(audio, rate, new_rate, atype=None):
         util_dir, str(np.random.randint(10000, 100000)) + '.wav'
     )
     save(temp_filename, audio, rate, atype=atype)
-    audio, rate, atype = load(temp_filename, new_rate)
+    try:
+        audio, rate, atype = load(temp_filename, new_rate)
+    finally:
+        os.remove(temp_filename)
     return audio, rate, atype
 
 
@@ -195,6 +198,8 @@ def record(seconds, rate, atype=None, recording_device_name='Microphone'):
     return: A tuple of the loaded audio, rate, and atype
     """
     global CHUNK, USE_PYAUDIO
+    if atype is None:
+        atype = 'int16'
     if USE_PYAUDIO:
         p = pyaudio.PyAudio()
 
@@ -256,6 +261,8 @@ def play(audio, rate, atype=None):
         atype: A string, which is the audio type (default: int16)
     """
     global CHUNK, USE_PYAUDIO
+    if atype is None:
+        atype = 'int16'
     if USE_PYAUDIO:
         p = pyaudio.PyAudio()
 
@@ -270,8 +277,8 @@ def play(audio, rate, atype=None):
                         rate=rate,
                         output=True)
 
-        data = np.array_split((audio * np.iinfo(atype).max).astype(atype),
-                              CHUNK)
+        audio = (audio * np.iinfo(atype).max).astype(atype)
+        data = np.array_split(audio, CHUNK)
         for frame in data:
             stream.write(frame.tobytes())
 
@@ -384,7 +391,7 @@ def compute_spectrogram(audio, rate, frame_duration, real=True):
     if real:
         def ft(frame):
             x = np.fft.hfft(frame)
-            return x[:len(x)//2]
+            return x[:len(x) // 2 + 1]
     else:
         def ft(frame):
             return np.fft.rfft(frame)
@@ -860,14 +867,16 @@ def vad_trim_all(audio, rate, frame_duration, aggressiveness=1):
     assert 0 <= aggressiveness <= 3, (
         'Invalid aggressiveness, must be between 0 and 3'
     )
+
+    audio = (audio * np.iinfo('int16').max).astype('int16')
+
     vad = webrtcvad.Vad(aggressiveness)
     frame_size = int(rate * frame_duration)
     offset = 0
     voiced_frames = []
     while offset + frame_size < len(audio):
         frame = audio[offset:offset + frame_size]
-        frame_bytes = np.int16(frame * np.iinfo('int16').max).tobytes()
-        if vad.is_speech(frame_bytes, rate):
+        if vad.is_speech(frame.tobytes(), rate):
             voiced_frames.append(frame)
         offset += frame_size
     if len(voiced_frames) == 0:
@@ -898,14 +907,16 @@ def vad_trim_sides(audio, rate, frame_duration, aggressiveness=1):
     assert 0 <= aggressiveness <= 3, (
         'Invalid aggressiveness, must be between 0 and 3'
     )
+
+    audio = (audio * np.iinfo('int16').max).astype('int16')
+
     vad = webrtcvad.Vad(aggressiveness)
     frame_size = int(rate * frame_duration)
     offset = 0
     start_ndx = 0
     while offset + frame_size < len(audio):
         frame = audio[offset:offset + frame_size]
-        frame_bytes = np.int16(frame * np.iinfo('int16').max).tobytes()
-        if vad.is_speech(frame_bytes, rate):
+        if vad.is_speech(frame.tobytes(), rate):
             start_ndx = offset
             break
         offset += frame_size
@@ -915,8 +926,7 @@ def vad_trim_sides(audio, rate, frame_duration, aggressiveness=1):
     end_ndx = len(audio)
     while offset - frame_size > start_ndx:
         frame = audio[offset - frame_size:offset]
-        frame_bytes = np.int16(frame * np.iinfo('int16').max).tobytes()
-        if vad.is_speech(frame_bytes, rate):
+        if vad.is_speech(frame.tobytes(), rate):
             end_ndx = offset
             break
         offset -= frame_size
@@ -943,6 +953,9 @@ def vad_split(audio, rate, frame_duration, aggressiveness=1):
     assert 0 <= aggressiveness <= 3, (
         'Invalid aggressiveness, must be between 0 and 3'
     )
+
+    audio = (audio * np.iinfo('int16').max).astype('int16')
+
     vad = webrtcvad.Vad(aggressiveness)
     frame_size = int(rate * frame_duration)
     offset = 0
@@ -950,8 +963,7 @@ def vad_split(audio, rate, frame_duration, aggressiveness=1):
     voiced_frames = []
     while offset + frame_size < len(audio):
         frame = audio[offset:offset + frame_size]
-        frame_bytes = np.int16(frame * np.iinfo('int16').max).tobytes()
-        if vad.is_speech(frame_bytes, rate):
+        if vad.is_speech(frame.tobytes(), rate):
             if off is True:
                 off = False
                 voiced_frames.append([frame])

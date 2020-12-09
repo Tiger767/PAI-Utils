@@ -46,13 +46,13 @@ def hsv2bgr(image):
     return cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
 
 
-def bgr2hsl(image):
-    """Converts a BGR image to a HSL image.
+def bgr2hls(image):
+    """Converts a BGR image to a HLS image.
     params:
         image: A numpy ndarray, which has 3 dimensions
     return: A numpy ndarray, which has 3 dimensions
     """
-    return cv2.cvtColor(image, cv2.COLOR_BGR2HSL)
+    return cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
 
 
 def hls2bgr(image):
@@ -81,7 +81,7 @@ def resize(image, target_shape, interpolation=None):
         interpolation: A cv2 interpolation
     return: A numpy ndarray, which has the same number of dimensions as image
     """
-    if interpolation:
+    if interpolation is not None:
         return cv2.resize(image, target_shape, interpolation=interpolation)
     if np.prod(image.shape) > np.prod(target_shape):
         return cv2.resize(image, target_shape, interpolation=cv2.INTER_AREA)

@@ -13,8 +13,10 @@ from sklearn.manifold import (
 
 
 class Analyzer:
-    """Analyzer is a class used for manipulating classifier datasets
-       for analytical purposes.
+    """Analyzer is a class used for manipulating and viewing
+       classification datasets for analytical purposes. It can
+       also be used for unclassified data by passing in the same
+       value for y_data and the same label for all x_data.
     """
 
     def __init__(self, x_data, y_data, labels, label_colors=None):
@@ -70,28 +72,33 @@ class Analyzer:
         return groups
 
     def shrink_data(self, size_per_label, ndx_groups=None):
-        """Shrinks dataset by randomly choosing a given size from each group.
+        """Shrinks dataset by randomly choosing data from each group
+           to get to the desired size of each group.
         params:
             size_per_label: A dictionary with labels as keys and sizes
                             as values, or an integer, which is the size
                             for all labels
+            ndx_groups: A dictionary returned from create_label_ndx_groups
         """
         if ndx_groups is None:
             ndx_groups = self.create_label_ndx_groups()
         ndxs = []
         if isinstance(size_per_label, dict):
-            for label, size in size_per_label.items():
-                if size > 0:
-                    ndxs.append(
-                        np.random.choice(ndx_groups[label], size,
-                                         replace=False)
-                    )
+            for label, group in ndx_groups.items():
+                if label in size_per_label:
+                    size = size_per_label[label]
+                    if size > 0:
+                        ndxs.append(np.random.choice(
+                            group, size, replace=False
+                        ))
+                else:
+                    ndxs.append(group)
         else:
             for value_list in ndx_groups.values():
-                ndxs.append(
-                    np.random.choice(value_list, size_per_label, replace=False)
-                )
-        ndxs = np.ravel(ndxs)
+                ndxs.append(np.random.choice(
+                    value_list, size_per_label, replace=False
+                ))
+        ndxs = np.hstack(ndxs)
         self.x_data = self.x_data[ndxs]
         self.y_data = self.y_data[ndxs]
         self.y_labels = self.y_labels[ndxs]
@@ -102,7 +109,7 @@ class Analyzer:
         params:
             x: A numpy ndarray of positonal points for x_data
             figsize: A tuple of 2 integers/floats, which are
-                     width and height espectively
+                     width and height, respectively
         return: unmodified x
         """
         fig = plt.figure(figsize=figsize)
@@ -113,28 +120,51 @@ class Analyzer:
             ax.scatter(nx, nx, c=self.y_colors)
             m = x.mean()
             for ndx in range(len(self.labels)):
-                ax.scatter(m, m, c=[self.colors[ndx]],
-                           label=self.labels[ndx])
-            ax.scatter(m, m, c=[[0, 0, 0]],
-                       label='AVERAGE')
+                ax.plot([], 'o', c=[self.colors[ndx]],
+                        label=self.labels[ndx])
         elif dims == 2:
             ax = fig.add_subplot(111)
             ax.scatter(x[:, 0], x[:, 1], c=self.y_colors)
             m = x.mean(axis=-1)
             for ndx in range(len(self.labels)):
-                ax.scatter(m[0], m[1], c=[self.colors[ndx]],
-                           label=self.labels[ndx])
-            ax.scatter(m[0], m[1], c=[[0, 0, 0]],
-                       label='AVERAGE')
+                ax.plot([], 'o', c=self.colors[ndx],
+                        label=self.labels[ndx])
         elif dims == 3:
             ax = fig.add_subplot(111, projection='3d')
             ax.scatter(x[:, 0], x[:, 1], x[:, 2], c=self.y_colors)
             m = x.mean(axis=0)
             for ndx in range(len(self.labels)):
-                ax.scatter(m[0], m[1], m[2], c=[self.colors[ndx]],
-                           label=self.labels[ndx])
-            ax.scatter(m[0], m[1], m[2], c=[[0, 0, 0]],
-                       label='AVERAGE')
+                ax.plot([], 'o', c=self.colors[ndx],
+                        label=self.labels[ndx])
+        fig.legend()
+        plt.show()
+        return x
+
+    def boxplot(self, x, figsize=(8, 8), ndx_groups=None):
+        """Creates a boxplot for each group of x
+        params:
+            x: A numpy ndarray of  1D positonal points for x_data
+            figsize: A tuple of 2 integers/floats, which are
+                     width and height, respectively
+            ndx_groups: A dictionary returned from create_label_ndx_groups
+        return: unmodified x
+        """
+        if ndx_groups is None:
+            ndx_groups = self.create_label_ndx_groups()
+        labels = []
+        data = []
+        for label, ndxs in ndx_groups.items():
+            labels.append(label)
+            data.append(x[ndxs])
+
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(111)
+        bp = ax.boxplot(data, patch_artist=True, labels=labels)
+        for label in labels:
+            ndx = self.labels.index(label)
+            ax.plot([], 's', c=self.colors[ndx],
+                    label=self.labels[ndx])
+            bp['boxes'][ndx].set_facecolor(self.colors[ndx])
         fig.legend()
         plt.show()
         return x
@@ -210,8 +240,8 @@ class Analyzer:
         x_data = self.x_data.reshape(
             (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
         )
-        lle = LocallyLinearEmbedding(n_neighbors,
-                                     n_components, reg=reg,
+        lle = LocallyLinearEmbedding(n_neighbors=n_neighbors,
+                                     n_components=n_components, reg=reg,
                                      eigen_solver=eigen_solver, tol=tol,
                                      max_iter=max_iter, method=method,
                                      hessian_tol=hessian_tol,

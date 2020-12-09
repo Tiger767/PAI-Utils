@@ -1,41 +1,74 @@
 """
 Author: Travis Hammond
-Version: 12_28_2020
+Version: 12_9_2020
 """
 
 
+from paiutils.image import *
+
+
 def test_rgb2bgr():
-    pass
+    x = np.random.randint(0, 255, size=(32, 32, 3), dtype='uint8')
+    assert (bgr2rgb(rgb2bgr(x)) == x).all()
 
 def test_bgr2rgb():
-    pass
+    x = np.random.randint(0, 255, size=(32, 32, 3), dtype='uint8')
+    assert (rgb2bgr(bgr2rgb(x)) == x).all()
 
 def test_bgr2hsv():
-    pass
+    x = np.random.randint(0, 255, size=(32, 32, 3), dtype='uint8')
+    assert np.abs(
+        hsv2bgr(bgr2hsv(x)).astype('int') - x.astype('int')
+    ).mean() < 5
 
 def test_hsv2bgr():
-    pass
+    x = np.random.randint(0, 180, size=(32, 32, 3), dtype='uint8')
+    assert np.abs(
+        bgr2hsv(hsv2bgr(x)).astype('int') - x.astype('int')
+    ).mean() < 5
 
-def test_bgr2hsl():
-    pass
+def test_bgr2hls():
+    x = np.random.randint(0, 180, size=(32, 32, 3), dtype='uint8')
+    assert np.abs(
+        hls2bgr(bgr2hls(x)).astype('int') - x.astype('int')
+    ).mean() < 5
 
 def test_hls2bgr():
-    pass
+    x = np.random.randint(0, 180, size=(32, 32, 3), dtype='uint8')
+    assert np.abs(
+        bgr2hls(hls2bgr(x)).astype('int') - x.astype('int')
+    ).mean() < 5
 
 def test_gray():
-    pass
+    x = np.random.randint(0, 255, size=(32, 32, 3), dtype='uint8')
+    assert len(gray(x).shape) == 2
 
 def test_resize():
-    pass
+    x = np.random.randint(0, 255, size=(32, 32, 3), dtype='uint8')
+    x = resize(x, (256, 256))
+    assert x.shape == (256, 256, 3)
+    x = resize(x, (32, 32))
+    assert x.shape == (32, 32, 3)
 
 def test_normalize():
-    pass
+    x = np.random.randint(0, 255, size=(32, 32, 3), dtype='uint8')
+    x = normalize(x)
+    assert (-1 <= x).all()
+    assert (x <= 1).all()
 
 def test_denormalize():
-    pass
+    x = np.random.randint(0, 255, size=(32, 32, 3), dtype='uint8')
+    x2 = denormalize(normalize(x))
+    assert (0 <= x2).all()
+    assert (x2 <= 255).all()
+    assert np.sum(np.abs(x - x2)) < .0000001 
 
 def test_pyr():
-    pass
+    x = np.random.randint(0, 255, size=(32, 32, 3), dtype='uint8')
+    x2 = pyr(x, 2)
+    assert x2.shape == (128, 128, 3)
+    x2 = pyr(x2, -2)
+    assert x2.shape == (32, 32, 3)
 
 def test_load():
     pass

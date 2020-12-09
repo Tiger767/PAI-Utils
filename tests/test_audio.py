@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_28_2020
+Version: 12_9_2020
 """
 
 import pytest
@@ -118,15 +118,14 @@ def test_record():
     x, sr, at = record(1, 16000, atype='int8')
     assert len(x) == sr == 16000
     assert at == 'int8'
-    assert x.min() >= -1
+    assert x.min() >= -1.008
     assert x.max() <= 1
 
     x, sr, at = record(.5, 32000)
-    assert len(x) == sr == 16000
+    assert len(x) == sr // 2 == 16000
     assert at == 'int16'
     assert x.min() >= -1
     assert x.max() <= 1
-
 
 def test_file_play():
     a = (np.random.random(4000) * 2 - 1) / 1000
@@ -199,19 +198,44 @@ def test_for_each_frame():
     assert abs(np.sum(a) - np.sum(x)) < .00001
 
 def test_compute_spectrogram():
-    pass
+    a = np.random.random(16000) * 2 - 1
+    x, sr = compute_spectrogram(a, 16000, 100 / 16000)
+    assert x.shape[0] == 160 == sr
+    x, sr = compute_spectrogram(a, 16000, 100 / 16000, real=False)
+    assert x.shape[0] == 160 == sr
 
 def test_convert_spectrogram_to_audio():
-    pass
+    a = np.random.random(16000) * 2 - 1
+    x, sr = compute_spectrogram(a, 16000, 100 / 16000)
+    a2, sr2 = convert_spectrogram_to_audio(x, sr)
+    assert a.shape == a2.shape
+    assert sr2 == 16000
+    assert np.sum(np.abs(a - a2)) < .00000001
+
+    x, sr = compute_spectrogram(a, 16000, 100 / 16000, real=False)
+    a2, sr2 = convert_spectrogram_to_audio(x, sr, real=False)
+    assert a.shape == a2.shape
+    assert sr2 == 16000
+    assert np.sum(np.abs(a - a2)) < .00000001
 
 def test_compute_fbank():
-    pass
+    a = np.random.random(16000) * 2 - 1
+    feat, energy = compute_fbank(a, winstep=.01, nfilt=30)
+    assert 97 < feat.shape[0] == energy.shape[0] <= 100
+    assert feat.shape[1] == 30
 
 def test_compute_mfcc():
-    pass
+    a = np.random.random(16000) * 2 - 1
+    feat = compute_mfcc(a, winstep=.01, numcep=13)
+    print(feat.shape)
+    assert 97 < feat.shape[0] <= 100
+    assert feat.shape[1] == 13
 
 def test_calc_rms():
-    pass
+    a = np.random.random(16000) * 2 - 1
+    assert calc_rms(a) < 1
+    a = -np.ones(16000)
+    assert calc_rms(a) == 1
 
 def test_shift_pitch():
     pass
