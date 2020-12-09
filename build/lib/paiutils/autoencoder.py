@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 11_28_2020
+Version: 12_8_2020
 """
 
 
@@ -11,14 +11,10 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.models import model_from_json
 
-try:
-    from paiutils.neural_network import (
-        Trainer, Predictor, dense, conv2d, conv1d
-    )
-except ImportError:
-    from neural_network import (
-        Trainer, Predictor, dense, conv2d, conv1d
-    )
+from paiutils.neural_network import (
+    Trainer, Predictor, dense, conv2d, conv1d
+)
+
 
 class AutoencoderTrainer(Trainer):
     """AutoencoderTrainer is used for loading, saving,
@@ -236,13 +232,13 @@ class AutoencoderExtraDecoderTrainer(Trainer):
         if 'validation_x' in data and 'validation_y' in data:
             if include_y_data:
                 self.validation_data = np.vstack([data['validation_x'],
-                                                data['validation_y']])
+                                                  data['validation_y']])
             else:
                 self.validation_data = data['validation_x']
             self.validation_data = (self.validation_data,
                                     self.validation_data)
             self.validation_data2 = [data['validation_x'],
-                                        data['validation_y']]
+                                     data['validation_y']]
         if 'test_x' in data and 'test_y' in data:
             if include_y_data:
                 self.test_data = np.vstack([data['test_x'],
@@ -693,91 +689,3 @@ def create_basic_conv1d_model(input_shape, filters_list, kernel_sizes,
         x = layer(x)
     decoder_model = keras.Model(inputs=decoder_inputs, outputs=x)
     return model, encoder_model, decoder_model
-
-
-if __name__ == '__main__':
-    import image as img
-    from time import sleep
-
-    training = True
-    uses_encoder_model = False
-    uses_decoder_model = True
-    uses_conv_model = True
-
-    (tx, _), (vx, _) = keras.datasets.fashion_mnist.load_data()
-    tx2, vx2 = [], []
-    # Enlarge so that after downsamping and upsampling
-    # the shape will be same as the input shape
-    for x in tx:
-        tx2.append(img.resize(x, (32, 32)))
-    for x in vx:
-        vx2.append(img.resize(x, (32, 32)))
-    del tx, vx
-    tx2 = np.expand_dims(np.array(tx2), axis=-1)
-    vx2 = np.expand_dims(np.array(vx2), axis=-1)
-    dataset = {'train_x': tx2, 'validation_x': vx2}
-
-    path = 'conv_weights' if uses_conv_model else 'dense_weights'
-
-    if training:
-        if uses_conv_model:
-            models = create_basic_conv2d_model(
-                (32, 32, 1), [256, 128, 64, 32, 16],
-                [3, 3, 3, 3, 3], [2, 2, 2, 2, 2],
-                activation='relu', output_activation='linear',
-                dropout=0, batch_norm=True,
-                encoder_output_activation='sigmoid',
-                encoder_output_batch_norm=False
-            )
-        else:
-            models = create_basic_dense_model(
-                (32, 32, 1), [512, 256, 128, 64, 32, 16],
-                activation='relu', output_activation='linear',
-                dropout=0, batch_norm=True,
-                encoder_output_activation='sigmoid',
-                encoder_output_batch_norm=False
-            )
-        model, encoder, decoder = models
-        model.compile(optimizer=keras.optimizers.Adam(lr=.01, amsgrad=True),
-                      loss='mse')
-        model.summary()
-
-        trainer = AutoencoderTrainer(model, dataset, encoder_model=encoder,
-                                     decoder_model=decoder)
-        trainer.train(20, batch_size=32)
-        path = trainer.save('')
-
-    predictor = AutoencoderPredictor(
-        path, uses_encoder_model=uses_encoder_model,
-        uses_decoder_model=uses_decoder_model
-    )
-
-    ws = img.Windows()
-    ws.start()
-    w = ws.add('Image')
-
-    if uses_encoder_model:
-        for vx in dataset['validation_x']:
-            out = predictor.predict(vx)
-            real_img = np.squeeze(vx).astype(np.uint8)
-            ws.set(w, real_img)
-            print(out.round(3), out.shape)
-            sleep(.01)
-    elif uses_decoder_model:
-        while True:
-            shape = predictor.model.layers[0].input_shape[0][1:]
-            inputs = np.random.random(shape)
-            print(inputs.round(3))
-            out = predictor.predict(inputs)
-            out_img = np.clip(np.squeeze(out), 0, 255).astype(np.uint8)
-            ws.set(w, out_img)
-            sleep(.01)
-    else:
-        for vx in dataset['validation_x']:
-            out = predictor.predict(vx)
-            out_img = np.clip(np.squeeze(out), 0, 255).astype(np.uint8)
-            real_img = np.squeeze(vx).astype(np.uint8)
-            ws.set(w, np.hstack((out_img, real_img)))
-            sleep(.01)
-
-    ws.stop()

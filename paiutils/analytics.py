@@ -1,11 +1,11 @@
 """
 Author: Travis Hammond
-Version: 12_19_2019
+Version: 12_8_2020
 """
 
 
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D  # noqa
 import matplotlib.pyplot as plt
 from sklearn.manifold import (
     TSNE, Isomap, LocallyLinearEmbedding, MDS
@@ -302,33 +302,3 @@ class Analyzer:
             (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
         )
         return tsne.fit_transform(x_data)
-
-
-if __name__ == '__main__':
-    from tensorflow import keras
-    td, vd = keras.datasets.fashion_mnist.load_data()
-    labels = ['T-shirt', 'Trouser', 'Pullover', 'Dress',
-              'Coat', 'Sandal', 'Shirt', 'Sneaker',
-              'Bag', 'Ankle boot']
-    a = Analyzer(vd[0], vd[1], labels)
-    print('\ncreate label ndx groups:')
-    print(a.create_label_ndx_groups())
-    print('\ndistribtuin of labels:')
-    print(a.calculate_distribution_of_labels())
-    print('\nshrink data:')
-    a.shrink_data(500)
-    print(a.calculate_distribution_of_labels())
-    print('\nIsomap:')
-    print(a.plot(a.isomap(max_iter=5, n_jobs=-1)))
-    print('\nlocally linear embedding:')
-    print(a.plot(a.locally_linear_embedding(max_iter=100, n_jobs=-1)))
-    print('\nmds:')
-    print(a.plot(a.mds(max_iter=10, n_jobs=-1)))
-    print('\nTSNE:')
-    print(a.plot(a.tsne(n_iter=250, n_jobs=-1)))
-    print('\nremove data:')
-    size_per_label = {'T-shirt': 500, 'Shirt': 500}
-    a.shrink_data(size_per_label)
-    print(a.calculate_distribution_of_labels())
-    print('\nTSNE:')
-    print(a.plot(a.tsne(n_jobs=-1)))

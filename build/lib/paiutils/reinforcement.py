@@ -1,13 +1,11 @@
 """
 Author: Travis Hammond
-Version: 12_6_2020
+Version: 12_8_2020
 """
 
 
 import os
 from datetime import datetime
-from time import sleep
-from collections import deque
 
 import h5py
 import numpy as np
@@ -286,7 +284,7 @@ class MultiSeqAgentEnvironment(Environment):
         self.state = None
         return self.state, 0, False
 
-    def play_episode(self, agents, max_steps, shuffle=True, 
+    def play_episode(self, agents, max_steps, shuffle=True,
                      random=False, random_bounds=None,
                      render=False, verbose=True):
         """Plays a single complete episode with the agents.
@@ -922,7 +920,7 @@ class ETDMemory(Memory):
     def __init__(self, num_time_steps, void_state, max_len=None):
         """Initalizes the memory.
         params:
-            num_time_steps: An integer, which is the number of 
+            num_time_steps: An integer, which is the number of
                             states that make up a complete state
             void_state: A ndarray, which is used when there is not
                         enough states to create a complete state
@@ -1089,7 +1087,8 @@ class PlayingData:
         if not (training is True or training is False):
             raise ValueError('Invalid training value. Must be True or False.')
         if not (memorizing is True or memorizing is False):
-            raise ValueError('Invalid memorizing value. Must be True or False.')
+            raise ValueError(
+                'Invalid memorizing value. Must be True or False.')
         if epochs < 0:
             raise ValueError('Invalid epoch value. Must '
                              'be greater or equal to zero.')

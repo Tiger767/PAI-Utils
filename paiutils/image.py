@@ -1,14 +1,13 @@
 """
 Author: Travis Hammond
-Version: 11_25_2020
+Version: 12_8_2020
 """
 
 
 import cv2
 import numpy as np
-from time import time, sleep
+from time import sleep
 from threading import Thread, Event, Lock
-from matplotlib import pyplot as plt
 
 
 def rgb2bgr(image):
@@ -417,7 +416,7 @@ def zoom(image, shape, horizontal_center=0, vertical_center=0):
         return resize(image, old_shape)
     else:
         image = crop(image, shape, vertical_center=vertical_center,
-                    horizontal_center=horizontal_center)
+                     horizontal_center=horizontal_center)
         return resize(image, old_shape)
 
 
@@ -1056,72 +1055,3 @@ class Windows:
         log.append(f'x: {x} y: {y}')
 
         print(' + '.join(log))
-
-
-if __name__ == '__main__':
-    def avg_time(func, args=None, loops=1000):
-        if args is None:
-            start_time = time()
-            for _ in range(loops):
-                result = func()
-            end_time = time()
-        else:
-            start_time = time()
-            for _ in range(loops):
-                result = func(*args)
-            end_time = time()
-        print((end_time - start_time) / loops)
-
-    c = Camera()
-    x = c.capture()
-    print(gray(x).shape)
-    sleep(1)
-    x2 = c.capture()
-    ws = Windows()
-    try:
-        ws.start()
-        ws.add('x', x)
-        ws.add('gray', gray(x))
-        ws.add('resize', resize(x, (200, 200)))
-        ws.add('pyr up', pyr(x, 2))
-        ws.add('pyr down', pyr(x, -2))
-        ws.add('increase brightness', increase_brightness(x, 10))
-        ws.add('increase brightness (relative)',
-               increase_brightness(x, -10, True))
-        ws.add('set brightness', set_brightness(x, 10))
-        ws.add('set brightness (relative)', set_brightness(x, 50, True))
-        ws.add('set gamma', set_gamma(x, 1.5))
-        ws.add('clahe', apply_clahe(x))
-        ws.add('clahe gray', apply_clahe(gray(x)))
-        ws.add('equalize', equalize(x))
-        ws.add('equalize gray', equalize(gray(x)))
-        ws.add('rotate', rotate(x, 45))
-        ws.add('translate', translate(x, 10, 20))
-        ws.add('crop rect', crop_rect(x, 100, 50, 100, 100))
-        ws.add('crop rect coords', crop_rect_coords(x, 100, 100, 200, 200))
-        ws.add('crop', crop(x, (300, 300), 200, 0))
-        ws.add('shrink sides', shrink_sides(x, 100, 100, 100, 100))
-        ws.add('zoom', zoom(x, (240, 320), 0, 0))
-        ws.add('pad', pad(x, 50, 50, 50, 50))
-        ws.add('blend', blend(x, x2, .7))
-        lb, ub = compute_color_ranges([x, x2], percentage_captured=50)
-        ws.add('mask', create_mask_of_colors_in_range(x, lb, ub))
-        ws.add('magnitude spectrum', np.uint8(create_magnitude_spectrum(x)))
-        ws.add('high pass filter', freq_filter_image(x))
-        ws.add('low pass filter', freq_filter_image(x, False))
-        tm = TemplateMatcher(crop_rect(x, 100, 50, 100, 100))
-        # tm.match_draw_rect(x)
-        tm.match_draw_all_rects(x)
-        ws.add('match', x)
-        input('take pic')
-        x3 = c.record(100)
-        hbp = HistogramBackProjector(x3[0])
-        ws.add('hist backproject', np.vstack((hbp.backproject(x), x3[0])))
-        x4 = [bgr2hsv(cv2.GaussianBlur(y, (9, 9), 0)) for y in x3]
-        hist = create_histograms(x4, hsv_images=True, channels=[0, 1])
-        plt.imshow(hist, interpolation='nearest')
-        plt.show()
-        sleep(1000)
-    finally:
-        ws.stop()
-    c.close()

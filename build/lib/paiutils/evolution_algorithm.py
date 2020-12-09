@@ -1,12 +1,11 @@
 """
 Author: Travis Hammond
-Version: 1_4_2020
+Version: 12_8_2020
 """
 
 
 from multiprocessing.pool import ThreadPool
 import numpy as np
-from time import time
 
 
 class Fitness:
@@ -896,41 +895,3 @@ class HyperparameterTuner:
 
         self.num_parameters += 1
         return parameter
-
-
-if __name__ == '__main__':
-    def timeit(x):
-        start = time()
-        x()
-        return time()-start
-
-    ea = EvolutionAlgorithm(Fitness.gene_match([1, 2, 3, 4, 5]),
-                            Selection.select_lowest(),
-                            Mutation.additive(
-                                [.1]*5, [[-1.0, 1.0] * 5], normal=False),
-                            Crossover.single())
-    t = time()
-    genomes = ea.simulate([0]*5, 100, 100, 10,
-                          return_all_genomes=False, verbose=False)
-    e1 = time()-t
-    print(sorted(genomes, key=lambda x: x[0]))
-    t = time()
-    genomes = ea.simulate_islands([0]*5, 100, 100, 10, 10, 4, verbose=False)
-    e2 = time()-t
-    print(sorted(genomes, key=lambda x: x[0]))
-    print(e1, e2)
-
-    hpt = HyperparameterTuner()
-    a = hpt.uniform(0, 10)
-    b = hpt.uniform(0, 5)
-    c = hpt.boolean()
-
-    def eval_func():
-        if c():
-            return abs(a()*b() - 10)
-        else:
-            return abs(a()+b() - 10)
-
-    hpt.tune(100, 100, eval_func)
-
-    print(a(), b(), c())

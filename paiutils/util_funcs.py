@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 11_19_2020
+Version: 12_8_2020
 """
 
 
@@ -283,7 +283,9 @@ def write(mappings, directory, **kwargs):
     """
     headers = list(mappings[0].keys())
     newfile = not os.path.isfile(os.path.join(directory, 'mappings.csv'))
-    with open(os.path.join(directory, 'mappings.csv'), 'a+', newline='') as csvfile:
+    with open(
+        os.path.join(directory, 'mappings.csv'), 'a+', newline=''
+    ) as csvfile:
         writer = csv.DictWriter(csvfile, headers)
         if newfile:
             writer.writeheader()
@@ -395,49 +397,3 @@ def create_datafile(directory, data_filename, file_loader, verbose=True,
             if verbose:
                 print(ndx)
             file.create_dataset(label, data=np.array(imgs))
-
-
-if __name__ == '__main__':
-    dataset = {
-        'train_x': np.random.random((50, 2)),
-        'train_y': np.random.random((50, 2)),
-        'validation_x': np.random.random((10, 2)),
-        'validation_y': np.random.random((10, 2)),
-        'test_x': np.random.random((25, 2)),
-        'test_y': np.random.random((25, 2)),
-    }
-    labels = ['0', '1']
-
-    def save(path, data):
-        with open(path, 'wb') as file:
-            file.write(data.tobytes())
-
-    def load(path):
-        with open(path, 'rb') as file:
-            return np.frombuffer(file.read())
-
-    if not os.path.exists('data1'):
-        os.mkdir('data1')
-    if not os.path.exists('data2'):
-        os.mkdir('data2')
-
-    print(dataset['validation_x'])
-    print(dataset['validation_y'])
-
-    save_directory_dataset('data1', dataset, save, labels=labels)
-    dataset2 = load_directory_dataset('data1', load)
-    print(dataset2['validation_x'])
-    print(dataset2['validation_y'])
-
-    save_directory_dataset('data2', dataset, save, save)
-    dataset2 = load_directory_dataset('data2', load, load)
-    print(dataset2['validation_x'])
-    print(dataset2['validation_y'])
-
-    save_h5py('data.h5', dataset2)
-    dataset3 = load_h5py('data.h5')
-    print(dataset3['validation_x'])
-    print(dataset3['validation_y'])
-
-    write([{'filename': 'test', 'label': 'test'}], '.')
-    print(read('.'))

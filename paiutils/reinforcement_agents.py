@@ -1,25 +1,18 @@
 """
 Author: Travis Hammond
-Version: 12_7_2020
+Version: 12_8_2020
 """
 
 
 import os
-import h5py
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import model_from_json
 
-try:
-    from paiutils.reinforcement import (
-        Memory, PlayingData, DQNAgent,
-        MemoryAgent, PGAgent, DDPGAgent,
-    )
-except ImportError:
-    from reinforcement import (
-        Memory, PlayingData, DQNAgent,
-        MemoryAgent, PGAgent, DDPGAgent,
-    )
+from paiutils.reinforcement import (
+    Memory, PlayingData, DQNAgent,
+    MemoryAgent, PGAgent, DDPGAgent,
+)
 
 
 class DQNPGAgent(DQNAgent, PGAgent):
@@ -388,9 +381,9 @@ class A2CAgent(PGAgent):
         self.lambda_rate = lambda_rate
         if lambda_rate != 0:
             self.terminals = create_memory((None,),
-                                        tf.keras.backend.floatx())
+                                           tf.keras.backend.floatx())
             self.rewards = create_memory((None,),
-                                        tf.keras.backend.floatx())
+                                         tf.keras.backend.floatx())
             self.memory['terminals'] = self.terminals
             self.memory['rewards'] = self.rewards
         self.metric_c = tf.keras.metrics.Mean(name='critic_loss')

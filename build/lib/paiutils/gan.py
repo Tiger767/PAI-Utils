@@ -11,14 +11,9 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.models import model_from_json
 
-try:
-    from paiutils.neural_network import (
-        Trainer, Predictor, dense, conv2d
-    )
-except ImportError:
-    from neural_network import (
-        Trainer, Predictor, dense, conv2d
-    )
+from paiutils.neural_network import (
+    Trainer, Predictor
+)
 
 
 class GANTrainer(Trainer):
@@ -480,7 +475,8 @@ class CycleGANTrainer(Trainer):
         self.model = model
         self.model2 = keras.models.clone_model(model)
         self.optimizer = model.optimizer
-        self.optimizer2 = keras.optimizers.get(model.optimizer) # share params?
+        self.optimizer2 = keras.optimizers.get(
+            model.optimizer)  # share params?
         if idt_loss_func is None:
             idt_loss_func = keras.losses.MeanAbsoluteError()
         self.idt_loss_func = idt_loss_func
@@ -502,7 +498,7 @@ class CycleGANTrainer(Trainer):
         if isinstance(train_data, dict):
             if 'train_x' in train_data and 'train_y' in train_data:
                 self.train_data = [train_data['train_x'],
-                                    train_data['train_y']]
+                                   train_data['train_y']]
             else:
                 raise ValueError('There must be x and y train data')
         elif len(train_data) != 2:
@@ -709,7 +705,8 @@ class CycleGANTrainer(Trainer):
                     print_fn=lambda line: file.write(line+'\n')
                 )
                 file.write('\n\nmodel2\n')
-                self.model2.summary(print_fn=lambda line: file.write(line+'\n'))
+                self.model2.summary(
+                    print_fn=lambda line: file.write(line+'\n'))
                 file.write('\ndis_model2\n')
                 self.dis_model2.summary(
                     print_fn=lambda line: file.write(line+'\n')
