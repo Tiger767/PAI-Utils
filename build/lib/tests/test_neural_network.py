@@ -1,23 +1,139 @@
 """
 Author: Travis Hammond
-Version: 12_28_2020
+Version: 12_8_2020
 """
+
+import pytest
+
+from paiutils.neural_network import *
 
 
 def test_trainer():
-    pass
+    x_tdata = np.random.random((10, 100))
+    y_tdata = np.random.random((10, 10))
+    x_vdata = np.random.random((10, 100))
+    y_vdata = np.random.random((10, 10))
+    x_ttdata = np.random.random((10, 100))
+    y_ttdata = np.random.random((10, 10))
+
+    x0 = keras.layers.Input(shape=(100,))
+    x = dense(100)(x0)
+    output = dense(10)(x)
+    model = keras.Model(inputs=x0, outputs=output)
+    model.compile(optimizer='adam', loss='mse')
+
+    trainer = Trainer(model, {'train_x': x_tdata, 'train_y': y_tdata,
+                              'validation_x': x_vdata, 'validation_y': y_vdata,
+                              'test_x': x_ttdata, 'test_y': y_ttdata})
+    trainer.train(5, batch_size=32)
+
+    path = trainer.save('')
+    trainer.load(path, 'adam', 'mse', metrics=['accuracy'])
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)
+
+    with pytest.raises(TypeError):
+        Trainer(model, x_tdata)
+
+    with pytest.raises(ValueError):
+        Trainer(model, {'train_x': x_tdata})
+
+    def gen():
+        while True:
+            yield np.random.random((32, 100)), np.random.random((32, 10))
+
+    trainer = Trainer(model, {'train': gen()})
+    trainer.train(5, batch_size=32)
 
 def test_predictor():
-    pass
+    x_tdata = np.random.random((10, 100))
+    y_tdata = np.random.random((10, 10))
+
+    x0 = keras.layers.Input(shape=(100,))
+    x = dense(100)(x0)
+    output = dense(10)(x)
+    model = keras.Model(inputs=x0, outputs=output)
+    model.compile(optimizer='adam', loss='mse')
+
+    trainer = Trainer(model, {'train_x': x_tdata, 'train_y': y_tdata})
+    path = trainer.save('')
+    predictor = Predictor(path)
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)
+
+    assert predictor.predict(np.random.random((100,))).shape == (10,)
+    assert predictor.predict_all(np.random.random((10, 100))).shape == (10, 10)
 
 def test_dense():
-    pass
+    x_tdata = np.random.random((10, 100))
+    y_tdata = np.random.random((10, 10))
+
+    x0 = keras.layers.Input(shape=(100,))
+    x = dense(32, activation='relu')(x0)
+    d = dense(32, activation='linear')
+    x1 = d(x)
+    x2 = d(x)
+    x = keras.layers.Concatenate()([x1, x2])
+    x = dense(32, l1=.5, l2=.5)(x)
+    x = dense(32, batch_norm=False)(x)
+    output = dense(10, momentum=.99, epsilon=1e-6)(x)
+    model = keras.Model(inputs=x0, outputs=output)
+    model.compile(optimizer='adam', loss='mse')
+    model.fit(x_tdata, y_tdata, epochs=2)
 
 def test_conv1d():
-    pass
+    x_tdata = np.random.random((10, 32, 100))
+    y_tdata = np.random.random((10, 10))
+
+    x0 = keras.layers.Input(shape=(32, 100))
+    x = conv1d(32, 3, activation='relu')(x0)
+    d = conv1d(32, 3, 2, activation='linear')
+    x1 = d(x)
+    x2 = d(x)
+    x = keras.layers.Concatenate(axis=-1)([x1, x2])
+    x = conv1d(16, 3, 2, l1=.5, l2=.5, max_pool_size=3, max_pool_strides=2)(x)
+    x = conv1d(16, 3, 2, transpose=True)(x)
+    x = conv1d(16, 3, 2, batch_norm=False, upsampling_size=2)(x)
+    x = keras.layers.Flatten()(x)
+    output = dense(10, momentum=.99, epsilon=1e-6)(x)
+    model = keras.Model(inputs=x0, outputs=output)
+    model.compile(optimizer='adam', loss='mse')
+    model.fit(x_tdata, y_tdata, epochs=2)
 
 def test_conv2d():
-    pass
+    x_tdata = np.random.random((10, 32, 32, 3))
+    y_tdata = np.random.random((10, 10))
+
+    x0 = keras.layers.Input(shape=(32, 32, 3))
+    x = conv2d(32, 3, activation='relu')(x0)
+    d = conv2d(32, 3, 2, activation='linear')
+    x1 = d(x)
+    x2 = d(x)
+    x = keras.layers.Concatenate(axis=-1)([x1, x2])
+    x = conv2d(16, 3, 2, l1=.5, l2=.5, max_pool_size=3, max_pool_strides=2)(x)
+    x = conv2d(16, 3, 2, transpose=True)(x)
+    x = conv2d(16, 3, 2, batch_norm=False, upsampling_size=2)(x)
+    x = keras.layers.Flatten()(x)
+    output = dense(10, momentum=.99, epsilon=1e-6)(x)
+    model = keras.Model(inputs=x0, outputs=output)
+    model.compile(optimizer='adam', loss='mse')
+    model.fit(x_tdata, y_tdata, epochs=2)
 
 def test_inception():
-    pass
+    x_tdata = np.random.random((10, 32, 32, 3))
+    y_tdata = np.random.random((10, 10))
+
+    x0 = keras.layers.Input(shape=(32, 32, 3))
+    x = inception([
+        [conv2d(16, 3, 2), conv2d(16, 3, 1), conv2d(16, 3, 1)],
+        [conv2d(16, 3, 1, max_pool_size=3, max_pool_strides=2)],
+        [conv2d(16, 3, 1), conv2d(16, 3, 2), conv2d(32, 3, 1)]
+    ])(x0)
+    x = keras.layers.Concatenate()(x)
+    x = keras.layers.Flatten()(x)
+    output = dense(10, momentum=.99, epsilon=1e-6)(x)
+    model = keras.Model(inputs=x0, outputs=output)
+    model.compile(optimizer='adam', loss='mse')
+    model.fit(x_tdata, y_tdata, epochs=2)

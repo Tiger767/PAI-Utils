@@ -40,7 +40,7 @@ class Trainer:
         elif 'train' in data:
             self.train_data = data['train']
         else:
-            raise Exception('There must be train data')
+            raise ValueError('Invalid data. There must be train data.')
         if 'validation_x' in data and 'validation_y' in data:
             self.validation_data = (data['validation_x'],
                                     data['validation_y'])
@@ -236,7 +236,7 @@ def dense(units, activation='relu', l1=0, l2=0, batch_norm=True,
 def conv1d(filters, kernel_size, strides=1, activation='relu',
            padding='same', max_pool_size=None, max_pool_strides=None,
            upsampling_size=None, l1=0, l2=0, batch_norm=True,
-           momentum=0.999, epsilon=1e-5, name=None):
+           momentum=0.999, epsilon=1e-5, transpose=False, name=None):
     """Creates a 1D convolution layer function.
     params:
         filters: An integer, which is the dimensionality of the output space
@@ -256,6 +256,8 @@ def conv1d(filters, kernel_size, strides=1, activation='relu',
         momentum: A float, which is the momentum for the moving
                   mean and variance
         epsilon: A float, which adds variance to avoid dividing by zero
+        transpose: A boolean, which determines if the convolution layer
+                   should be a deconvolution layer
         name: A string, which is the name of the dense layer
     return: A function, which takes a layer as input and returns
             a conv1d(layer)
@@ -264,19 +266,23 @@ def conv1d(filters, kernel_size, strides=1, activation='relu',
         kernel_initializer = 'he_normal'
     else:
         kernel_initializer = 'glorot_uniform'
-    if l1 == l2 == 0:
-        cl = keras.layers.Conv1D(filters, kernel_size,
-                                 activation=activation,
-                                 strides=strides, padding=padding,
-                                 name=name, use_bias=not batch_norm,
-                                 kernel_initializer=kernel_initializer)
+    if transpose:
+        kl_conv1d = keras.layers.Conv1DTranspose
     else:
-        cl = keras.layers.Conv1D(filters, kernel_size,
-                                 activation=activation,
-                                 strides=strides, padding=padding,
-                                 kernel_regularizer=l1_l2(l1, l2),
-                                 name=name, use_bias=not batch_norm,
-                                 kernel_initializer=kernel_initializer)
+        kl_conv1d = keras.layers.Conv1D
+    if l1 == l2 == 0:
+        cl = kl_conv1d(filters, kernel_size,
+                       activation=activation,
+                       strides=strides, padding=padding,
+                       name=name, use_bias=not batch_norm,
+                       kernel_initializer=kernel_initializer)
+    else:
+        cl = kl_conv1d(filters, kernel_size,
+                       activation=activation,
+                       strides=strides, padding=padding,
+                       kernel_regularizer=l1_l2(l1, l2),
+                       name=name, use_bias=not batch_norm,
+                       kernel_initializer=kernel_initializer)
     if batch_norm:
         bn_name = name + '_batchnorm' if name is not None else None
         bnl = keras.layers.BatchNormalization(epsilon=epsilon,
@@ -286,10 +292,11 @@ def conv1d(filters, kernel_size, strides=1, activation='relu',
         mp_name = name + '_maxpool' if name is not None else None
         mpl = keras.layers.MaxPooling1D(pool_size=max_pool_size,
                                         strides=max_pool_strides,
+                                        padding=padding,
                                         name=mp_name)
     if upsampling_size is not None:
         us_name = name + '_upsample' if name is not None else None
-        usl = keras.layers.UpSampling1D(upsampling_size, name=us_name)(x)
+        usl = keras.layers.UpSampling1D(upsampling_size, name=us_name)
 
     def layer(x):
         """Applies 1D convolution layer to layer x.
@@ -369,6 +376,7 @@ def conv2d(filters, kernel_size=3, strides=1, activation='relu',
         mp_name = name + '_maxpool' if name is not None else None
         mpl = keras.layers.MaxPooling2D(pool_size=max_pool_size,
                                         strides=max_pool_strides,
+                                        padding=padding,
                                         name=mp_name)
     if upsampling_size is not None:
         us_name = name + '_upsample' if name is not None else None
