@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_8_2020
+Version: 12_9_2020
 """
 
 
@@ -14,30 +14,30 @@ class Fitness:
     """
 
     @staticmethod
-    def gene_match(goal_genome, variable_size=False):
+    def match_mse(target_genome, variable_size=False):
         """Creates a fitness_func that computes
-           the the mean squared error of the goal
+           the the mean squared error of the target
            genome and the offsprings' genome.
         params:
-            goal_genome: A list or numpy array that is the
+            target_genome: A list or numpy array that is the
                          target genome
             variable_size: A boolean, which determines if the
                            genome size can change
         return: A fitness function
         """
-        goal_genome = np.array(goal_genome)
+        target_genome = np.array(target_genome)
         if variable_size:
             def fitness_func(offspring):
                 errors = []
                 for genome in offspring:
-                    error = (genome.shape[0]-goal_genome.shape[0])**2
-                    error += (genome[:goal_genome.shape[0]] -
-                              goal_genome[:genome.shape[0]])**2
+                    error = (genome.shape[0]-target_genome.shape[0])**2
+                    error += (genome[:target_genome.shape[0]] -
+                              target_genome[:genome.shape[0]])**2
                     errors.append(error.mean())
                 return np.array(errors)
         else:
             def fitness_func(offspring):
-                error = (offspring - goal_genome)**2
+                error = (offspring - target_genome)**2
                 error = error.reshape((error.shape[0], -1)).mean(axis=1)
                 return error
         return fitness_func
@@ -49,7 +49,7 @@ class Selection:
     """
 
     @staticmethod
-    def select_greatest(variable_size=False):
+    def select_highest(variable_size=False):
         """Creates a selection function that selects offspring
            with the highest fitness value.
         params:
@@ -61,7 +61,7 @@ class Selection:
             def selection_func(offspring, fitness_values, selection_size):
                 new_offspring = []
                 for ndx in fitness_values.argsort()[-selection_size:]:
-                    new_offspring.append(ndx)
+                    new_offspring.append(offspring[ndx])
                 return new_offspring
         else:
             def selection_func(offspring, fitness_values, selection_size):
@@ -81,7 +81,7 @@ class Selection:
             def selection_func(offspring, fitness_values, selection_size):
                 new_offspring = []
                 for ndx in fitness_values.argsort()[:selection_size]:
-                    new_offspring.append(ndx)
+                    new_offspring.append(offspring[ndx])
                 return new_offspring
         else:
             def selection_func(offspring, fitness_values, selection_size):
@@ -161,7 +161,7 @@ class Crossover:
             old_parents = parents
             parents = parents.T.copy()
             for gene in range(num_genes):
-                np.random.shuffle(parents[0])
+                np.random.shuffle(parents[gene])
             parents = np.vstack([old_parents, parents.T])
             replace = parents.shape[0] < num_offspring
             indexes = np.random.choice(np.arange(parents.shape[0]),
@@ -171,18 +171,30 @@ class Crossover:
         return crossover_func
 
     @staticmethod
-    def single():
+    def single(variable_size=False):
         """Creates a crossover function that does not perform
            any crossover, but instead creates a child from a
            single parent. (Parents may produce more than one child)
+        params:
+            variable_size: A boolean, which determines if the
+                           genome size can change
         return: A crossover function
         """
-        def crossover_func(parents, num_offspring):
-            replace = parents.shape[0] < num_offspring
-            indexes = np.random.choice(np.arange(parents.shape[0]),
-                                       size=num_offspring, replace=replace)
-            return parents[indexes]
-
+        if variable_size:
+            def crossover_func(parents, num_offspring):
+                replace = len(parents) < num_offspring
+                indexes = np.random.choice(np.arange(len(parents)),
+                                           size=num_offspring, replace=replace)
+                new_offspring = []
+                for ndx in indexes:
+                    new_offspring.append(parents[ndx])
+                return new_offspring
+        else:
+            def crossover_func(parents, num_offspring):
+                replace = parents.shape[0] < num_offspring
+                indexes = np.random.choice(np.arange(parents.shape[0]),
+                                           size=num_offspring, replace=replace)
+                return parents[indexes]
         return crossover_func
 
 
@@ -228,13 +240,17 @@ class Mutation:
         return: A mutation function
         """
         if variable_size:
-            assert len(mutation_rates) == 1, (
-                'To have variable sizes there must only be one rate.'
-            )
-            assert len(distributions) == 2, (
-                'To have variable sizes there must only be one distribution.'
-            )
-            mutation_rate = mutation_rates[0]
+            if isinstance(mutation_rates, list) and len(mutation_rates) == 1:
+                mutation_rate = mutation_rates[0]
+            elif isinstance(mutation_rates, (int, float)):
+                mutation_rate = mutation_rates
+            else:
+                raise ValueError('To have variable sizes there '
+                                 'must only be one rate.')
+            if (isinstance(distributions[0], (list, tuple))
+                    or len(distributions) != 2):
+                raise ValueError('To have variable sizes there '
+                                 'must only be one distribution.')
             b, a = distributions
 
             def mutation_func(offspring):
@@ -247,7 +263,7 @@ class Mutation:
                         )
                         if round_values:
                             mutation = mutation.round()
-                        offspring[ndx] = mask * mutation + offspring
+                        offspring[ndx] = mask * mutation + offspring[ndx]
                 else:
                     for ndx in range(len(offspring)):
                         mask = np.random.binomial(1, mutation_rate,
@@ -257,7 +273,7 @@ class Mutation:
                         )
                         if round_values:
                             mutation = mutation.round()
-                        offspring[ndx] = mask * mutation + offspring
+                        offspring[ndx] = mask * mutation + offspring[ndx]
                 return offspring
         else:
             distributions = np.asarray(distributions)
@@ -301,13 +317,17 @@ class Mutation:
         return: A mutation function
         """
         if variable_size:
-            assert len(mutation_rates) == 1, (
-                'To have variable sizes there must only be one rate.'
-            )
-            assert len(distributions) == 2, (
-                'To have variable sizes there must only be one distribution.'
-            )
-            mutation_rate = mutation_rates[0]
+            if isinstance(mutation_rates, list) and len(mutation_rates) == 1:
+                mutation_rate = mutation_rates[0]
+            elif isinstance(mutation_rates, (int, float)):
+                mutation_rate = mutation_rates
+            else:
+                raise ValueError('To have variable sizes there '
+                                 'must only be one rate.')
+            if (isinstance(distributions[0], (list, tuple))
+                    or len(distributions) != 2):
+                raise ValueError('To have variable sizes there '
+                                 'must only be one distribution.')
             b, a = distributions
 
             def mutate_func(offspring):
@@ -323,7 +343,7 @@ class Mutation:
                             mutation = np.random.normal(
                                 b, a, size=offspring[ndx].shape
                             )
-                        offspring[ndx] = mask * mutation + offspring * (1-mask)
+                        offspring[ndx] = mask * mutation + offspring[ndx] * (1-mask)
                 else:
                     for ndx in range(len(offspring)):
                         mask = np.random.binomial(1, mutation_rate,
@@ -336,7 +356,7 @@ class Mutation:
                             mutation = np.random.uniform(
                                 b, a, size=offspring[ndx].shape
                             )
-                        offspring[ndx] = mask * mutation + offspring * (1-mask)
+                        offspring[ndx] = mask * mutation + offspring[ndx] * (1-mask)
                 return offspring
         else:
             distributions = np.asarray(distributions)
@@ -430,7 +450,7 @@ class SizeMutation:
                 assert genome.ndim == 1, (
                     'Genome must have 1 dimension.'
                 )
-                ndx = np.random.randint(0, len(genome[ndx])+1)
+                ndx = np.random.randint(1, len(genome)+1)
                 return np.hstack((genome[:ndx],
                                   genome[ndx-1:]))
         else:
@@ -534,7 +554,7 @@ class SizeMutation:
         return size_mutation_partial_func
 
     @staticmethod
-    def compine_mutations(size_mutation_rate, probabilities, funcs):
+    def complete_mutations(size_mutation_rate, probabilities, funcs):
         """Creates a complete size mutation function from incomplete
            size mutation functions.
         params:
@@ -546,15 +566,13 @@ class SizeMutation:
             funcs: A list of incomplete size mutation functions
         return: A complete size mutation function
         """
-        size = len(funcs)
-        arange = np.arange(size)
+        arange = np.arange(len(funcs))
 
         def size_mutation_func(offspring):
             new_offspring = []
             for genome in offspring:
-                if np.randon.random() < size_mutation_rate:
-                    choice = np.random.choice(arange, size=size,
-                                              p=probabilities)
+                if np.random.random() < size_mutation_rate:
+                    choice = np.random.choice(arange, p=probabilities)
                     new_offspring.append(funcs[choice](genome))
                 else:
                     new_offspring.append(genome)
@@ -774,7 +792,7 @@ class HyperparameterTuner:
         if lowest_best:
             selection = Selection.select_lowest()
         else:
-            selection = Selection.select_greatest()
+            selection = Selection.select_highest()
         if crossover_func is None:
             crossover_func = Crossover.single()
 
