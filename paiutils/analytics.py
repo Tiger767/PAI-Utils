@@ -72,13 +72,15 @@ class Analyzer:
         return groups
 
     def shrink_data(self, size_per_label, ndx_groups=None):
-        """Shrinks dataset by randomly choosing data from each group
-           to get to the desired size of each group.
+        """Creates an Analyzer with a dataset that has been shrunk
+           by randomly choosing data from each group to get to the
+           desired size of each group.
         params:
             size_per_label: A dictionary with labels as keys and sizes
                             as values, or an integer, which is the size
                             for all labels
             ndx_groups: A dictionary returned from create_label_ndx_groups
+        return: An Analyzer
         """
         if ndx_groups is None:
             ndx_groups = self.create_label_ndx_groups()
@@ -94,15 +96,52 @@ class Analyzer:
                 else:
                     ndxs.append(group)
         else:
-            for value_list in ndx_groups.values():
+            for group in ndx_groups.values():
                 ndxs.append(np.random.choice(
-                    value_list, size_per_label, replace=False
+                    group, size_per_label, replace=False
                 ))
         ndxs = np.hstack(ndxs)
-        self.x_data = self.x_data[ndxs]
-        self.y_data = self.y_data[ndxs]
-        self.y_labels = self.y_labels[ndxs]
-        self.y_colors = self.y_colors[ndxs]
+        return Analyzer(self.x_data[ndxs], self.y_data[ndxs],
+                        self.labels, label_colors=self.colors)
+
+    def expand_data(self, size_per_label, ndx_groups=None):
+        """Creates an Analyzer with a dataset that has been expanded
+           by randomly choosing data from each group to get to the
+           desired size of each group.
+        params:
+            size_per_label: A dictionary with labels as keys and sizes
+                            as values, or an integer, which is the size
+                            for all labels
+            ndx_groups: A dictionary returned from create_label_ndx_groups
+        return: An Analyzer
+        """
+        if ndx_groups is None:
+            ndx_groups = self.create_label_ndx_groups()
+        ndxs = []
+        if isinstance(size_per_label, dict):
+            for label, group in ndx_groups.items():
+                if label in size_per_label:
+                    size = size_per_label[label] - len(group)
+                    if size > 0:
+                        replace = size > len(group)
+                        group = np.append(
+                            group,
+                            np.random.choice(group, size, replace=replace)
+                        )
+                ndxs.append(group)
+        else:
+            for group in ndx_groups.values():
+                size = size_per_label - len(group)
+                if size > 0:
+                    replace = size > len(group)
+                    group = np.append(
+                        group,
+                        np.random.choice(group, size, replace=replace)
+                    )
+                ndxs.append(group)
+        ndxs = np.hstack(ndxs)
+        return Analyzer(self.x_data[ndxs], self.y_data[ndxs],
+                        self.labels, label_colors=self.colors)
 
     def plot(self, x, figsize=(8, 8)):
         """Plots x on a graph.

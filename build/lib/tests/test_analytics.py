@@ -32,7 +32,7 @@ def test_shrink_data():
         labels=np.arange(5).tolist()
     )
     assert sum(a.calculate_distribution_of_labels().values()) == 1000
-    a.shrink_data(5)
+    a = a.shrink_data(5)
     assert sum(a.calculate_distribution_of_labels().values()) == 25
 
     a = Analyzer(
@@ -41,13 +41,49 @@ def test_shrink_data():
         labels=np.arange(5).tolist()
     )
     pre_dl = a.calculate_distribution_of_labels()
-    a.shrink_data({0: 1, 1: 3, 2: 5})
+    a = a.shrink_data({0: 1, 1: 3, 2: 5})
     dl = a.calculate_distribution_of_labels()
     assert dl[0] == 1
     assert dl[1] == 3
     assert dl[2] == 5
     assert dl[3] == pre_dl[3]
     assert dl[4] == pre_dl[4]
+
+    a.shrink_data({1: 1})
+    dl = a.calculate_distribution_of_labels()
+    assert dl[1] == 3
+
+def test_expand_data():
+    a = Analyzer(
+        np.random.random(size=(100, 10)),
+        np.random.randint(0, 5, size=(100)),
+        labels=np.arange(5).tolist()
+    )
+    assert sum(a.calculate_distribution_of_labels().values()) == 100
+    a = a.expand_data(100)
+    assert sum(a.calculate_distribution_of_labels().values()) == 500
+    a = a.expand_data(50)  # should not do anything
+    assert sum(a.calculate_distribution_of_labels().values()) == 500
+    a = a.expand_data({0: 10, 1: 10})  # should not do anything
+    assert sum(a.calculate_distribution_of_labels().values()) == 500
+
+    a = Analyzer(
+        np.random.random(size=(1000, 10)),
+        np.random.randint(0, 5, size=(1000)),
+        labels=np.arange(5).tolist()
+    )
+    pre_dl = a.calculate_distribution_of_labels()
+    a = a.expand_data({0: 500, 1: 505, 2: 400})
+    dl = a.calculate_distribution_of_labels()
+    assert dl[0] == 500
+    assert dl[1] == 505
+    assert dl[2] == 400
+    assert dl[3] == pre_dl[3]
+    assert dl[4] == pre_dl[4]
+
+    a.expand_data({1: 600})
+    dl = a.calculate_distribution_of_labels()
+    assert dl[1] == 505
 
 def test_plot():
     pass
