@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_8_2020
+Version: 12_9_2020
 """
 
 
@@ -21,10 +21,12 @@ class AutoencoderTrainer(Trainer):
        and training keras autoencoder models.
     """
 
-    def __init__(self, model, data, encoder_model=None, decoder_model=None):
+    def __init__(self, encoder_model, decoder_model, data):
         """Initializes train, validation, and test data.
         params:
-            model: A compiled full keras model
+            encoder_model: The encoder model (full model shares optimizer
+                           and other attributes with this model)
+            decoder_model: The decoder model
             data: A dictionary containg train data
                   and optionally validation and test data.
                   If the 'train' key is present, the value will
@@ -32,14 +34,18 @@ class AutoencoderTrainer(Trainer):
                   will be ignored.
                   Ex. {'train_x': [...], 'train_y: [...]}
                   Ex. {'train': generator()}
-            encoder_model: The encoder part of the full model
-            decoder_model: The decoder part of the full model
         """
         if not isinstance(data, dict):
             raise TypeError(
                 'data must be a dictionary'
             )
-        self.model = model
+        x0 = keras.layers.Input(shape=encoder_model.input_shape[1:])
+        x1 = encoder_model(x0)
+        x2 = decoder_model(x1)
+        self.model = keras.Model(inputs=x0, outputs=x2)
+        self.model.compile(optimizer=encoder_model.optimizer,
+                           loss=encoder_model.loss,
+                           metrics=encoder_model.compiled_metrics._metrics)
         self.encoder_model = encoder_model
         self.decoder_model = decoder_model
         self.train_data = None
@@ -52,7 +58,7 @@ class AutoencoderTrainer(Trainer):
         elif 'train' in data:
             self.train_data = data['train']
         else:
-            raise Exception('There must be train data')
+            raise ValueError('Invalid data. There must be train data.')
         if 'validation_x' in data:
             self.validation_data = data['validation_x']
             self.validation_data = (self.validation_data,
@@ -61,50 +67,26 @@ class AutoencoderTrainer(Trainer):
             self.test_data = data['test_x']
             self.test_data = (self.test_data, self.test_data)
 
-    def train(self, epochs, batch_size=None, verbose=True, **kwargs):
-        """Trains the keras model.
-        params:
-            epochs: An integer, which is the number of complete
-                    iterations to train
-            batch_size: An integer, which is the number of samples
-                        per graident update
-            verbose: A boolean, which determines the verbositiy level
-        """
-        super().train(epochs, batch_size=batch_size,
-                      verbose=verbose, **kwargs)
-        weights = self.model.get_weights()
-        if self.encoder_model is not None:
-            encoder_num_weights = len(self.encoder_model.get_weights())
-            self.encoder_model.set_weights(weights[:encoder_num_weights])
-        if self.decoder_model is not None:
-            decoder_num_weights = len(self.decoder_model.get_weights())
-            self.decoder_model.set_weights(weights[-decoder_num_weights:])
-
-    def load(self, path, optimizer, loss, metrics=None, custom_objects=None):
+    def load(self, path, custom_objects=None):
         """Loads a model and weights from a file.
            (overrides the inital provided model)
         params:
             path: A string, which is the path to a folder
                   containing model.json, weights.h5, note.txt
                   and maybe encoder/decoder parts
-            optimizer: A string or optimizer instance, which will be
-                       the optimizer for the loaded model
-            loss: A string or loss instance, which will be
-                  the loss function for the loaded model
-            metrics: A list of metrics, which will be used
-                     by the loaded model
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
         """
-        super().load(path, optimizer, loss, metrics=metrics,
-                     custom_objects=custom_objects)
+        optimizer = self.model.optimizer
+        loss = self.model.loss
+        metrics = self.model.compiled_metrics._metrics
         if 'encoder_model.json' in os.listdir(path):
             with open(os.path.join(path, 'encoder_model.json'), 'r') as file:
                 self.encoder_model = model_from_json(
                     file.read(), custom_objects=custom_objects
                 )
-                self.encoder_model.compile(optimizer=optimizer, loss=loss,
-                                           metrics=metrics)
+            self.encoder_model.compile(optimizer=optimizer, loss=loss,
+                                       metrics=metrics)
             self.encoder_model.load_weights(
                 os.path.join(path, 'encoder_weights.h5')
             )
@@ -113,10 +95,19 @@ class AutoencoderTrainer(Trainer):
                 self.decoder_model = model_from_json(
                     file.read(), custom_objects=custom_objects
                 )
-                self.decoder_model.compile(optimizer=optimizer, loss=loss)
+            self.decoder_model.compile(optimizer=optimizer, loss=loss,
+                                       metrics=metrics)
             self.decoder_model.load_weights(
                 os.path.join(path, 'decoder_weights.h5')
             )
+        x0 = keras.layers.Input(shape=self.encoder_model.input_shape[1:])
+        x1 = self.encoder_model(x0)
+        x2 = self.decoder_model(x1)
+        self.model = keras.Model(inputs=x0, outputs=x2)
+        self.model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+
+        with open(os.path.join(path, 'note.txt'), 'r') as file:
+            print(file.read(), end='')
 
     def save(self, path, note=None):
         """Saves the model and weights to a file.
@@ -182,24 +173,25 @@ class AutoencoderPredictor(Predictor):
             super().__init__(path)
 
 
-class AutoencoderExtraDecoderTrainer(Trainer):
+class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
     """Autoencoder with an Extra Decoder Trainer is an Autoencoder Trainer
        with a extra decoder that can be trained to y-data.
     """
 
-    def __init__(self, model, encoder_model, decoder_model,
+    def __init__(self, encoder_model, decoder_model,
                  extra_decoder_model, data, include_y_data=True):
         """Initializes train, validation, and test data.
         params:
-            model: A compiled full keras model
-            encoder_model: The encoder part of the full model
-            decoder_model: The decoder part of the full model
+            encoder_model: The encoder model (full model shares optimizer
+                           and other attributes with this model)
+            decoder_model: The decoder model
             extra_decoder_model: The extra decoder is trained
                                  to map the encoder to a
                                  different output
                                  (not part of the full model)
             data: A dictionary containg train data
                   and optionally validation and test data.
+                  Ex. {'train_x': [...], 'train_y: [...]}
             include_y_data: A boolean, which determines if y-data should
                             be appened with the x-data for training the
                             autoencoder
@@ -208,7 +200,13 @@ class AutoencoderExtraDecoderTrainer(Trainer):
             raise TypeError(
                 'data must be a dictionary'
             )
-        self.model = model
+        x0 = keras.layers.Input(shape=encoder_model.input_shape[1:])
+        x1 = encoder_model(x0)
+        x2 = decoder_model(x1)
+        self.model = keras.Model(inputs=x0, outputs=x2)
+        self.model.compile(optimizer=encoder_model.optimizer,
+                           loss=encoder_model.loss,
+                           metrics=encoder_model.compiled_metrics._metrics)
         self.encoder_model = encoder_model
         self.decoder_model = decoder_model
         self.extra_decoder_model = extra_decoder_model
@@ -228,7 +226,7 @@ class AutoencoderExtraDecoderTrainer(Trainer):
             self.train_data = (self.train_data, self.train_data)
             self.train_data2 = [data['train_x'], data['train_y']]
         else:
-            raise Exception('There must be train data')
+            raise ValueError('Invalid data. There must be train data.')
         if 'validation_x' in data and 'validation_y' in data:
             if include_y_data:
                 self.validation_data = np.vstack([data['validation_x'],
@@ -298,25 +296,21 @@ class AutoencoderExtraDecoderTrainer(Trainer):
                                                         batch_size=batch_size,
                                                         verbose=0))
 
-    def load(self, path, optimizer, loss, metrics=None, custom_objects=None):
+    def load(self, path, custom_objects=None):
         """Loads a model and weights from a file.
-           (overrides the inital provided model)
+           (overrides the initally provided models)
         params:
             path: A string, which is the path to a folder
-                  containing model.json, weights.h5, note.txt
-                  and maybe encoder/decoder parts
-            optimizer: A string or optimizer instance, which will be
-                       the optimizer for the loaded model
-            loss: A string or loss instance, which will be
-                  the loss function for the loaded model
-            metrics: A list of metrics, which will be used
-                     by the loaded model
+                  containing model.json, weights.h5, note.txt,
+                  encoder/decoder parts, etc.
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
         """
-        super().load(path, optimizer, loss, metrics=metrics,
-                     custom_objects=custom_objects)
+        super().load(path, custom_objects=custom_objects)
         if 'extra_decoder_model.json' in os.listdir(path):
+            optimizer = self.extra_decoder_model.optimizer
+            loss = self.extra_decoder_model.loss
+            metrics = self.extra_decoder_model.compiled_metrics._metrics
             edm_path = os.path.join(path, 'extra_decoder_model.json')
             with open(edm_path, 'r') as file:
                 self.extra_decoder_model = model_from_json(
@@ -381,7 +375,8 @@ class VAETrainer(Trainer):
                 elif 'train' in train_data:
                     self.train_data = train_data['train']
                 else:
-                    raise Exception('There must be train data')
+                    raise ValueError('Invalid train_data. '
+                                     'There must be train data.')
             else:
                 raise ValueError('Invalid train_data')
         self.train_data = self.train_data.astype(
@@ -411,7 +406,9 @@ class VAETrainer(Trainer):
             entropy = tf.nn.sigmoid_cross_entropy_with_logits(
                 logits=x_logit, labels=x
             )
-            logpx_z = -tf.reduce_sum(entropy, axis=[1, 2, 3])
+            logpx_z = -tf.reduce_sum(
+                entropy, axis=tf.range(1, entropy.get_shape().ndims)
+            )
             logpz = log_normal_pdf(z, .0, .0)
             logqz_x = log_normal_pdf(z, mean, logvar)
             loss = -tf.reduce_mean(logpx_z + logpz - logqz_x)
@@ -511,181 +508,3 @@ class VAETrainer(Trainer):
             else:
                 file.write(note)
         return path
-
-
-def create_basic_dense_model(input_shape, units_list,
-                             activation='relu',
-                             output_activation='sigmoid',
-                             dropout=0, batch_norm=True,
-                             encoder_output_activation=None,
-                             encoder_output_batch_norm=None):
-    """Creates a basic dense model for mainly testing purposes.
-    params:
-        input_shape: A tuple of integers, which is the expected input shape
-        units_list: A list of integers, which are the dimensionality of the
-                    output space
-        activation: A string or keras/TF activation function
-        output_activation: A string or keras/TF activation function
-        dropout: A float, which is the dropout rate between inputs and
-                 first dense layer
-        batch_norm: A boolean, which determines if batch
-                    normalization is enabled
-        encoder_output_activation: A string or keras/TF activation function
-        encoder_output_batch_norm: A boolean, which determines if batch
-                                   normalization is enabled for the encoder
-                                   output
-    return: A tuple of the full model, the encoder model, and decoder model
-            uncompiled
-    """
-    if encoder_output_activation is None:
-        encoder_output_activation = activation
-
-    if encoder_output_batch_norm is None:
-        encoder_output_batch_norm = batch_norm
-
-    inputs = keras.layers.Input(shape=input_shape)
-    x = inputs
-    if len(input_shape) > 1:
-        x = keras.layers.Flatten()(x)
-    if dropout > 0:
-        x = keras.layers.Dropout(dropout)(x)
-    for units in units_list[:-1]:
-        x = dense(units, activation=activation, batch_norm=batch_norm)(x)
-    x = dense(units_list[-1], activation=encoder_output_activation,
-              batch_norm=encoder_output_batch_norm)(x)
-    encoder_model = keras.Model(inputs=inputs, outputs=x)
-    decoder_inputs = keras.layers.Input(shape=(units_list[-1],))
-    decoder_start_ndx = len(encoder_model.layers)
-    for units in reversed(units_list):
-        x = dense(units, activation=activation, batch_norm=batch_norm)(x)
-    if len(input_shape) > 1:
-        outputs = dense(np.prod(input_shape), activation=output_activation,
-                        batch_norm=False)(x)
-        outputs = keras.layers.Reshape(input_shape)(outputs)
-    else:
-        outputs = dense(input_shape[0], activation=output_activation,
-                        batch_norm=False)(x)
-    model = keras.Model(inputs=inputs, outputs=outputs)
-    x = decoder_inputs
-    for layer in model.layers[decoder_start_ndx:]:
-        x = layer(x)
-    decoder_model = keras.Model(inputs=decoder_inputs, outputs=x)
-    return model, encoder_model, decoder_model
-
-
-def create_basic_conv2d_model(input_shape, filters_list, kernel_sizes,
-                              max_pools, activation='relu',
-                              output_activation='sigmoid',
-                              dropout=0, batch_norm=True,
-                              encoder_output_activation=None,
-                              encoder_output_batch_norm=None):
-    """Creates a basic 2D convolution model for mainly testing purposes.
-    params:
-        input_shape: A tuple of integers, which is the expected input shape
-        filters_list: A list of integers, which are the dimensionality of the
-                      output space
-        kernel_sizes: An integer or tuple of 2 integers, which is the size of
-                     the convoluition kernel
-        max_pools: A list of integers or tuples, which are the size of the
-                   pooling windows
-        activation: A string or keras/TF activation function
-        output_activation: A string or keras/TF activation function
-        dropout: A float, which is the dropout rate between inputs and
-                 first dense layer
-        batch_norm: A boolean, which determines if batch
-                    normalization is enabled
-        encoder_output_activation: A string or keras/TF activation function
-        encoder_output_batch_norm: A boolean, which determines if batch
-                                   normalization is enabled for the encoder
-                                   output
-    return: A tuple of the full model, the encoder model, and decoder model
-            uncompiled
-    """
-    if encoder_output_activation is None:
-        encoder_output_activation = activation
-    if encoder_output_batch_norm is None:
-        encoder_output_batch_norm = batch_norm
-    inputs = keras.layers.Input(shape=input_shape)
-    x = inputs
-    if dropout > 0:
-        x = keras.layers.Dropout(dropout)(x)
-    for ndx in range(len(filters_list)-1):
-        x = conv2d(filters_list[ndx], kernel_sizes[ndx], activation=activation,
-                   max_pool_size=max_pools[ndx], batch_norm=batch_norm)(x)
-    x = conv2d(filters_list[-1], kernel_sizes[-1],
-               activation=encoder_output_activation,
-               max_pool_size=max_pools[-1],
-               batch_norm=encoder_output_batch_norm)(x)
-    encoder_model = keras.Model(inputs=inputs, outputs=x)
-    decoder_inputs = keras.layers.Input(shape=[y for y in x.shape[1:]])
-    decoder_start_ndx = len(encoder_model.layers)
-    for ndx in reversed(range(len(filters_list))):
-        x = conv2d(filters_list[ndx], kernel_sizes[ndx], activation=activation,
-                   batch_norm=batch_norm, upsampling_size=max_pools[ndx])(x)
-    outputs = conv2d(input_shape[-1], activation=output_activation,
-                     batch_norm=False)(x)
-    model = keras.Model(inputs=inputs, outputs=outputs)
-    x = decoder_inputs
-    for layer in model.layers[decoder_start_ndx:]:
-        x = layer(x)
-    decoder_model = keras.Model(inputs=decoder_inputs, outputs=x)
-    return model, encoder_model, decoder_model
-
-
-def create_basic_conv1d_model(input_shape, filters_list, kernel_sizes,
-                              max_pools, activation='relu',
-                              output_activation='sigmoid',
-                              dropout=0, batch_norm=True,
-                              encoder_output_activation=None,
-                              encoder_output_batch_norm=None):
-    """Creates a basic 1D convolution model for mainly testing purposes.
-    params:
-        input_shape: A tuple of integers, which is the expected input shape
-        filters_list: A list of integers, which are the dimensionality of the
-                      output space
-        kernel_sizes: An integer or tuple of 1 integers, which is the size of
-                     the convoluition kernel
-        max_pools: A list of integers or tuples, which are the size of the
-                   pooling windows
-        activation: A string or keras/TF activation function
-        output_activation: A string or keras/TF activation function
-        dropout: A float, which is the dropout rate between inputs and
-                 first dense layer
-        batch_norm: A boolean, which determines if batch
-                    normalization is enabled
-        encoder_output_activation: A string or keras/TF activation function
-        encoder_output_batch_norm: A boolean, which determines if batch
-                                   normalization is enabled for the encoder
-                                   output
-    return: A tuple of the full model, the encoder model, and decoder model
-            uncompiled
-    """
-    if encoder_output_activation is None:
-        encoder_output_activation = activation
-    if encoder_output_batch_norm is None:
-        encoder_output_batch_norm = batch_norm
-    inputs = keras.layers.Input(shape=input_shape)
-    x = inputs
-    if dropout > 0:
-        x = keras.layers.Dropout(dropout)(x)
-    for ndx in range(len(filters_list)-1):
-        x = conv1d(filters_list[ndx], kernel_sizes[ndx], activation=activation,
-                   max_pool_size=max_pools[ndx], batch_norm=batch_norm)(x)
-    x = conv1d(filters_list[-1], kernel_sizes[-1],
-               activation=encoder_output_activation,
-               max_pool_size=max_pools[-1],
-               batch_norm=encoder_output_batch_norm)(x)
-    encoder_model = keras.Model(inputs=inputs, outputs=x)
-    decoder_inputs = keras.layers.Input(shape=[y for y in x.shape[1:]])
-    decoder_start_ndx = len(encoder_model.layers)
-    for ndx in reversed(range(len(filters_list))):
-        x = conv1d(filters_list[ndx], kernel_sizes[ndx], activation=activation,
-                   batch_norm=batch_norm, upsampling_size=max_pools[ndx])(x)
-    outputs = conv1d(input_shape[-1], activation=output_activation,
-                     batch_norm=False)(x)
-    model = keras.Model(inputs=inputs, outputs=outputs)
-    x = decoder_inputs
-    for layer in model.layers[decoder_start_ndx:]:
-        x = layer(x)
-    decoder_model = keras.Model(inputs=decoder_inputs, outputs=x)
-    return model, encoder_model, decoder_model

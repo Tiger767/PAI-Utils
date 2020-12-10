@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_8_2020
+Version: 12_9_2020
 """
 
 import pytest
@@ -28,10 +28,12 @@ def test_trainer():
     trainer.train(5, batch_size=32)
 
     path = trainer.save('')
-    trainer.load(path, 'adam', 'mse', metrics=['accuracy'])
+    trainer.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
+
+    trainer.train(5, batch_size=32)
 
     with pytest.raises(TypeError):
         Trainer(model, x_tdata)

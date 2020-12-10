@@ -1,7 +1,11 @@
 """
 Author: Travis Hammond
-Version: 12_28_2020
+Version: 12_9_2020
 """
+
+import pytest
+
+from paiutils.util_funcs import *
 
 
 def test_load_directory_dataset():

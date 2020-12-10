@@ -1,7 +1,12 @@
 """
 Author: Travis Hammond
-Version: 12_28_2020
+Version: 12_9_2020
 """
+
+import pytest
+
+from paiutils.evolution_algorithm import *
+
 
 def test_fitness():
     pass

@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 10_31_2020
+Version: 12_9_2020
 """
 
 from types import GeneratorType
@@ -95,27 +95,24 @@ class Trainer:
                                           batch_size=batch_size,
                                           verbose=0))
 
-    def load(self, path, optimizer, loss, metrics=None, custom_objects=None):
+    def load(self, path, custom_objects=None):
         """Loads a model and weights from a file.
            (overrides the inital provided model)
         params:
             path: A string, which is the path to a folder
                   containing model.json, weights.h5, and note.txt
-            optimizer: A string or optimizer instance, which will be
-                       the optimizer for the loaded model
-            loss: A string or loss instance, which will be
-                  the loss function for the loaded model
-            metrics: A list of metrics, which will be used
-                     by the loaded model
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
         """
+        optimizer = self.model.optimizer
+        loss = self.model.loss
+        metrics = self.model.compiled_metrics._metrics
         with open(os.path.join(path, 'model.json'), 'r') as file:
             self.model = model_from_json(
                 file.read(), custom_objects=custom_objects
             )
-            self.model.compile(optimizer=optimizer, loss=loss,
-                               metrics=metrics)
+        self.model.compile(optimizer=optimizer, loss=loss,
+                           metrics=metrics)
         self.model.load_weights(os.path.join(path, 'weights.h5'))
         with open(os.path.join(path, 'note.txt'), 'r') as file:
             print(file.read(), end='')
@@ -419,20 +416,3 @@ def inception(inceptions):
             branches.append(y)
         return branches
     return layer
-
-
-if __name__ == '__main__':
-    inputs = keras.layers.Input(shape=(2,))
-    x = dense(16)(inputs)
-    outputs = dense(1, activation='sigmoid', batch_norm=False)(x)
-    model = keras.Model(inputs=inputs, outputs=outputs)
-    model.compile(optimizer='adam', loss='binary_crossentropy',
-                  metrics=['accuracy'])
-
-    tx = np.array([[0, 0], [1, 1]])
-    ty = np.array([0, 1])
-    trainer = Trainer(model, {'train_x': tx, 'train_y': ty})
-    trainer.train(1000)
-    path = trainer.save('')
-    predictor = Predictor(path)
-    print(predictor.predict([0, 1]))
