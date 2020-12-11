@@ -5,6 +5,7 @@ Version: 12_9_2020
 
 import pytest
 
+from paiutils.neural_network import *
 from paiutils.autoencoder import *
 
 

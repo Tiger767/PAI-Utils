@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_9_2020
+Version: 12_10_2020
 """
 
 
@@ -12,7 +12,7 @@ from tensorflow import keras
 from tensorflow.keras.models import model_from_json
 
 from paiutils.neural_network import (
-    Trainer, Predictor, dense, conv2d, conv1d
+    Trainer, Predictor
 )
 
 

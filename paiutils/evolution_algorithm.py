@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_9_2020
+Version: 12_10_2020
 """
 
 
@@ -343,7 +343,8 @@ class Mutation:
                             mutation = np.random.normal(
                                 b, a, size=offspring[ndx].shape
                             )
-                        offspring[ndx] = mask * mutation + offspring[ndx] * (1-mask)
+                        offspring[ndx] = (mask * mutation + offspring[ndx] *
+                                          (1 - mask))
                 else:
                     for ndx in range(len(offspring)):
                         mask = np.random.binomial(1, mutation_rate,
@@ -356,7 +357,8 @@ class Mutation:
                             mutation = np.random.uniform(
                                 b, a, size=offspring[ndx].shape
                             )
-                        offspring[ndx] = mask * mutation + offspring[ndx] * (1-mask)
+                        offspring[ndx] = (mask * mutation + offspring[ndx] *
+                                          (1 - mask))
                 return offspring
         else:
             distributions = np.asarray(distributions)

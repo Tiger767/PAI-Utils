@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_8_2020
+Version: 12_10_2020
 """
 
 
@@ -157,21 +157,18 @@ class Analyzer:
             nx = np.squeeze(x)
             ax = fig.add_subplot(111)
             ax.scatter(nx, nx, c=self.y_colors)
-            m = x.mean()
             for ndx in range(len(self.labels)):
                 ax.plot([], 'o', c=[self.colors[ndx]],
                         label=self.labels[ndx])
         elif dims == 2:
             ax = fig.add_subplot(111)
             ax.scatter(x[:, 0], x[:, 1], c=self.y_colors)
-            m = x.mean(axis=-1)
             for ndx in range(len(self.labels)):
                 ax.plot([], 'o', c=self.colors[ndx],
                         label=self.labels[ndx])
         elif dims == 3:
             ax = fig.add_subplot(111, projection='3d')
             ax.scatter(x[:, 0], x[:, 1], x[:, 2], c=self.y_colors)
-            m = x.mean(axis=0)
             for ndx in range(len(self.labels)):
                 ax.plot([], 'o', c=self.colors[ndx],
                         label=self.labels[ndx])
