@@ -321,14 +321,16 @@ class DQNPGAgent(DQNAgent, PGAgent):
                        from a folder should be loaded
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
+        return: A string of note.txt
         """
-        DQNAgent.load(self, path, load_model=load_model, load_data=load_data)
+        note = DQNAgent.load(self, path, load_model=load_model, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'amodel.json'), 'r') as file:
                 self.amodel = model_from_json(
                     file.read(), custom_objects=custom_objects
                 )
             self.amodel.load_weights(os.path.join(path, 'aweights.h5'))
+        return note
 
     def save(self, path, save_model=True,
              save_data=True, note='DQNPGAgent Save'):
@@ -619,14 +621,16 @@ class A2CAgent(PGAgent):
                        from a folder should be loaded
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
+        return: A string of note.txt
         """
-        PGAgent.load(self, path, load_model=load_model, load_data=load_data)
+        note = PGAgent.load(self, path, load_model=load_model, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'cmodel.json'), 'r') as file:
                 self.amodel = model_from_json(
                     file.read(), custom_objects=custom_objects
                 )
             self.cmodel.load_weights(os.path.join(path, 'cweights.h5'))
+        return note
 
     def save(self, path, save_model=True,
              save_data=True, note='A2CAgent Save'):

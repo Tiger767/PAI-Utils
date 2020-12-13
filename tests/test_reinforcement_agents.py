@@ -75,7 +75,7 @@ def test_dqn_pg_agent():
     agent.learn(batch_size=2, epochs=2, repeat=2)
 
     path = agent.save('')
-    agent.load(path)
+    note = agent.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -160,7 +160,7 @@ def test_a2c_agent():
     agent.learn(batch_size=2, epochs=2, repeat=2)
 
     path = agent.save('')
-    agent.load(path)
+    note = agent.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -227,7 +227,7 @@ def test_ppo_agent():
     agent.learn(batch_size=2, epochs=2, repeat=2)
 
     path = agent.save('')
-    agent.load(path)
+    note = agent.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -285,7 +285,7 @@ def test_td3_agent():
     agent.learn(batch_size=2, epochs=2, repeat=2)
 
     path = agent.save('')
-    agent.load(path)
+    note = agent.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)

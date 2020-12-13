@@ -170,7 +170,7 @@ class Analyzer:
             ax = fig.add_subplot(111, projection='3d')
             ax.scatter(x[:, 0], x[:, 1], x[:, 2], c=self.y_colors)
             for ndx in range(len(self.labels)):
-                ax.plot([], 'o', c=self.colors[ndx],
+                ax.plot([[]], 'o', c=self.colors[ndx],
                         label=self.labels[ndx])
         fig.legend()
         plt.show()

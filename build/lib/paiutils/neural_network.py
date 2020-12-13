@@ -1,12 +1,13 @@
 """
 Author: Travis Hammond
-Version: 12_9_2020
+Version: 12_12_2020
 """
 
 from types import GeneratorType
 import os
 import datetime
 import numpy as np
+import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.models import model_from_json
 from tensorflow.keras.regularizers import l1_l2
@@ -14,6 +15,9 @@ from tensorflow.keras.regularizers import l1_l2
 
 class Trainer:
     """Trainer is used for loading, saving, and training keras models."""
+    GEN_DATA_TYPES = (
+        GeneratorType, keras.utils.Sequence, tf.data.Dataset
+    )
 
     def __init__(self, model, data):
         """Initializes train, validation, and test data.
@@ -21,11 +25,13 @@ class Trainer:
             model: A compiled keras model
             data: A dictionary containg train data
                   and optionally validation and test data.
-                  If the 'train' key is present, the value will
-                  be used as a generator and 'train_x' & 'train_y'
-                  will be ignored.
+                  If the train/validation/test key is present without
+                  the _x/_y the value will be used as a
+                  generator/Keras-Sequence/TF-Dataset and 
+                  keys with _x/_y will be ignored.
                   Ex. {'train_x': [...], 'train_y: [...]}
-                  Ex. {'train': generator()}
+                  Ex. {'train': generator(), 'test': [...]}
+                  Ex. {'train': tf.data.Dataset(), 'test': generator()}
         """
         if not isinstance(data, dict):
             raise TypeError(
@@ -35,17 +41,40 @@ class Trainer:
         self.train_data = None
         self.validation_data = None
         self.test_data = None
+
         if 'train_x' in data and 'train_y' in data:
             self.train_data = (data['train_x'], data['train_y'])
         elif 'train' in data:
-            self.train_data = data['train']
+            if isinstance(data['train'], Trainer.GEN_DATA_TYPES):
+                self.train_data = data['train']
+            else:
+                raise ValueError(
+                    f'train data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use train_x/_y for keys if using ndarrays.'
+                )
         else:
             raise ValueError('Invalid data. There must be train data.')
         if 'validation_x' in data and 'validation_y' in data:
             self.validation_data = (data['validation_x'],
                                     data['validation_y'])
+        elif 'validation' in data:
+            if isinstance(data['validation'], Trainer.GEN_DATA_TYPES):
+                self.validation_data = data['validation']
+            else:
+                raise ValueError(
+                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use validation_x/_y for keys if using ndarrays.'
+                )
         if 'test_x' in data and 'test_y' in data:
             self.test_data = (data['test_x'], data['test_y'])
+        elif 'test' in data:
+            if isinstance(data['test'], Trainer.GEN_DATA_TYPES):
+                self.test_data = data['test']
+            else:
+                raise ValueError(
+                    f'test data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use test_x/_y for keys if using ndarrays.'
+                )
 
     def train(self, epochs, batch_size=None, verbose=True, **kwargs):
         """Trains the keras model.
@@ -56,44 +85,50 @@ class Trainer:
                         per graident update
             verbose: A boolean, which determines the verbositiy level
         """
-        if isinstance(self.train_data, GeneratorType):
+        verbose = 1 if verbose else 0
+        if isinstance(self.train_data, Trainer.GEN_DATA_TYPES):
             if 'steps_per_epoch' not in kwargs and batch_size is not None:
                 kwargs['steps_per_epoch'] = batch_size
             self.model.fit(self.train_data,
                            validation_data=self.validation_data,
                            epochs=epochs,
-                           verbose=1 if verbose else 0, **kwargs)
+                           verbose=verbose, **kwargs)
         else:
             self.model.fit(self.train_data[0], self.train_data[1],
                            validation_data=self.validation_data,
                            batch_size=batch_size, epochs=epochs,
-                           verbose=1 if verbose else 0, **kwargs)
-        if verbose:
-            print('Train Data Evaluation: ', end='')
-            if isinstance(self.train_data, GeneratorType):
-                steps = None
-                if 'steps_per_epoch' in kwargs:
-                    steps = kwargs['steps_per_epoch']
-                print(self.model.evaluate(
-                    self.train_data, steps=steps, verbose=0)
+                           verbose=verbose, **kwargs)
+    
+    def eval(self, train_data=True, validation_data=True,
+             test_data=True, batch_size=None, verbose=True, **kwargs):
+        verbose = 1 if verbose else 0
+
+        to_eval = []
+        if train_data:
+            to_eval.append(('Train', self.train_data))
+        if validation_data:
+            to_eval.append(('Validation', self.validation_data))
+        if test_data:
+            to_eval.append(('Test', self.test_data))
+
+        results = {}
+        for name, data in to_eval:
+            if verbose == 1:
+                print(f'{name} Data Evaluation: ')
+            if isinstance(data, Trainer.GEN_DATA_TYPES):
+                if steps not in kwargs and batch_size is not None:
+                    steps = batch_size
+                else:
+                    steps = None
+                results[name] = self.model.evaluate(
+                    data, steps=steps, verbose=verbose, **kwargs
                 )
             else:
-                print(self.model.evaluate(
-                    self.train_data[0], self.train_data[1],
-                    batch_size=batch_size, verbose=0)
+                results[name] = self.model.evaluate(
+                    data[0], data[1], batch_size=batch_size,
+                    verbose=verbose, **kwargs
                 )
-            if self.validation_data is not None:
-                print('Validation Data Evaluation: ', end='')
-                print(self.model.evaluate(self.validation_data[0],
-                                          self.validation_data[1],
-                                          batch_size=batch_size,
-                                          verbose=0))
-            if self.test_data is not None:
-                print('Test Data Evaluation: ', end='')
-                print(self.model.evaluate(self.test_data[0],
-                                          self.test_data[1],
-                                          batch_size=batch_size,
-                                          verbose=0))
+        return results
 
     def load(self, path, custom_objects=None):
         """Loads a model and weights from a file.
@@ -103,6 +138,7 @@ class Trainer:
                   containing model.json, weights.h5, and note.txt
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
+        return: A string of note.txt
         """
         optimizer = self.model.optimizer
         loss = self.model.loss
@@ -115,7 +151,8 @@ class Trainer:
                            metrics=metrics)
         self.model.load_weights(os.path.join(path, 'weights.h5'))
         with open(os.path.join(path, 'note.txt'), 'r') as file:
-            print(file.read(), end='')
+            note = file.read()
+        return note
 
     def save(self, path, note=None):
         """Saves the model and weights to a file.

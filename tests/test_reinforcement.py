@@ -389,7 +389,7 @@ def test_agent():
     agent.end_episode()
     agent.learn()
     path = agent.save('', 'hello')
-    agent.load(path)
+    note = agent.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -414,7 +414,7 @@ def test_q_agent():
 
     path = agent.save('')
     agent.forget()
-    agent.load(path)
+    note = agent.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -441,7 +441,7 @@ def test_pq_agent():
 
     path = agent.save('')
     agent.forget()
-    agent.load(path)
+    note = agent.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -476,7 +476,7 @@ def test_memory_agent():
 
     agent.learn()
     path = agent.save('', 'hello')
-    agent.load(path)
+    note = agent.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -493,7 +493,7 @@ def test_memory_agent():
     agent.learn()
     path = agent.save('', 'hello')
     agent.forget()
-    agent.load(path)
+    note = agent.load(path)
     assert agent.memory['states'].array().shape == (100, 10, 512)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
@@ -549,7 +549,7 @@ def test_dqn_agent():
     agent.learn(batch_size=2, epochs=2, repeat=2)
 
     path = agent.save('')
-    agent.load(path)
+    note = agent.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -604,7 +604,7 @@ def test_pg_agent():
     agent.learn(batch_size=2, epochs=2, repeat=2)
 
     path = agent.save('')
-    agent.load(path)
+    note = agent.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -654,7 +654,7 @@ def test_ddpg_agent():
     agent.learn(batch_size=2, epochs=2, repeat=2)
 
     path = agent.save('')
-    agent.load(path)
+    note = agent.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)

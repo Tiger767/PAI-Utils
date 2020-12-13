@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_8_2020
+Version: 12_12_2020
 """
 
 
@@ -231,6 +231,7 @@ class GANTrainer(Trainer):
                   containing model.json, weights.h5, and note.txt
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
+        return: A string of note.txt
         """
         with open(os.path.join(path, 'model.json'), 'r') as file:
             self.model = model_from_json(
@@ -243,7 +244,8 @@ class GANTrainer(Trainer):
         self.model.load_weights(os.path.join(path, 'weights.h5'))
         self.dis_model.load_weights(os.path.join(path, 'dis_weights.h5'))
         with open(os.path.join(path, 'note.txt'), 'r') as file:
-            print(file.read(), end='')
+            note = file.read()
+        return note
 
     def save(self, path, note=None):
         """Saves the generator and discriminator model and weights to a file.
@@ -648,6 +650,7 @@ class CycleGANTrainer(Trainer):
                   containing model.json, weights.h5, and note.txt
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
+        return: A string of note.txt
         """
         with open(os.path.join(path, 'model.json'), 'r') as file:
             self.model = model_from_json(
@@ -670,7 +673,8 @@ class CycleGANTrainer(Trainer):
         self.dis_model.load_weights(os.path.join(path, 'dis_weights.h5'))
         self.dis_model2.load_weights(os.path.join(path, 'dis_weights2.h5'))
         with open(os.path.join(path, 'note.txt'), 'r') as file:
-            print(file.read(), end='')
+            note = file.read()
+        return note
 
     def save(self, path, note=None):
         """Saves the generator and discriminator model and weights to a file.

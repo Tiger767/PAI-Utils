@@ -35,7 +35,7 @@ def test_autoencoder_trainer():
     trainer.train(10, batch_size=32)
 
     path = trainer.save('')
-    trainer.load(path)
+    note = trainer.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -142,7 +142,7 @@ def test_autoencoder_extra_decoder_trainer():
     trainer.train_extra_decoder(10, batch_size=32)
 
     path = trainer.save('')
-    trainer.load(path)
+    note = trainer.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -161,7 +161,7 @@ def test_autoencoder_extra_decoder_trainer():
     trainer.train_extra_decoder(10, batch_size=32)
 
     path = trainer.save('')
-    trainer.load(path)
+    note = trainer.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -190,13 +190,13 @@ def test_vae_trainer():
 
     x0 = keras.layers.Input(shape=(100,))
     x = dense(100)(x0)
-    output = keras.layers.Dense(10)(x)
-    encoder_model = keras.Model(inputs=x0, outputs=output)
-    encoder_model.compile(optimizer='adam', loss='mse')
+    z_mean = dense(5)(x)
+    z_log_var = dense(5)(x)
+    encoder_model = keras.Model(inputs=x0, outputs=[z_mean, z_log_var])
 
     x0 = keras.layers.Input(shape=(5,))
     x = dense(100)(x0)
-    output = dense(100)(x)
+    output = dense(100, activation='sigmoid')(x)
     decoder_model = keras.Model(inputs=x0, outputs=output)
     decoder_model.compile(optimizer='adam', loss='mse')
 
@@ -209,7 +209,7 @@ def test_vae_trainer():
     trainer.train(10, batch_size=32)
 
     path = trainer.save('')
-    trainer.load(path)
+    note = trainer.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -228,3 +228,12 @@ def test_vae_trainer():
         VAETrainer(
             encoder_model, decoder_model, 'hello'
         )
+
+    def gen():
+        while True:
+            yield np.random.random((32, 100)), np.random.random((32, 100))
+
+    trainer = VAETrainer(
+        encoder_model, decoder_model, {'train': gen()}
+    )
+    trainer.train(5, batch_size=32)

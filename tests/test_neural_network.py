@@ -28,7 +28,7 @@ def test_trainer():
     trainer.train(5, batch_size=32)
 
     path = trainer.save('')
-    trainer.load(path)
+    note = trainer.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)

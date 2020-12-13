@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_8_2020
+Version: 12_12_2020
 """
 
 
@@ -1183,9 +1183,11 @@ class Agent:
         """Loads a save from a folder.
         params:
             path: A string, which is the path to a folder to load
+        return: A string of note.txt
         """
         with open(os.path.join(path, 'note.txt'), 'r') as file:
-            print(file.read(), end='')
+            note = file.read()
+        return note
 
     def save(self, path, note):
         """Saves a note to a new folder.
@@ -1323,9 +1325,11 @@ class QAgent(Agent):
         """Loads a save from a folder.
         params:
             path: A string, which is the path to a folder to load
+        return: A string of note.txt
         """
-        Agent.load(self, path)
+        note = Agent.load(self, path)
         self.qtable = np.load(os.path.join(path, 'qtable.npy'))
+        return note
 
     def save(self, path, note='QAgent Save'):
         """Saves a note and qtable to a new folder.
@@ -1496,9 +1500,11 @@ class PQAgent(QAgent):
         params:
             path: A string, which is the path to a folder to load
                   from
+        return: A string of note.txt
         """
-        Agent.load(self, path)
+        note = Agent.load(self, path)
         self.qtables = np.load(os.path.join(path, 'qtables.npy'))
+        return note
 
     def save(self, path, note='PQAgent Save'):
         """Saves a note and qtables to a new folder.
@@ -1551,12 +1557,14 @@ class MemoryAgent(Agent):
             path: A string, which is the path to a folder to load
             load_data: A boolean, which determines if the memory
                        from a folder should be loaded
+            return: A string of note.txt
         """
-        Agent.load(self, path)
+        note = Agent.load(self, path)
         if load_data:
             with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:
                 for name, memory in self.memory.items():
                     memory.load(file, name)
+        return note
 
     def save(self, path, save_data=True, note='MemoryAgent'):
         """Saves a note and memory to a new folder.
@@ -1958,8 +1966,9 @@ class DQNAgent(MemoryAgent):
                         should be loaded
             load_data: A boolean, which determines if the memory
                        from a folder should be loaded
+        return: A string of note.txt
         """
-        MemoryAgent.load(self, path, load_data=load_data)
+        note = MemoryAgent.load(self, path, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'qmodel.json'), 'r') as file:
                 self.qmodel = model_from_json(file.read())
@@ -1969,6 +1978,7 @@ class DQNAgent(MemoryAgent):
                 self.target_qmodel.compile(optimizer='sgd', loss='mse')
             else:
                 self.target_qmodel = self.qmodel
+        return note
 
     def save(self, path, save_model=True,
              save_data=True, note='DQNAgent Save'):
@@ -2257,12 +2267,14 @@ class PGAgent(MemoryAgent):
                         should be loaded
             load_data: A boolean, which determines if the memory
                        from a folder should be loaded
+        return: A string of note.txt
         """
-        MemoryAgent.load(self, path, load_data=load_data)
+        note = MemoryAgent.load(self, path, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'amodel.json'), 'r') as file:
                 self.amodel = model_from_json(file.read())
             self.amodel.load_weights(os.path.join(path, 'aweights.h5'))
+        return note
 
     def save(self, path, save_model=True, save_data=True, note='PGAgent Save'):
         """Saves a note, model weights, and memory to a new folder.
@@ -2626,8 +2638,9 @@ class DDPGAgent(MemoryAgent):
                         should be loaded
             load_data: A boolean, which determines if the memory
                        from a folder should be loaded
+        return: A string of note.txt
         """
-        MemoryAgent.load(self, path, load_data=load_data)
+        note = MemoryAgent.load(self, path, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'amodel.json'), 'r') as file:
                 self.amodel = model_from_json(file.read())
@@ -2635,6 +2648,7 @@ class DDPGAgent(MemoryAgent):
                 self.cmodel = model_from_json(file.read())
             self.amodel.load_weights(os.path.join(path, 'aweights.h5'))
             self.cmodel.load_weights(os.path.join(path, 'cweights.h5'))
+        return note
 
     def save(self, path, save_model=True, save_data=True,
              note='DDPGAgent Save'):

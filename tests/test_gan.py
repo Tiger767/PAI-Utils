@@ -111,7 +111,7 @@ def test_gan_trainer():
     trainer.train(2, 32, 0)
 
     path = trainer.save('')
-    trainer.load(path)
+    note = trainer.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -221,7 +221,7 @@ def test_gani_trainer():
     trainer.train(2, 32, 0)
 
     path = trainer.save('')
-    trainer.load(path)
+    note = trainer.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
@@ -272,7 +272,7 @@ def test_cycle_gan_trainer():
     trainer.train(2, 32, 0)
 
     path = trainer.save('')
-    trainer.load(path)
+    note = trainer.load(path)
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
