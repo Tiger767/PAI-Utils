@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_12_2020
+Version: 12_13_2020
 """
 
 
@@ -126,7 +126,7 @@ class GANTrainer(Trainer):
 
     @tf.function
     def _train_step(self, batch):
-        """Trains the GAN 1 epoch.
+        """Trains the GAN 1 step.
         params:
             batch: A Tensor
         """
@@ -406,7 +406,7 @@ class GANITrainer(GANTrainer):
 
     @tf.function
     def _train_step(self, batch):
-        """Trains the GAN 1 epoch.
+        """Trains the GAN 1 step.
         params:
             batch: A tensor
         """
@@ -514,7 +514,7 @@ class CycleGANTrainer(Trainer):
 
     @tf.function
     def _train_step(self, x, y):
-        """Trains the GAN 1 epoch.
+        """Trains the GAN 1 step.
         params:
             x: A Tensor
             y: A Tensor

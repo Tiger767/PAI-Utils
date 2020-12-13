@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_12_2020
+Version: 12_13_2020
 """
 
 
@@ -363,16 +363,30 @@ class VAETrainer(AutoencoderTrainer):
     """
 
     class VAEModel(keras.Model):
-        def __init__(self, encoder, decoder, **kwargs):
+        def __init__(self, encoder, decoder, use_logits=True, **kwargs):
+            """VAE Keras Model that has a modified train_step.
+            params:
+                encoder_model: The encoder model
+                decoder_model: The decoder model (full model shares optimizer
+                               and other attributes with this model)
+                use_logits: A boolean that determines if binary crossentropy
+                            should be used with logit inputs (decoder_model
+                            loss will be ignored for training)
+            """
             super(VAETrainer.VAEModel, self).__init__(**kwargs)
             self.encoder = encoder
             self.decoder = decoder
+            self.use_logits = use_logits
             self.decoder.compiled_loss.build(
                 tf.zeros(self.decoder.output_shape[1:])
             )
             self.rloss = self.decoder.compiled_loss._losses[0]
 
         def train_step(self, x):
+            """Trains the model 1 step.
+            params:
+                x: A tensor or tuple
+            """
             if isinstance(x, tuple):
                 x = x[0]
 
@@ -380,9 +394,14 @@ class VAETrainer(AutoencoderTrainer):
                 z_mean, z_log_var = self.encoder(x, training=True)
                 eps = tf.random.normal(shape=tf.shape(z_mean))
                 z = eps * tf.exp(z_log_var * .5) + z_mean
-                reconstruction_loss = self.rloss.fn(
-                    x, self.decoder(z, training=True)
-                )
+                if self.use_logits:
+                    reconstruction_loss = tf.nn.sigmoid_cross_entropy_with_logits(  # noqa
+                        logits=self.decoder(z, training=True), labels=x
+                    )
+                else:
+                    reconstruction_loss = self.rloss.fn(
+                        x, self.decoder(z, training=True)
+                    )
                 reconstruction_loss = tf.reduce_sum(
                     reconstruction_loss,
                     axis=tf.range(1, reconstruction_loss.get_shape().ndims)
@@ -409,13 +428,25 @@ class VAETrainer(AutoencoderTrainer):
                 'divergence_loss': divergence_loss
             }
 
-        def call(self, x):
-            z_mean, z_log_var = self.encoder(x)
+        def call(self, x, training=False):
+            """Calls the model on new inputs.
+            params:
+                inputs: A tensor or list of tensors
+                training: A boolean or boolean scalar tensor, indicating
+                          whether to run the `Network` in training mode
+                          or inference mode
+            return: A tensor if there is a single output, or a list of
+                    tensors if there are more than one outputs.
+            """
+            z_mean, z_log_var = self.encoder(x, training=training)
             eps = tf.random.normal(shape=tf.shape(z_mean))
             z = eps * tf.exp(z_log_var * .5) + z_mean
-            return self.decoder(z)
+            y = self.decoder(z, training=training)
+            if self.use_logits:
+                y = tf.math.sigmoid(y)
+            return y
 
-    def __init__(self, encoder_model, decoder_model, data):
+    def __init__(self, encoder_model, decoder_model, data, use_logits=True):
         """Initializes train, validation, and test data.
         params:
             encoder_model: The encoder model
@@ -428,12 +459,17 @@ class VAETrainer(AutoencoderTrainer):
                   will be ignored.
                   Ex. {'train_x': [...], 'train_y: [...]}
                   Ex. {'train': generator()}
+            use_logits: A boolean that determines if binary crossentropy
+                        should be used with logit inputs (decoder_model
+                        loss will be ignored for training)
         """
         if not isinstance(data, dict):
             raise TypeError(
                 'data must be a dictionary'
             )
-        self.model = VAETrainer.VAEModel(encoder_model, decoder_model)
+        self.model = VAETrainer.VAEModel(
+            encoder_model, decoder_model, use_logits=use_logits
+        )
         self.model.compile(optimizer=decoder_model.optimizer,
                            loss=decoder_model.loss,
                            metrics=decoder_model.compiled_metrics._metrics)
@@ -490,7 +526,8 @@ class VAETrainer(AutoencoderTrainer):
             )
             self.decoder_model.compile(loss=loss)
         self.model = VAETrainer.VAEModel(self.encoder_model,
-                                          self.decoder_model)
+                                         self.decoder_model,
+                                         use_logits=self.model.use_logits)
         self.model.compile(optimizer=optimizer, loss=loss,
                            metrics=metrics)
 
@@ -516,6 +553,8 @@ class VAETrainer(AutoencoderTrainer):
         eps = tf.random.normal(shape=tf.shape(z_mean))
         z = eps * tf.exp(z_log_var * .5) + z_mean
         x1 = self.model.decoder(z)
+        if self.model.use_logits:
+            x1 = tf.math.sigmoid(x1)
         model = keras.Model(inputs=x0, outputs=x1)
 
         model.save_weights(os.path.join(path, 'weights.h5'))
