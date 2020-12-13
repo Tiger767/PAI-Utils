@@ -78,9 +78,10 @@ def test_autoencoder_trainer():
         (np.zeros((100, 100), dtype=np.float32),
          np.zeros((100, 100), dtype=np.float32))
     ).batch(10)
-    trainer = AutoencoderTrainer(encoder_model, decoder_model, 
+    trainer = AutoencoderTrainer(encoder_model, decoder_model,
                                  {'train': dataset})
     trainer.train(5, batch_size=10)
+
 
 def test_autoencoder_predictor():
     x_tdata = np.random.random((10, 100))
@@ -116,13 +117,17 @@ def test_autoencoder_predictor():
     os.rmdir(path)
 
     assert predictor1.predict(np.random.random((100,))).shape == (100,)
-    assert predictor1.predict_all(np.random.random((10, 100))).shape == (10, 100)
+    assert predictor1.predict_all(
+        np.random.random((10, 100))).shape == (10, 100)
 
     assert predictor2.predict(np.random.random((10,))).shape == (100,)
-    assert predictor2.predict_all(np.random.random((10, 10))).shape == (10, 100)
+    assert predictor2.predict_all(
+        np.random.random((10, 10))).shape == (10, 100)
 
     assert predictor3.predict(np.random.random((100,))).shape == (10,)
-    assert predictor3.predict_all(np.random.random((10, 100))).shape == (10, 10)
+    assert predictor3.predict_all(
+        np.random.random((10, 100))).shape == (10, 10)
+
 
 def test_autoencoder_extra_decoder_trainer():
     x_tdata = np.random.random((10, 100))
@@ -284,6 +289,6 @@ def test_vae_trainer():
     dataset = tf.data.Dataset.from_tensor_slices(
         np.zeros((10, 100), dtype=np.float32)
     ).batch(10)
-    trainer = VAETrainer(encoder_model, decoder_model, 
+    trainer = VAETrainer(encoder_model, decoder_model,
                          {'train': dataset})
     trainer.train(5, batch_size=10)

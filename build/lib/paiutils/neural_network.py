@@ -98,7 +98,7 @@ class Trainer:
                            validation_data=self.validation_data,
                            batch_size=batch_size, epochs=epochs,
                            verbose=verbose, **kwargs)
-    
+
     def eval(self, train_data=True, validation_data=True,
              test_data=True, batch_size=None, verbose=True, **kwargs):
         """Evaluates the model with the train/validation/test data.

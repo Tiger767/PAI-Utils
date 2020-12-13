@@ -36,6 +36,7 @@ def test_environment():
     env.render()
     env.close()
 
+
 def test_gym_wrapper():
     env = gym.make('CartPole-v0')
     env = GymWrapper(env, env.observation_space.shape, (env.action_space.n,))
@@ -62,6 +63,7 @@ def test_gym_wrapper():
 
     env.render()
     env.close()
+
 
 def test_multiseq_agent_environment():
     env = MultiSeqAgentEnvironment((5, 10), (3,))
@@ -94,12 +96,14 @@ def test_multiseq_agent_environment():
 
     env.render()
     env.close()
- 
+
+
 def test_policy():
     policy = Policy()
     assert policy.select_action(lambda: 5, False) == 5
     policy.reset()
     policy.end_episode()
+
 
 def test_greedy_policy():
     policy = GreedyPolicy()
@@ -107,11 +111,13 @@ def test_greedy_policy():
     policy.reset()
     policy.end_episode()
 
+
 def test_ascetic_policy():
     policy = AsceticPolicy()
     assert policy.select_action(lambda: [5, 1, 2], False) == 1
     policy.reset()
     policy.end_episode()
+
 
 def test_stochastic_policy():
     policy = StochasticPolicy(GreedyPolicy(), Decay(.5, .1), 0, (3,))
@@ -123,6 +129,7 @@ def test_stochastic_policy():
     policy.reset()
     policy.end_episode()
 
+
 def test_noise_policy():
     policy = NoisePolicy(Decay(2, .5, step_every_call=False), 0, (-5, 5))
     assert policy.select_action(lambda: [.9], False) - .9 < .000001
@@ -133,6 +140,7 @@ def test_noise_policy():
     assert policy.select_action(lambda: [.9], True) - .9 < .000001
     policy.reset()
     policy.end_episode()
+
 
 def test_uniform_noise_policy():
     policy = UniformNoisePolicy(Decay(2, .5, step_every_call=False),
@@ -157,6 +165,7 @@ def test_uniform_noise_policy():
     policy.reset()
     policy.end_episode()
 
+
 def test_temporal_noise_policy():
     policy = TemporalNoisePolicy(Decay(2, .5, step_every_call=False),
                                  0, (-5, 5))
@@ -169,10 +178,11 @@ def test_temporal_noise_policy():
     policy.reset()
     policy.end_episode()
 
+
 def test_decay():
     decay = Decay(1, .1)
     for step in range(10):
-        assert decay() == 1 - .1 * step 
+        assert decay() == 1 - .1 * step
     decay.reset()
     assert decay() == 1
     for step in range(10):
@@ -188,6 +198,7 @@ def test_decay():
 
     with pytest.raises(ValueError):
         Decay(.5, .1, .6)
+
 
 def test_exponential_decay():
     decay = ExponentialDecay(1, .1)
@@ -208,6 +219,7 @@ def test_exponential_decay():
 
     with pytest.raises(ValueError):
         ExponentialDecay(.5, .1, .6)
+
 
 def test_linear_decay():
     decay = LinearDecay(1, 100)
@@ -234,6 +246,7 @@ def test_linear_decay():
 
     with pytest.raises(TypeError):
         LinearDecay(1, 100.5, .1)
+
 
 def test_memory():
     memory = Memory()
@@ -281,6 +294,7 @@ def test_memory():
 
     with pytest.raises(TypeError):
         Memory.create_shuffled_subset([memory, None], 40)
+
 
 def test_etd_memory():
     memory = ETDMemory(10, np.zeros(512))
@@ -344,12 +358,14 @@ def test_etd_memory():
             memory.add(np.random.random(512))
         assert len(memory) == 100
 
+
 def test_ring_memory():
     memory = RingMemory(max_len=100)
     assert len(memory) == 0
     for _ in range(1000):
         memory.add(np.random.random(512))
     assert len(memory) == 100
+
 
 def test_playingdata():
     PlayingData(True, True, 10, True, {'test': True})
@@ -370,13 +386,14 @@ def test_playingdata():
     with pytest.raises(TypeError):
         PlayingData(True, True, 10, False, [True])
 
+
 def test_agent():
     with pytest.raises(TypeError):
         Agent(5, Policy())
 
     with pytest.raises(TypeError):
         Agent((5,), lambda x: 5)
-    
+
     agent = Agent((5,), GreedyPolicy())
     for _ in range(10):
         assert 0 <= agent.select_action(5, training=True) <= 4
@@ -393,6 +410,7 @@ def test_agent():
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
+
 
 def test_q_agent():
     agent = QAgent(10, 5, GreedyPolicy(), .97)
@@ -418,6 +436,7 @@ def test_q_agent():
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
+
 
 def test_pq_agent():
     agent = PQAgent(10, 5, GreedyPolicy(), [.97, .9, .3], [.01, .05, .03, .1])
@@ -446,13 +465,14 @@ def test_pq_agent():
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
 
+
 def test_memory_agent():
     with pytest.raises(TypeError):
         MemoryAgent(5, Policy())
 
     with pytest.raises(TypeError):
         MemoryAgent((5,), lambda x: 5)
-    
+
     agent = MemoryAgent((5,), GreedyPolicy())
     for _ in range(10):
         assert 0 <= agent.select_action(np.random.random(512),
@@ -498,7 +518,8 @@ def test_memory_agent():
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
- 
+
+
 def test_dqn_agent():
     inputs = keras.layers.Input((512,))
     x = keras.layers.Dense(1024)(inputs)
@@ -571,7 +592,8 @@ def test_dqn_agent():
                          np.random.random(512), np.random.random(), True)
         agent.end_episode()
     agent.learn(batch_size=2, epochs=5)
- 
+
+
 def test_pg_agent():
     inputs = keras.layers.Input((512,))
     x = keras.layers.Dense(1024)(inputs)
@@ -587,7 +609,7 @@ def test_pg_agent():
     for _ in range(10):
         assert 0 <= agent.select_action(np.random.random(512),
                                         training=False) <= 4
-    
+
     agent.set_playing_data()
     assert isinstance(agent.playing_data, PlayingData)
 
@@ -608,6 +630,7 @@ def test_pg_agent():
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
+
 
 def test_ddpg_agent():
     inputs = keras.layers.Input((512,))
@@ -633,11 +656,11 @@ def test_ddpg_agent():
 
     for _ in range(10):
         assert -1 <= agent.select_action(np.random.random(512),
-                                        training=True) <= 1
+                                         training=True) <= 1
     for _ in range(10):
         assert -1 <= agent.select_action(np.random.random(512),
-                                        training=False) <= 1
-    
+                                         training=False) <= 1
+
     agent.set_playing_data()
     assert isinstance(agent.playing_data, PlayingData)
 

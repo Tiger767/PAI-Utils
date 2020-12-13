@@ -24,7 +24,7 @@ def test_gan_trainer():
 
     inputs = keras.layers.Input(shape=(12, 12, 1))
     x = conv2d(64, 3, strides=2, activation=None,
-                batch_norm=False)(inputs)
+               batch_norm=False)(inputs)
     x = keras.layers.LeakyReLU(alpha=0.2)(x)
     x = conv2d(128, 3, strides=2, activation=None)(x)
     x = keras.layers.LeakyReLU(alpha=0.2)(x)
@@ -81,7 +81,7 @@ def test_gan_trainer():
     x_input = keras.layers.Input(shape=(100,), name='x')
     y_input = keras.layers.Input(shape=(12, 12, 1), name='y')
     x = conv2d(64, 3, strides=2, activation=None,
-                batch_norm=False)(y_input)
+               batch_norm=False)(y_input)
     x = keras.layers.LeakyReLU(alpha=0.2)(x)
     x = conv2d(128, 3, strides=2, activation=None)(x)
     x = keras.layers.LeakyReLU(alpha=0.2)(x)
@@ -139,6 +139,7 @@ def test_gan_trainer():
                    {'train_x': x_data, 'train_y': y_data},
                    conditional=False)
 
+
 def test_gan_predictor():
     y_data = np.random.random((10, 12, 12, 1))
 
@@ -154,7 +155,7 @@ def test_gan_predictor():
 
     inputs = keras.layers.Input(shape=(12, 12, 1))
     x = conv2d(64, 3, strides=2, activation=None,
-                batch_norm=False)(inputs)
+               batch_norm=False)(inputs)
     x = keras.layers.LeakyReLU(alpha=0.2)(x)
     x = conv2d(128, 3, strides=2, activation=None)(x)
     x = keras.layers.LeakyReLU(alpha=0.2)(x)
@@ -174,9 +175,11 @@ def test_gan_predictor():
     os.rmdir(path)
 
     assert predictor.predict(np.random.random((100,))).shape == (12, 12, 1)
-    assert predictor.predict_all(np.random.random((10, 100))).shape == (10, 12, 12, 1)
+    assert predictor.predict_all(np.random.random(
+        (10, 100))).shape == (10, 12, 12, 1)
     assert predictor.random_normal_predict().shape == (12, 12, 1)
     assert predictor.random_uniform_predict().shape == (12, 12, 1)
+
 
 def test_gani_trainer():
     x_data = np.random.random((10, 12, 12, 1))
@@ -191,7 +194,7 @@ def test_gani_trainer():
     x_input = keras.layers.Input(shape=(12, 12, 1), name='x')
     y_input = keras.layers.Input(shape=(12, 12, 1), name='y')
     x = conv2d(64, 3, strides=2, activation=None,
-                batch_norm=False)(x_input)
+               batch_norm=False)(x_input)
     x = keras.layers.LeakyReLU(alpha=0.2)(x)
     x = conv2d(128, 3, strides=2, activation=None)(x)
     x = keras.layers.LeakyReLU(alpha=0.2)(x)
@@ -240,6 +243,7 @@ def test_gani_trainer():
         GANITrainer(gen_model, dis_model,
                     [x_data, y_data, y_data])
 
+
 def test_cycle_gan_trainer():
     x_data = np.random.random((10, 12, 12, 1))
     y_data = np.random.random((10, 12, 12, 1))
@@ -252,7 +256,7 @@ def test_cycle_gan_trainer():
 
     inputs = keras.layers.Input(shape=(12, 12, 1))
     x = conv2d(64, 3, strides=2, activation=None,
-                batch_norm=False)(inputs)
+               batch_norm=False)(inputs)
     x = keras.layers.LeakyReLU(alpha=0.2)(x)
     x = conv2d(128, 3, strides=2, activation=None)(x)
     x = keras.layers.LeakyReLU(alpha=0.2)(x)

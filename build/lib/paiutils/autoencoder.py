@@ -435,7 +435,7 @@ class VAETrainer(AutoencoderTrainer):
                 logpz = tf.reduce_sum(.5 * (z ** 2. + log2pi), axis=1)
                 logqz_x = tf.reduce_sum(
                     -.5 * ((z - z_mean) ** 2. *
-                    tf.exp(-z_log_var) + z_log_var + log2pi),
+                           tf.exp(-z_log_var) + z_log_var + log2pi),
                     axis=1
                 )
                 divergence_loss = tf.reduce_mean(
@@ -445,7 +445,7 @@ class VAETrainer(AutoencoderTrainer):
             grads = tape.gradient(loss, self.trainable_weights)
             self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
             return {
-                'loss': loss, 
+                'loss': loss,
                 'reconstruction_loss': reconstruction_loss,
                 'divergence_loss': divergence_loss
             }
@@ -517,7 +517,6 @@ class VAETrainer(AutoencoderTrainer):
         if 'test_x' in data:
             self.test_data = data['test_x']
             self.test_data = (self.test_data, self.test_data)
-
 
     def load(self, path, custom_objects=None):
         """Loads a encoder and decoder model and weights from a file.

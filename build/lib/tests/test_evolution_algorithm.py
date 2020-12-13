@@ -22,103 +22,134 @@ def test_fitness():
     assert ff(np.array([[.2, 1, 5, 10, 1, 5]]))[0] - 4 < .000000001
     assert ff(np.array([[.2]]))[0] - 9 < .000000001
 
+
 def test_selection():
     sf = Selection.select_highest()
-    assert (sf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2]]), np.array([5, 3]), 1)[0] == np.array([.2, 1, 5, 10])).all()
-    assert (sf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2]]), np.array([3, 5]), 1)[0] == np.array([5, 4, 3, 2])).all()
-    assert (sf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [9, 4, 3, 2]]), np.array([5, 3, 9]), 2) == np.array([[.2, 1, 5, 10], [9, 4, 3, 2]])).all()
+    assert (sf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2]]), np.array(
+        [5, 3]), 1)[0] == np.array([.2, 1, 5, 10])).all()
+    assert (sf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2]]), np.array(
+        [3, 5]), 1)[0] == np.array([5, 4, 3, 2])).all()
+    assert (sf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [9, 4, 3, 2]]), np.array(
+        [5, 3, 9]), 2) == np.array([[.2, 1, 5, 10], [9, 4, 3, 2]])).all()
 
     sf = Selection.select_highest(variable_size=True)
     assert sf([[.2, 1, 5], [5, 4, 3, 2]], np.array([5, 3]), 1)[0] == [.2, 1, 5]
     assert sf([[.2, 1, 5, 10], [5, 2]], np.array([3, 5]), 1)[0] == [5, 2]
-    assert sf([[.2, 1, 5, 10, 9, 8], [5, 4, 3], [9, 5, 4, 3, 2]], np.array([5, 3, 9]), 2) == [[.2, 1, 5, 10, 9, 8], [9, 5, 4, 3, 2]]
+    assert sf([[.2, 1, 5, 10, 9, 8], [5, 4, 3], [9, 5, 4, 3, 2]], np.array(
+        [5, 3, 9]), 2) == [[.2, 1, 5, 10, 9, 8], [9, 5, 4, 3, 2]]
 
     sf = Selection.select_lowest()
-    assert (sf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2]]), np.array([5, 3]), 1)[0] == np.array([5, 4, 3, 2])).all()
-    assert (sf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2]]), np.array([3, 5]), 1)[0] == np.array([.2, 1, 5, 10])).all()
-    assert (sf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [9, 4, 3, 2]]), np.array([5, 3, 9]), 2) == np.array([[5, 4, 3, 2], [.2, 1, 5, 10]])).all()
+    assert (sf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2]]), np.array(
+        [5, 3]), 1)[0] == np.array([5, 4, 3, 2])).all()
+    assert (sf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2]]), np.array(
+        [3, 5]), 1)[0] == np.array([.2, 1, 5, 10])).all()
+    assert (sf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [9, 4, 3, 2]]), np.array(
+        [5, 3, 9]), 2) == np.array([[5, 4, 3, 2], [.2, 1, 5, 10]])).all()
 
     sf = Selection.select_lowest(variable_size=True)
-    assert sf([[.2, 1, 5], [5, 4, 3, 2]], np.array([5, 3]), 1)[0] == [5, 4, 3, 2]
-    assert sf([[.2, 1, 5, 10], [5, 2]], np.array([3, 5]), 1)[0] == [.2, 1, 5, 10]
-    assert sf([[.2, 1, 5, 10, 9, 8], [5, 4, 3], [9, 5, 4, 3, 2]], np.array([5, 3, 9]), 2) == [[5, 4, 3], [.2, 1, 5, 10, 9, 8]]
+    assert sf([[.2, 1, 5], [5, 4, 3, 2]], np.array([5, 3]), 1)[
+        0] == [5, 4, 3, 2]
+    assert sf([[.2, 1, 5, 10], [5, 2]], np.array([3, 5]), 1)[
+        0] == [.2, 1, 5, 10]
+    assert sf([[.2, 1, 5, 10, 9, 8], [5, 4, 3], [9, 5, 4, 3, 2]],
+              np.array([5, 3, 9]), 2) == [[5, 4, 3], [.2, 1, 5, 10, 9, 8]]
+
 
 def test_crossover():
     cf = Crossover.dual()
-    assert cf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]]), 10).shape == (10, 4)
+    assert cf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2],
+                        [1, 1, 2, 2]]), 10).shape == (10, 4)
     assert cf(np.array([[.2, 1, 5, 10]]), 10).shape == (10, 4)
-    
+
     cf = Crossover.triple()
-    assert cf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]]), 10).shape == (10, 4)
+    assert cf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2],
+                        [1, 1, 2, 2]]), 10).shape == (10, 4)
     assert cf(np.array([[.2, 1, 5, 10]]), 10).shape == (10, 4)
 
     cf = Crossover.population_avg()
-    assert cf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]]), 5).shape == (5, 4)
+    assert cf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2],
+                        [1, 1, 2, 2]]), 5).shape == (5, 4)
     assert cf(np.array([[.2, 1, 5, 10]]), 5).shape == (5, 4)
 
     cf = Crossover.population_shuffle()
-    assert cf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]]), 5).shape == (5, 4)
+    assert cf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2],
+                        [1, 1, 2, 2]]), 5).shape == (5, 4)
     assert cf(np.array([[.2, 1, 5, 10]]), 5).shape == (5, 4)
 
     cf = Crossover.single()
-    assert cf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]]), 5).shape == (5, 4)
+    assert cf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2],
+                        [1, 1, 2, 2]]), 5).shape == (5, 4)
     assert cf(np.array([[.2, 1, 5, 10]]), 5).shape == (5, 4)
 
     cf = Crossover.single(variable_size=True)
-    assert len(cf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]]), 5)) == 5
+    assert len(
+        cf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]]), 5)) == 5
     assert len(cf(np.array([[.2, 1, 5, 10]]), 5)) == 5
+
 
 def test_mutation():
     mf = Mutation.additive([.5, .3, .2, .1], [(0, .1), (1, 5), (-1, 1), (-10, 10)],
                            normal=True)
-    assert mf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
+    assert mf(
+        np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
 
     mf = Mutation.additive([.5, .3, .2, .1], [(0, .1), (1, 5), (-1, 1), (-10, 10)],
                            normal=False)
-    assert mf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
+    assert mf(
+        np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
 
     mf = Mutation.additive([.5, .3, .2, .1], [(0, .1), (1, 5), (-1, 1), (-10, 10)],
                            normal=True, round_values=True)
-    assert mf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
+    assert mf(
+        np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
 
     mf = Mutation.additive(.5, (-5, 5),
                            variable_size=True)
-    assert mf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
+    assert mf(
+        np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
 
     mf = Mutation.additive(.5, (-5, 5),
                            normal=False, variable_size=True)
-    assert mf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
+    assert mf(
+        np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
 
     with pytest.raises(ValueError):
         mf = Mutation.additive([.5, .3, .2, .1], [(0, .1), (1, 5), (-1, 1), (-10, 10)],
-                            normal=False, variable_size=True)
-        assert mf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
-
+                               normal=False, variable_size=True)
+        assert mf(
+            np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
 
     mf = Mutation.variable([.5, .3, .2, .1], [(0, .1), (1, 5), (-1, 1), (-10, 10)],
                            normal=True)
-    assert mf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
+    assert mf(
+        np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
 
     mf = Mutation.variable([.5, .3, .2, .1], [(0, .1), (1, 5), (-1, 1), (-10, 10)],
                            normal=False)
-    assert mf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
+    assert mf(
+        np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
 
     mf = Mutation.variable([.5, .3, .2, .1], [(0, .1), (1, 5), (-1, 1), (-10, 10)],
                            normal=True, round_values=True)
-    assert mf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
+    assert mf(
+        np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
 
     mf = Mutation.variable(.5, (-5, 5),
                            variable_size=True)
-    assert mf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
+    assert mf(
+        np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
 
     mf = Mutation.variable(.5, (-5, 5),
                            normal=False, variable_size=True)
-    assert mf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
+    assert mf(
+        np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
 
     with pytest.raises(ValueError):
         mf = Mutation.variable([.5, .3, .2, .1], [(0, .1), (1, 5), (-1, 1), (-10, 10)],
-                            normal=False, variable_size=True)
-        assert mf(np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
+                               normal=False, variable_size=True)
+        assert mf(
+            np.array([[.2, 1, 5, 10], [5, 4, 3, 2], [1, 1, 2, 2]])).shape == (3, 4)
+
 
 def test_size_mutation():
     smf = SizeMutation.genome_double()
@@ -172,6 +203,7 @@ def test_size_mutation():
     length = len(smf([np.array([.2, 1, 5, 10])])[0])
     assert length == 3 or length == 5
 
+
 def test_evolution_algorithm():
     ff = Fitness.match_mse(np.array([5, 4, 9, 1]))
     sf = Selection.select_lowest()
@@ -186,7 +218,8 @@ def test_evolution_algorithm():
     results = evoalgo.simulate_islands([0, 0, 0, 0], 10, 100, 3, 10, 5)
     assert results[0][0] < .0005
 
-    ff = Fitness.match_mse(np.array([.5, .4, .9, .1, .9, .3]), variable_size=True)
+    ff = Fitness.match_mse(
+        np.array([.5, .4, .9, .1, .9, .3]), variable_size=True)
     sf = Selection.select_lowest(variable_size=True)
     mf = Mutation.additive(.2, (0, 1), variable_size=True)
     cf = Crossover.single(variable_size=True)
@@ -201,6 +234,7 @@ def test_evolution_algorithm():
 
     results = evoalgo.simulate_islands([0, 0, 0, 0], 10, 100, 3, 10, 5)
     assert results[0][0] < .0005
+
 
 def test_hyperparameter_tuner():
     hpt = HyperparameterTuner()

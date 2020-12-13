@@ -76,6 +76,7 @@ def test_trainer():
     results = trainer.eval(batch_size=10)
     assert len(results) == 2
 
+
 def test_predictor():
     x_tdata = np.random.random((10, 100))
     y_tdata = np.random.random((10, 10))
@@ -96,6 +97,7 @@ def test_predictor():
     assert predictor.predict(np.random.random((100,))).shape == (10,)
     assert predictor.predict_all(np.random.random((10, 100))).shape == (10, 10)
 
+
 def test_dense():
     x_tdata = np.random.random((10, 100))
     y_tdata = np.random.random((10, 10))
@@ -112,6 +114,7 @@ def test_dense():
     model = keras.Model(inputs=x0, outputs=output)
     model.compile(optimizer='adam', loss='mse')
     model.fit(x_tdata, y_tdata, epochs=2)
+
 
 def test_conv1d():
     x_tdata = np.random.random((10, 32, 100))
@@ -132,6 +135,7 @@ def test_conv1d():
     model.compile(optimizer='adam', loss='mse')
     model.fit(x_tdata, y_tdata, epochs=2)
 
+
 def test_conv2d():
     x_tdata = np.random.random((10, 32, 32, 3))
     y_tdata = np.random.random((10, 10))
@@ -150,6 +154,7 @@ def test_conv2d():
     model = keras.Model(inputs=x0, outputs=output)
     model.compile(optimizer='adam', loss='mse')
     model.fit(x_tdata, y_tdata, epochs=2)
+
 
 def test_inception():
     x_tdata = np.random.random((10, 32, 32, 3))

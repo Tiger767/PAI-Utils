@@ -34,7 +34,7 @@ def test_dqn_pg_agent():
     for _ in range(10):
         assert 0 <= agent.select_action(np.random.random(512),
                                         training=False) <= 4
-    
+
     agent.use_pg()
     for _ in range(10):
         assert 0 <= agent.select_action(np.random.random(512),
@@ -98,6 +98,7 @@ def test_dqn_pg_agent():
         agent.end_episode()
     agent.learn(batch_size=2, epochs=5)
 
+
 def test_a2c_agent():
     inputs = keras.layers.Input((512,))
     x = keras.layers.Dense(1024)(inputs)
@@ -119,7 +120,7 @@ def test_a2c_agent():
     for _ in range(10):
         assert 0 <= agent.select_action(np.random.random(512),
                                         training=False) <= 4
-    
+
     agent.set_playing_data()
     assert isinstance(agent.playing_data, PlayingData)
 
@@ -143,7 +144,7 @@ def test_a2c_agent():
     for _ in range(10):
         assert 0 <= agent.select_action(np.random.random(512),
                                         training=False) <= 4
-    
+
     agent.set_playing_data()
     assert isinstance(agent.playing_data, PlayingData)
 
@@ -164,6 +165,7 @@ def test_a2c_agent():
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
+
 
 def test_ppo_agent():
     inputs = keras.layers.Input((512,))
@@ -186,7 +188,7 @@ def test_ppo_agent():
     for _ in range(10):
         assert 0 <= agent.select_action(np.random.random(512),
                                         training=False) <= 4
-    
+
     agent.set_playing_data()
     assert isinstance(agent.playing_data, PlayingData)
 
@@ -210,7 +212,7 @@ def test_ppo_agent():
     for _ in range(10):
         assert 0 <= agent.select_action(np.random.random(512),
                                         training=False) <= 4
-    
+
     agent.set_playing_data()
     assert isinstance(agent.playing_data, PlayingData)
 
@@ -231,6 +233,7 @@ def test_ppo_agent():
     for filename in os.listdir(path):
         os.remove(os.path.join(path, filename))
     os.rmdir(path)
+
 
 def test_td3_agent():
     inputs = keras.layers.Input((512,))
@@ -262,11 +265,11 @@ def test_td3_agent():
 
     for _ in range(10):
         assert -1 <= agent.select_action(np.random.random(512),
-                                        training=True) <= 1
+                                         training=True) <= 1
     for _ in range(10):
         assert -1 <= agent.select_action(np.random.random(512),
-                                        training=False) <= 1
-    
+                                         training=False) <= 1
+
     agent.set_playing_data()
     assert isinstance(agent.playing_data, PlayingData)
 

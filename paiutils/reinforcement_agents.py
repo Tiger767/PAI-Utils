@@ -323,7 +323,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
                             or functions for loading the model
         return: A string of note.txt
         """
-        note = DQNAgent.load(self, path, load_model=load_model, load_data=load_data)
+        note = DQNAgent.load(
+            self, path, load_model=load_model, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'amodel.json'), 'r') as file:
                 self.amodel = model_from_json(
@@ -623,7 +624,8 @@ class A2CAgent(PGAgent):
                             or functions for loading the model
         return: A string of note.txt
         """
-        note = PGAgent.load(self, path, load_model=load_model, load_data=load_data)
+        note = PGAgent.load(
+            self, path, load_model=load_model, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'cmodel.json'), 'r') as file:
                 self.amodel = model_from_json(

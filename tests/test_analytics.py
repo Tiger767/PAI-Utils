@@ -16,6 +16,7 @@ def test_calculate_distribution_of_labels():
     assert len(a.calculate_distribution_of_labels()) == 10
     assert sum(a.calculate_distribution_of_labels().values()) == 100
 
+
 def test_create_label_ndx_groups():
     a = Analyzer(
         np.random.random(size=(1000, 10)),
@@ -24,6 +25,7 @@ def test_create_label_ndx_groups():
     )
     assert len(a.create_label_ndx_groups().keys()) == 5
     assert sum([len(x) for x in a.create_label_ndx_groups().values()]) == 1000
+
 
 def test_shrink_data():
     a = Analyzer(
@@ -52,6 +54,7 @@ def test_shrink_data():
     a.shrink_data({1: 1})
     dl = a.calculate_distribution_of_labels()
     assert dl[1] == 3
+
 
 def test_expand_data():
     a = Analyzer(
@@ -85,11 +88,14 @@ def test_expand_data():
     dl = a.calculate_distribution_of_labels()
     assert dl[1] == 505
 
+
 def test_plot():
     pass
 
+
 def test_boxplot():
     pass
+
 
 def test_isomap():
     a = Analyzer(
@@ -101,6 +107,7 @@ def test_isomap():
     assert a.isomap(n_components=2).shape == (100, 2)
     assert a.isomap(n_components=3).shape == (100, 3)
 
+
 def test_locally_linear_embedding():
     a = Analyzer(
         np.random.random(size=(100, 10)),
@@ -111,6 +118,7 @@ def test_locally_linear_embedding():
     assert a.locally_linear_embedding(n_components=2).shape == (100, 2)
     assert a.locally_linear_embedding(n_components=3).shape == (100, 3)
 
+
 def test_mds():
     a = Analyzer(
         np.random.random(size=(100, 10)),
@@ -120,6 +128,7 @@ def test_mds():
     assert a.mds(n_components=1).shape == (100, 1)
     assert a.mds(n_components=2).shape == (100, 2)
     assert a.mds(n_components=3).shape == (100, 3)
+
 
 def test_tsne():
     a = Analyzer(

@@ -16,11 +16,13 @@ def test_convert_width_to_atype():
     with pytest.raises(ValueError):
         convert_width_to_atype(4)
 
+
 def test_convert_atype_to_width():
     assert convert_atype_to_width('int8') == 1
     assert convert_atype_to_width('int16') == 2
     with pytest.raises(ValueError):
         convert_atype_to_width('int32')
+
 
 def test_change_rate():
     a = np.random.random(16000 * 2) * 2 - 1
@@ -51,6 +53,7 @@ def test_change_rate():
     x, sr, _ = change_rate(a, 16000, 44100)
     assert (len(x), sr) == (44100 * 3, 44100)
 
+
 def test_load():
     with pytest.raises(Exception):
         load('test_load.wav')
@@ -70,6 +73,7 @@ def test_load():
     assert sr == 16000
     os.remove('test_load.wav')
 
+
 def test_save():
     a = np.random.random(16000) * 2 - 1
 
@@ -84,6 +88,7 @@ def test_save():
     save('test_save.wav', a, 16000, atype='int8')
     assert os.path.isfile('test_save.wav')
     os.remove('test_save.wav')
+
 
 def test_file_record():
     file_record('test_file_record.wav', 1, 16000)
@@ -108,6 +113,7 @@ def test_file_record():
     assert sr == 32000
     os.remove('test_file_record.wav')
 
+
 def test_record():
     x, sr, at = record(1, 16000)
     assert len(x) == sr == 16000
@@ -127,17 +133,20 @@ def test_record():
     assert x.min() >= -1
     assert x.max() <= 1
 
+
 def test_file_play():
     a = (np.random.random(4000) * 2 - 1) / 1000
     save('test_file_play.wav', a, 16000)
     file_play('test_file_play.wav')
     os.remove('test_file_play.wav')
 
+
 def test_play():
     a = (np.random.random(4000) * 2 - 1) / 1000
     play(a, 16000)
     play(a, 8000)
     play(a, 1600, atype='int8')
+
 
 def test_calc_duration():
     a = np.random.random(16000) * 2 - 1
@@ -146,6 +155,7 @@ def test_calc_duration():
     assert calc_duration(a, 32000) - .5 < .00001
     a = np.random.random(32000) * 2 - 1
     assert calc_duration(a, 16000) - 2 < .00001
+
 
 def test_set_length():
     a = np.random.random(16000) * 2 - 1
@@ -166,6 +176,7 @@ def test_set_length():
     assert len(x) == 32000
     assert (x[:8000] == 0).all()
     assert (x[-8000:] == 0).all()
+
 
 def test_set_duration():
     a = np.random.random(16000) * 2 - 1
@@ -191,11 +202,13 @@ def test_set_duration():
     assert len(x) == 32000
     assert (x[16000:] == 0).all()
 
+
 def test_for_each_frame():
     a = np.random.random(16000) * 2 - 1
     x, sr = for_each_frame(a, 16000, 100 / 16000, np.sum)
     assert np.prod(x.shape) == len(a) / 100
     assert abs(np.sum(a) - np.sum(x)) < .00001
+
 
 def test_compute_spectrogram():
     a = np.random.random(16000) * 2 - 1
@@ -203,6 +216,7 @@ def test_compute_spectrogram():
     assert x.shape[0] == 160 == sr
     x, sr = compute_spectrogram(a, 16000, 100 / 16000, real=False)
     assert x.shape[0] == 160 == sr
+
 
 def test_convert_spectrogram_to_audio():
     a = np.random.random(16000) * 2 - 1
@@ -218,11 +232,13 @@ def test_convert_spectrogram_to_audio():
     assert sr2 == 16000
     assert np.sum(np.abs(a - a2)) < .00000001
 
+
 def test_compute_fbank():
     a = np.random.random(16000) * 2 - 1
     feat, energy = compute_fbank(a, winstep=.01, nfilt=30)
     assert 97 < feat.shape[0] == energy.shape[0] <= 100
     assert feat.shape[1] == 30
+
 
 def test_compute_mfcc():
     a = np.random.random(16000) * 2 - 1
@@ -231,59 +247,77 @@ def test_compute_mfcc():
     assert 97 < feat.shape[0] <= 100
     assert feat.shape[1] == 13
 
+
 def test_calc_rms():
     a = np.random.random(16000) * 2 - 1
     assert calc_rms(a) < 1
     a = -np.ones(16000)
     assert calc_rms(a) == 1
 
+
 def test_shift_pitch():
     pass
+
 
 def test_set_power():
     pass
 
+
 def test_adjust_speed():
     pass
+
 
 def test_set_speed():
     pass
 
+
 def test_adjust_volume():
     pass
+
 
 def test_blend():
     pass
 
+
 def test_plot():
     pass
+
 
 def test_convert_audio_to_db():
     pass
 
+
 def test_convert_power_to_db():
     pass
+
 
 def test_convert_amplitude_to_db():
     pass
 
+
 def test_trim_all():
     pass
+
 
 def test_trim_sides():
     pass
 
+
 def test_split():
     pass
+
 
 def test_find_gaps():
     pass
 
+
 def test_vad_trim_all():
     pass
 
+
 def test_vad_trim_sides():
     pass
+
 
 def test_vad_split():
     pass
