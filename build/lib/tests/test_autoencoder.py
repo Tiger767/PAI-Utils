@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_9_2020
+Version: 12_13_2020
 """
 
 import pytest
@@ -34,6 +34,16 @@ def test_autoencoder_trainer():
     )
     trainer.train(10, batch_size=32)
 
+    results = trainer.eval(batch_size=32)
+    assert len(results) == 3
+    results = trainer.eval(validation_data=False, batch_size=32)
+    assert len(results) == 2
+    results = trainer.eval(validation_data=False, test_data=False,
+                           batch_size=32)
+    assert len(results) == 1
+    results = trainer.eval(batch_size=32, verbose=False)
+    assert len(results) == 3
+
     path = trainer.save('')
     note = trainer.load(path)
     for filename in os.listdir(path):
@@ -63,6 +73,14 @@ def test_autoencoder_trainer():
         encoder_model, decoder_model, {'train': gen()}
     )
     trainer.train(5, batch_size=32)
+
+    dataset = tf.data.Dataset.from_tensor_slices(
+        (np.zeros((100, 100), dtype=np.float32),
+         np.zeros((100, 100), dtype=np.float32))
+    ).batch(10)
+    trainer = AutoencoderTrainer(encoder_model, decoder_model, 
+                                 {'train': dataset})
+    trainer.train(5, batch_size=10)
 
 def test_autoencoder_predictor():
     x_tdata = np.random.random((10, 100))
@@ -141,6 +159,21 @@ def test_autoencoder_extra_decoder_trainer():
     trainer.train(10, batch_size=32)
     trainer.train_extra_decoder(10, batch_size=32)
 
+    results = trainer.eval_extra_decoder(batch_size=32)
+    assert len(results) == 3
+    results = trainer.eval_extra_decoder(
+        validation_data=False, batch_size=32
+    )
+    assert len(results) == 2
+    results = trainer.eval_extra_decoder(
+        validation_data=False, test_data=False, batch_size=32
+    )
+    assert len(results) == 1
+    results = trainer.eval_extra_decoder(
+        batch_size=32, verbose=False
+    )
+    assert len(results) == 3
+
     path = trainer.save('')
     note = trainer.load(path)
     for filename in os.listdir(path):
@@ -208,6 +241,16 @@ def test_vae_trainer():
     )
     trainer.train(10, batch_size=32)
 
+    results = trainer.eval(batch_size=32)
+    assert len(results) == 3
+    results = trainer.eval(validation_data=False, batch_size=32)
+    assert len(results) == 2
+    results = trainer.eval(validation_data=False, test_data=False,
+                           batch_size=32)
+    assert len(results) == 1
+    results = trainer.eval(batch_size=32, verbose=False)
+    assert len(results) == 3
+
     path = trainer.save('')
     note = trainer.load(path)
     for filename in os.listdir(path):
@@ -237,3 +280,10 @@ def test_vae_trainer():
         encoder_model, decoder_model, {'train': gen()}
     )
     trainer.train(5, batch_size=32)
+
+    dataset = tf.data.Dataset.from_tensor_slices(
+        np.zeros((10, 100), dtype=np.float32)
+    ).batch(10)
+    trainer = VAETrainer(encoder_model, decoder_model, 
+                         {'train': dataset})
+    trainer.train(5, batch_size=10)

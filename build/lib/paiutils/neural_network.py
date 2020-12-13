@@ -27,7 +27,7 @@ class Trainer:
                   and optionally validation and test data.
                   If the train/validation/test key is present without
                   the _x/_y the value will be used as a
-                  generator/Keras-Sequence/TF-Dataset and 
+                  generator/Keras-Sequence/TF-Dataset and
                   keys with _x/_y will be ignored.
                   Ex. {'train_x': [...], 'train_y: [...]}
                   Ex. {'train': generator(), 'test': [...]}
@@ -101,6 +101,19 @@ class Trainer:
     
     def eval(self, train_data=True, validation_data=True,
              test_data=True, batch_size=None, verbose=True, **kwargs):
+        """Evaluates the model with the train/validation/test data.
+        params:
+            train_data: A boolean, which determines if
+                        train_data should be evaluated
+            validation_data: A boolean, which determines if
+                             validation_data should be evaluated
+            test_data: A boolean, which determines if
+                       test_data should be evaluated
+            batch_size: An integer, which is the number of samples
+                        per graident update
+            verbose: A boolean, which determines the verbositiy level
+        return: A dictionary of the results
+        """
         verbose = 1 if verbose else 0
 
         to_eval = []
@@ -116,14 +129,14 @@ class Trainer:
             if verbose == 1:
                 print(f'{name} Data Evaluation: ')
             if isinstance(data, Trainer.GEN_DATA_TYPES):
-                if steps not in kwargs and batch_size is not None:
+                if 'steps' not in kwargs and batch_size is not None:
                     steps = batch_size
                 else:
                     steps = None
                 results[name] = self.model.evaluate(
                     data, steps=steps, verbose=verbose, **kwargs
                 )
-            else:
+            elif data is not None:
                 results[name] = self.model.evaluate(
                     data[0], data[1], batch_size=batch_size,
                     verbose=verbose, **kwargs

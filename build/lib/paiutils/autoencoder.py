@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_12_2020
+Version: 12_13_2020
 """
 
 
@@ -29,11 +29,13 @@ class AutoencoderTrainer(Trainer):
                            and other attributes with this model)
             data: A dictionary containg train data
                   and optionally validation and test data.
-                  If the 'train' key is present, the value will
-                  be used as a generator and 'train_x' & 'train_y'
-                  will be ignored.
+                  If the train/validation/test key is present without
+                  the _x the value will be used as a
+                  generator/Keras-Sequence/TF-Dataset and
+                  keys with _x will be ignored.
                   Ex. {'train_x': [...], 'train_y: [...]}
                   Ex. {'train': generator()}
+                  Ex. {'train': tf.data.Dataset(), 'test': generator()}
         """
         if not isinstance(data, dict):
             raise TypeError(
@@ -266,42 +268,62 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
                        which are called during training and validation
             verbose: A boolean, which determines the verbositiy level
         """
-        train_data2_x = self.encoder_model.predict(
+        train_data2_0 = self.encoder_model.predict(
             self.train_data2[0], batch_size=batch_size
         )
         validation_data2 = None
         if self.validation_data2 is not None:
-            validation_data2_x = self.encoder_model.predict(
+            validation_data2_0 = self.encoder_model.predict(
                 self.validation_data2[0], batch_size=batch_size
             )
-            validation_data2 = (validation_data2_x,
+            validation_data2 = (validation_data2_0,
                                 self.validation_data2[1])
-        self.extra_decoder_model.fit(train_data2_x, self.train_data2[1],
+        self.extra_decoder_model.fit(train_data2_0, self.train_data2[1],
                                      validation_data=validation_data2,
                                      batch_size=batch_size, epochs=epochs,
                                      verbose=1 if verbose else 0,
                                      **kwargs)
-        if verbose:
-            print('Extra Decoder Train Data Evaluation: ', end='')
-            print(self.extra_decoder_model.evaluate(train_data2_x,
-                                                    self.train_data2[1],
-                                                    batch_size=batch_size,
-                                                    verbose=0))
-            if self.validation_data2 is not None:
-                print('Extra Decoder Validation Data Evaluation: ', end='')
-                print(self.extra_decoder_model.evaluate(validation_data2[0],
-                                                        validation_data2[1],
-                                                        batch_size=batch_size,
-                                                        verbose=0))
-            if self.test_data2 is not None:
-                test_data2_x = self.encoder_model.predict(
-                    self.test_data2[0], batch_size=batch_size
+
+    def eval_extra_decoder(self, train_data=True, validation_data=True,
+                           test_data=True, batch_size=None,
+                           verbose=True, **kwargs):
+        """Evaluates the extra decoder model with the
+           train/validation/test data.
+        params:
+            train_data: A boolean, which determines if
+                        train_data should be evaluated
+            validation_data: A boolean, which determines if
+                             validation_data should be evaluated
+            test_data: A boolean, which determines if
+                       test_data should be evaluated
+            batch_size: An integer, which is the number of samples
+                        per graident update
+            verbose: A boolean, which determines the verbositiy level
+        return: A dictionary of the results
+        """
+        verbose = 1 if verbose else 0
+
+        to_eval = []
+        if train_data:
+            to_eval.append(('Train', self.train_data2))
+        if validation_data:
+            to_eval.append(('Validation', self.validation_data2))
+        if test_data:
+            to_eval.append(('Test', self.test_data2))
+
+        results = {}
+        for name, data in to_eval:
+            if verbose == 1:
+                print(f'{name} Data Evaluation: ')
+            if data is not None:
+                data_0 = self.encoder_model.predict(
+                    data[0], batch_size=batch_size
                 )
-                print('Extra Decoder Test Data Evaluation: ', end='')
-                print(self.extra_decoder_model.evaluate(test_data2_x,
-                                                        self.test_data2[1],
-                                                        batch_size=batch_size,
-                                                        verbose=0))
+                results[name] = self.extra_decoder_model.evaluate(
+                    data_0, data[1], batch_size=batch_size,
+                    verbose=verbose, **kwargs
+                )
+        return results
 
     def load(self, path, custom_objects=None):
         """Loads a model and weights from a file.
@@ -454,11 +476,13 @@ class VAETrainer(AutoencoderTrainer):
                            and other attributes with this model)
             data: A dictionary containg train data
                   and optionally validation and test data.
-                  If the 'train' key is present, the value will
-                  be used as a generator and 'train_x' & 'train_y'
-                  will be ignored.
+                  If the train/validation/test key is present without
+                  the _x the value will be used as a
+                  generator/Keras-Sequence/TF-Dataset and
+                  keys with _x will be ignored.
                   Ex. {'train_x': [...], 'train_y: [...]}
                   Ex. {'train': generator()}
+                  Ex. {'train': tf.data.Dataset(), 'test': generator()}
             use_logits: A boolean that determines if binary crossentropy
                         should be used with logit inputs (decoder_model
                         loss will be ignored for training)

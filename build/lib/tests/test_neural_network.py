@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_9_2020
+Version: 12_13_2020
 """
 
 import pytest
@@ -27,6 +27,16 @@ def test_trainer():
                               'test_x': x_ttdata, 'test_y': y_ttdata})
     trainer.train(5, batch_size=32)
 
+    results = trainer.eval(batch_size=32)
+    assert len(results) == 3
+    results = trainer.eval(validation_data=False, batch_size=32)
+    assert len(results) == 2
+    results = trainer.eval(validation_data=False, test_data=False,
+                           batch_size=32)
+    assert len(results) == 1
+    results = trainer.eval(batch_size=32, verbose=False)
+    assert len(results) == 3
+
     path = trainer.save('')
     note = trainer.load(path)
     for filename in os.listdir(path):
@@ -47,6 +57,24 @@ def test_trainer():
 
     trainer = Trainer(model, {'train': gen()})
     trainer.train(5, batch_size=32)
+
+    dataset = tf.data.Dataset.from_tensor_slices(
+        (np.zeros((100, 100)), np.zeros((100, 10)))
+    ).batch(10)
+    trainer = Trainer(model, {'train': dataset})
+    trainer.train(5, batch_size=10)
+
+    dataset = tf.data.Dataset.from_tensor_slices(
+        (np.zeros((10, 100)), np.zeros((10, 10)))
+    ).batch(10)
+    dataset2 = tf.data.Dataset.from_tensor_slices(
+        (np.zeros((10, 100)), np.zeros((10, 10)))
+    ).batch(10)
+    trainer = Trainer(model, {'train': dataset,
+                              'validation': dataset2})
+    trainer.train(5, batch_size=10)
+    results = trainer.eval(batch_size=10)
+    assert len(results) == 2
 
 def test_predictor():
     x_tdata = np.random.random((10, 100))
