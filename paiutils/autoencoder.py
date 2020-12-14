@@ -58,16 +58,38 @@ class AutoencoderTrainer(Trainer):
             self.train_data = data['train_x']
             self.train_data = (self.train_data, self.train_data)
         elif 'train' in data:
-            self.train_data = data['train']
+            if isinstance(data['train'], Trainer.GEN_DATA_TYPES):
+                self.train_data = data['train']
+            else:
+                raise ValueError(
+                    f'train data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use train_x for keys if using ndarrays.'
+                )
         else:
             raise ValueError('Invalid data. There must be train data.')
         if 'validation_x' in data:
             self.validation_data = data['validation_x']
             self.validation_data = (self.validation_data,
                                     self.validation_data)
+        elif 'validation' in data:
+            if isinstance(data['validation'], Trainer.GEN_DATA_TYPES):
+                self.validation_data = data['validation']
+            else:
+                raise ValueError(
+                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}'
+                    f'. Use validation_x for the key if using ndarrays.'
+                )
         if 'test_x' in data:
             self.test_data = data['test_x']
             self.test_data = (self.test_data, self.test_data)
+        elif 'test' in data:
+            if isinstance(data['test'], Trainer.GEN_DATA_TYPES):
+                self.test_data = data['test']
+            else:
+                raise ValueError(
+                    f'test data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use test_x for the key if using ndarrays.'
+                )
 
     def load(self, path, custom_objects=None):
         """Loads a model and weights from a file.
@@ -507,16 +529,38 @@ class VAETrainer(AutoencoderTrainer):
             self.train_data = data['train_x']
             self.train_data = (self.train_data, self.train_data)
         elif 'train' in data:
-            self.train_data = data['train']
+            if isinstance(data['train'], Trainer.GEN_DATA_TYPES):
+                self.train_data = data['train']
+            else:
+                raise ValueError(
+                    f'train data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use train_x for keys if using ndarrays.'
+                )
         else:
             raise ValueError('Invalid data. There must be train data.')
         if 'validation_x' in data:
             self.validation_data = data['validation_x']
             self.validation_data = (self.validation_data,
                                     self.validation_data)
+        elif 'validation' in data:
+            if isinstance(data['validation'], Trainer.GEN_DATA_TYPES):
+                self.validation_data = data['validation']
+            else:
+                raise ValueError(
+                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}'
+                    f'. Use validation_x for the key if using ndarrays.'
+                )
         if 'test_x' in data:
             self.test_data = data['test_x']
             self.test_data = (self.test_data, self.test_data)
+        elif 'test' in data:
+            if isinstance(data['test'], Trainer.GEN_DATA_TYPES):
+                self.test_data = data['test']
+            else:
+                raise ValueError(
+                    f'test data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use test_x for the key if using ndarrays.'
+                )
 
     def load(self, path, custom_objects=None):
         """Loads a encoder and decoder model and weights from a file.

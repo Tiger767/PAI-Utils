@@ -130,11 +130,9 @@ class Trainer:
                 print(f'{name} Data Evaluation: ')
             if isinstance(data, Trainer.GEN_DATA_TYPES):
                 if 'steps' not in kwargs and batch_size is not None:
-                    steps = batch_size
-                else:
-                    steps = None
+                    kwargs['steps'] = batch_size
                 results[name] = self.model.evaluate(
-                    data, steps=steps, verbose=verbose, **kwargs
+                    data, verbose=verbose, **kwargs
                 )
             elif data is not None:
                 results[name] = self.model.evaluate(
