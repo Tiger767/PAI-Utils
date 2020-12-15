@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_12_2020
+Version: 12_14_2020
 """
 
 from types import GeneratorType
@@ -38,6 +38,7 @@ class Trainer:
                 'data must be a dictionary'
             )
         self.model = model
+        self.model_names = ['model']
         self.train_data = None
         self.validation_data = None
         self.test_data = None
@@ -142,48 +143,60 @@ class Trainer:
         return results
 
     def load(self, path, custom_objects=None):
-        """Loads a model and weights from a file.
+        """Loads models and weights from a folder.
            (overrides the inital provided model)
         params:
             path: A string, which is the path to a folder
-                  containing model.json, weights.h5, and note.txt
+                  containing model.json, model_weights.h5, note.txt, etc.
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
         return: A string of note.txt
         """
-        optimizer = self.model.optimizer
-        loss = self.model.loss
-        metrics = self.model.compiled_metrics._metrics
-        with open(os.path.join(path, 'model.json'), 'r') as file:
-            self.model = model_from_json(
-                file.read(), custom_objects=custom_objects
+        for name in self.model_names:
+            optimizer = self.__dict__[name].optimizer
+            loss = self.__dict__[name].loss
+            metrics = self.__dict__[name].compiled_metrics._metrics
+            with open(os.path.join(path, f'{name}.json'), 'r') as file:
+                self.__dict__[name] = model_from_json(
+                    file.read(), custom_objects=custom_objects
+                )
+            self.__dict__[name].compile(
+                optimizer=optimizer, loss=loss, metrics=metrics
             )
-        self.model.compile(optimizer=optimizer, loss=loss,
-                           metrics=metrics)
-        self.model.load_weights(os.path.join(path, 'weights.h5'))
+            self.__dict__[name].load_weights(
+                os.path.join(path, f'{name}_weights.h5')
+            )
         with open(os.path.join(path, 'note.txt'), 'r') as file:
             note = file.read()
         return note
 
     def save(self, path, note=None):
-        """Saves the model and weights to a file.
+        """Saves the models and weights to a new folder.
         params:
             path: A string, which is the path to create a folder in
-                  containing model.json, weights.h5, and note.txt
+                  containing model.json, model_weights.h5, note.txt, etc.
             note: A string, which is a note to save in the folder
-        return: A string, which is the given path + folder name
+        return: A string, which is the given path + created folder
         """
         time = datetime.datetime.now()
         path = os.path.join(path, time.strftime(r'%Y%m%d_%H%M%S_%f'))
         os.mkdir(path)
-        self.model.save_weights(os.path.join(path, 'weights.h5'))
-        with open(os.path.join(path, 'model.json'), 'w') as file:
-            file.write(self.model.to_json())
+        for name in self.model_names:
+            self.__dict__[name].save_weights(
+                os.path.join(path, f'{name}_weights.h5')
+            )
+            
+            with open(os.path.join(path, f'{name}.json'), 'w') as file:
+                file.write(self.__dict__[name].to_json())
+
         with open(os.path.join(path, 'note.txt'), 'w') as file:
             if note is None:
-                self.model.summary(
-                    print_fn=lambda line: file.write(line+'\n')
-                )
+                for name in self.model_names:
+                    file.write(f'{name}\n')
+                    self.__dict__[name].summary(
+                        print_fn=lambda line: file.write(line+'\n')
+                    )
+                    file.write('\n')
             else:
                 file.write(note)
         return path
@@ -192,7 +205,7 @@ class Trainer:
 class Predictor:
     """Predictor is used for loading and predicting keras models."""
 
-    def __init__(self, path,  weights_name='weights.h5',
+    def __init__(self, path,  weights_name='model_weights.h5',
                  model_name='model.json', custom_objects=None):
         """Initializes the model and weights.
         params:

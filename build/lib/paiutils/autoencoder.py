@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_13_2020
+Version: 12_14_2020
 """
 
 
@@ -24,9 +24,9 @@ class AutoencoderTrainer(Trainer):
     def __init__(self, encoder_model, decoder_model, data):
         """Initializes train, validation, and test data.
         params:
-            encoder_model: The encoder model
-            decoder_model: The decoder model (full model shares optimizer
-                           and other attributes with this model)
+            encoder_model: A compiled keras model
+            decoder_model: A compiled keras model (full model shares
+                           optimizer and other attributes with this model)
             data: A dictionary containg train data
                   and optionally validation and test data.
                   If the train/validation/test key is present without
@@ -50,6 +50,7 @@ class AutoencoderTrainer(Trainer):
                            metrics=decoder_model.compiled_metrics._metrics)
         self.encoder_model = encoder_model
         self.decoder_model = decoder_model
+        self.model_names = ['model', 'encoder_model', 'decoder_model']
         self.train_data = None
         self.validation_data = None
         self.test_data = None
@@ -92,89 +93,27 @@ class AutoencoderTrainer(Trainer):
                 )
 
     def load(self, path, custom_objects=None):
-        """Loads a model and weights from a file.
+        """Loads models and weights from a folder.
            (overrides the inital provided model)
         params:
             path: A string, which is the path to a folder
-                  containing model.json, weights.h5, note.txt
-                  and maybe encoder/decoder parts
+                  containing model.json, model_weights.h5, note.txt, etc.
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
         return: A string of note.txt
         """
+        self.model_names.remove('model')
+        note = super().load(path, custom_objects=custom_objects)
+        self.model_names.append('model')
         optimizer = self.model.optimizer
         loss = self.model.loss
         metrics = self.model.compiled_metrics._metrics
-        if 'encoder_model.json' in os.listdir(path):
-            with open(os.path.join(path, 'encoder_model.json'), 'r') as file:
-                self.encoder_model = model_from_json(
-                    file.read(), custom_objects=custom_objects
-                )
-            self.encoder_model.compile(optimizer=optimizer, loss=loss,
-                                       metrics=metrics)
-            self.encoder_model.load_weights(
-                os.path.join(path, 'encoder_weights.h5')
-            )
-        if 'decoder_model.json' in os.listdir(path):
-            with open(os.path.join(path, 'decoder_model.json'), 'r') as file:
-                self.decoder_model = model_from_json(
-                    file.read(), custom_objects=custom_objects
-                )
-            self.decoder_model.compile(optimizer=optimizer, loss=loss,
-                                       metrics=metrics)
-            self.decoder_model.load_weights(
-                os.path.join(path, 'decoder_weights.h5')
-            )
         x0 = keras.layers.Input(shape=self.encoder_model.input_shape[1:])
         x1 = self.encoder_model(x0)
         x2 = self.decoder_model(x1)
         self.model = keras.Model(inputs=x0, outputs=x2)
         self.model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-
-        with open(os.path.join(path, 'note.txt'), 'r') as file:
-            note = file.read()
         return note
-
-    def save(self, path, note=None):
-        """Saves the model and weights to a file.
-        params:
-            path: A string, which is the path to create a folder in
-                  containing model.json, weights.h5, note.txt, and
-                  maybe encoder/decoder parts
-            note: A string, which is a note to save in the folder
-        return: A string, which is the given path + folder name
-        """
-        time = datetime.datetime.now()
-        path = os.path.join(path, time.strftime(r'%Y%m%d_%H%M%S_%f'))
-        os.mkdir(path)
-        self.model.save_weights(os.path.join(path, 'weights.h5'))
-        with open(os.path.join(path, 'model.json'), 'w') as file:
-            file.write(self.model.to_json())
-        if self.encoder_model is not None:
-            self.encoder_model.save_weights(
-                os.path.join(path, 'encoder_weights.h5')
-            )
-            with open(os.path.join(path, 'encoder_model.json'), 'w') as file:
-                file.write(self.encoder_model.to_json())
-        if self.decoder_model is not None:
-            self.decoder_model.save_weights(
-                os.path.join(path, 'decoder_weights.h5')
-            )
-            with open(os.path.join(path, 'decoder_model.json'), 'w') as file:
-                file.write(self.decoder_model.to_json())
-        with open(os.path.join(path, 'note.txt'), 'w') as file:
-            if note is None:
-                file.write('encoder_model\n')
-                self.encoder_model.summary(
-                    print_fn=lambda line: file.write(line+'\n')
-                )
-                file.write('\ndecoder_model\n')
-                self.decoder_model.summary(
-                    print_fn=lambda line: file.write(line+'\n')
-                )
-            else:
-                file.write(note)
-        return path
 
 
 class AutoencoderPredictor(Predictor):
@@ -195,10 +134,10 @@ class AutoencoderPredictor(Predictor):
                                 (cannot also enable uses_encoder_model)
         """
         if uses_encoder_model:
-            super().__init__(path, 'encoder_weights.h5',
+            super().__init__(path, 'encoder_model_weights.h5',
                              'encoder_model.json')
         elif uses_decoder_model:
-            super().__init__(path, 'decoder_weights.h5',
+            super().__init__(path, 'decoder_model_weights.h5',
                              'decoder_model.json')
         else:
             super().__init__(path)
@@ -210,16 +149,16 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
     """
 
     def __init__(self, encoder_model, decoder_model,
-                 extra_decoder_model, data, include_y_data=True):
+                 decoder_model2, data, include_y_data=True):
         """Initializes train, validation, and test data.
         params:
-            encoder_model: The encoder model
-            decoder_model: The decoder model (full model shares optimizer
-                           and other attributes with this model)
-            extra_decoder_model: The extra decoder is trained
-                                 to map the encoder to a
-                                 different output
-                                 (not part of the full model)
+            encoder_model: A compiled keras model
+            decoder_model: A compiled keras model (full model shares
+                           optimizer and other attributes with this model)
+            decoder_model2: The second decoder is trained
+                            to map the encoder to a
+                            different output
+                            (not part of the full model)
             data: A dictionary containg train data
                   and optionally validation and test data.
                   Ex. {'train_x': [...], 'train_y: [...]}
@@ -240,7 +179,9 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
                            metrics=decoder_model.compiled_metrics._metrics)
         self.encoder_model = encoder_model
         self.decoder_model = decoder_model
-        self.extra_decoder_model = extra_decoder_model
+        self.decoder_model2 = decoder_model2
+        self.model_names = ['model', 'encoder_model',
+                            'decoder_model', 'decoder_model2']
         self.train_data = None
         self.validation_data = None
         self.test_data = None
@@ -279,7 +220,7 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
 
     def train_extra_decoder(self, epochs, batch_size=None,
                             verbose=True, **kwargs):
-        """Trains the extra decoder keras model on the outputs
+        """Trains the second decoder keras model on the outputs
            of the assumingly trained encoder.
         params:
             epochs: An integer, which is the number of complete
@@ -300,16 +241,16 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
             )
             validation_data2 = (validation_data2_0,
                                 self.validation_data2[1])
-        self.extra_decoder_model.fit(train_data2_0, self.train_data2[1],
-                                     validation_data=validation_data2,
-                                     batch_size=batch_size, epochs=epochs,
-                                     verbose=1 if verbose else 0,
-                                     **kwargs)
+        self.decoder_model2.fit(train_data2_0, self.train_data2[1],
+                                validation_data=validation_data2,
+                                batch_size=batch_size, epochs=epochs,
+                                verbose=1 if verbose else 0,
+                                **kwargs)
 
     def eval_extra_decoder(self, train_data=True, validation_data=True,
                            test_data=True, batch_size=None,
                            verbose=True, **kwargs):
-        """Evaluates the extra decoder model with the
+        """Evaluates the second decoder model with the
            train/validation/test data.
         params:
             train_data: A boolean, which determines if
@@ -341,64 +282,11 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
                 data_0 = self.encoder_model.predict(
                     data[0], batch_size=batch_size
                 )
-                results[name] = self.extra_decoder_model.evaluate(
+                results[name] = self.decoder_model2.evaluate(
                     data_0, data[1], batch_size=batch_size,
                     verbose=verbose, **kwargs
                 )
         return results
-
-    def load(self, path, custom_objects=None):
-        """Loads a model and weights from a file.
-           (overrides the initally provided models)
-        params:
-            path: A string, which is the path to a folder
-                  containing model.json, weights.h5, note.txt,
-                  encoder/decoder parts, etc.
-            custom_objects: A dictionary mapping to custom classes
-                            or functions for loading the model
-        return: A string of note.txt
-        """
-        note = super().load(path, custom_objects=custom_objects)
-        if 'extra_decoder_model.json' in os.listdir(path):
-            optimizer = self.extra_decoder_model.optimizer
-            loss = self.extra_decoder_model.loss
-            metrics = self.extra_decoder_model.compiled_metrics._metrics
-            edm_path = os.path.join(path, 'extra_decoder_model.json')
-            with open(edm_path, 'r') as file:
-                self.extra_decoder_model = model_from_json(
-                    file.read(), custom_objects=custom_objects
-                )
-                self.extra_decoder_model.compile(optimizer=optimizer,
-                                                 loss=loss,
-                                                 metrics=metrics)
-            self.extra_decoder_model.load_weights(
-                os.path.join(path, 'extra_decoder_weights.h5')
-            )
-        return note
-
-    def save(self, path, note=None):
-        """Saves the model and weights to a file.
-        params:
-            path: A string, which is the path to create a folder in
-                  containing model.json, weights.h5, note.txt, and
-                  maybe encoder/decoder parts
-            note: A string, which is a note to save in the folder
-        return: A string, which is the given path + folder name
-        """
-        path = super().save(path, note=note)
-        self.extra_decoder_model.save_weights(
-            os.path.join(path, 'extra_decoder_weights.h5')
-        )
-        edm_path = os.path.join(path, 'extra_decoder_model.json')
-        with open(edm_path, 'w') as file:
-            file.write(self.extra_decoder_model.to_json())
-        if note is None:
-            with open(os.path.join(path, 'note.txt'), 'a') as file:
-                file.write('\nextra_decoder_model\n')
-                self.extra_decoder_model.summary(
-                    print_fn=lambda line: file.write(line+'\n')
-                )
-        return path
 
 
 class VAETrainer(AutoencoderTrainer):
@@ -429,9 +317,9 @@ class VAETrainer(AutoencoderTrainer):
         def train_step(self, x):
             """Trains the model 1 step.
             params:
-                x: A tensor or tuple
+                x: A tensor, tuple, or list
             """
-            if isinstance(x, tuple):
+            if isinstance(x, (tuple, list)):
                 x = x[0]
 
             with tf.GradientTape() as tape:
@@ -472,7 +360,7 @@ class VAETrainer(AutoencoderTrainer):
                 'divergence_loss': divergence_loss
             }
 
-        def call(self, x, training=False):
+        def call(self, inputs, training=False):
             """Calls the model on new inputs.
             params:
                 inputs: A tensor or list of tensors
@@ -482,7 +370,7 @@ class VAETrainer(AutoencoderTrainer):
             return: A tensor if there is a single output, or a list of
                     tensors if there are more than one outputs.
             """
-            z_mean, z_log_var = self.encoder(x, training=training)
+            z_mean, z_log_var = self.encoder(inputs, training=training)
             eps = tf.random.normal(shape=tf.shape(z_mean))
             z = eps * tf.exp(z_log_var * .5) + z_mean
             y = self.decoder(z, training=training)
@@ -493,9 +381,9 @@ class VAETrainer(AutoencoderTrainer):
     def __init__(self, encoder_model, decoder_model, data, use_logits=True):
         """Initializes train, validation, and test data.
         params:
-            encoder_model: The encoder model
-            decoder_model: The decoder model (full model shares optimizer
-                           and other attributes with this model)
+            encoder_model: A compiled keras model
+            decoder_model: A compiled keras model (full model shares
+                           optimizer and other attributes with this model)
             data: A dictionary containg train data
                   and optionally validation and test data.
                   If the train/validation/test key is present without
@@ -521,6 +409,8 @@ class VAETrainer(AutoencoderTrainer):
                            metrics=decoder_model.compiled_metrics._metrics)
         self.encoder_model = encoder_model
         self.decoder_model = decoder_model
+        self.model2 = None
+        self.model_names = ['model', 'encoder_model', 'decoder_model']
         self.train_data = None
         self.validation_data = None
         self.test_data = None
@@ -563,58 +453,36 @@ class VAETrainer(AutoencoderTrainer):
                 )
 
     def load(self, path, custom_objects=None):
-        """Loads a encoder and decoder model and weights from a file.
+        """Loads models and weights from a folder.
            (overrides the inital provided model)
         params:
             path: A string, which is the path to a folder
-                  containing model.json, weights.h5, note.txt, etc.
+                  containing model.json, model_weights.h5, note.txt, etc.
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
         return: A string of note.txt
         """
+        self.model_names.remove('model')
+        note = Trainer.load(self, path, custom_objects=custom_objects)
+        self.model_names.append('model')
         optimizer = self.model.optimizer
         loss = self.model.loss
         metrics = self.model.compiled_metrics._metrics
-        if 'encoder_model.json' in os.listdir(path):
-            with open(os.path.join(path, 'encoder_model.json'), 'r') as file:
-                self.encoder_model = model_from_json(
-                    file.read(), custom_objects=custom_objects
-                )
-            self.encoder_model.load_weights(
-                os.path.join(path, 'encoder_weights.h5')
-            )
-        if 'decoder_model.json' in os.listdir(path):
-            with open(os.path.join(path, 'decoder_model.json'), 'r') as file:
-                self.decoder_model = model_from_json(
-                    file.read(), custom_objects=custom_objects
-                )
-            self.decoder_model.load_weights(
-                os.path.join(path, 'decoder_weights.h5')
-            )
-            self.decoder_model.compile(loss=loss)
         self.model = VAETrainer.VAEModel(self.encoder_model,
                                          self.decoder_model,
                                          use_logits=self.model.use_logits)
         self.model.compile(optimizer=optimizer, loss=loss,
                            metrics=metrics)
-
-        with open(os.path.join(path, 'note.txt'), 'r') as file:
-            note = file.read()
         return note
 
     def save(self, path, note=None):
-        """Saves the model and weights to a file.
+        """Saves the models and weights to a new folder.
         params:
             path: A string, which is the path to create a folder in
-                  containing model.json, weights.h5, note.txt, and
-                  maybe encoder/decoder parts
+                  containing model.json, model_weights.h5, note.txt, etc.
             note: A string, which is a note to save in the folder
-        return: A string, which is the given path + folder name
+        return: A string, which is the given path + created folder
         """
-        time = datetime.datetime.now()
-        path = os.path.join(path, time.strftime(r'%Y%m%d_%H%M%S_%f'))
-        os.mkdir(path)
-
         x0 = keras.layers.Input(shape=self.model.encoder.input_shape[1:])
         z_mean, z_log_var = self.model.encoder(x0)
         eps = tf.random.normal(shape=tf.shape(z_mean))
@@ -622,33 +490,8 @@ class VAETrainer(AutoencoderTrainer):
         x1 = self.model.decoder(z)
         if self.model.use_logits:
             x1 = tf.math.sigmoid(x1)
-        model = keras.Model(inputs=x0, outputs=x1)
-
-        model.save_weights(os.path.join(path, 'weights.h5'))
-        with open(os.path.join(path, 'model.json'), 'w') as file:
-            file.write(model.to_json())
-        if self.encoder_model is not None:
-            self.encoder_model.save_weights(
-                os.path.join(path, 'encoder_weights.h5')
-            )
-            with open(os.path.join(path, 'encoder_model.json'), 'w') as file:
-                file.write(self.encoder_model.to_json())
-        if self.decoder_model is not None:
-            self.decoder_model.save_weights(
-                os.path.join(path, 'decoder_weights.h5')
-            )
-            with open(os.path.join(path, 'decoder_model.json'), 'w') as file:
-                file.write(self.decoder_model.to_json())
-        with open(os.path.join(path, 'note.txt'), 'w') as file:
-            if note is None:
-                file.write('encoder_model\n')
-                self.encoder_model.summary(
-                    print_fn=lambda line: file.write(line+'\n')
-                )
-                file.write('\ndecoder_model\n')
-                self.decoder_model.summary(
-                    print_fn=lambda line: file.write(line+'\n')
-                )
-            else:
-                file.write(note)
+        model = self.model
+        self.model = keras.Model(inputs=x0, outputs=x1)
+        path = Trainer.save(self, path, note=note)
+        self.model = model
         return path

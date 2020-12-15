@@ -231,6 +231,7 @@ def test_vae_trainer():
     z_mean = dense(5)(x)
     z_log_var = dense(5)(x)
     encoder_model = keras.Model(inputs=x0, outputs=[z_mean, z_log_var])
+    encoder_model.compile(optimizer='adam', loss='mse')
 
     x0 = keras.layers.Input(shape=(5,))
     x = dense(100)(x0)

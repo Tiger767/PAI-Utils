@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_13_2020
+Version: 12_14_2020
 """
 
 
@@ -21,261 +21,275 @@ class GANTrainer(Trainer):
        and training keras GAN models.
     """
 
-    def __init__(self, model, dis_model, train_data,
-                 conditional=False, normal_distribution=False,
-                 idt_loss_func=None):
-        """Initializes data, optimizers, metrics, and models.
+    class GANModel(keras.Model):
+        def __init__(self, generator, discriminator, conditional=False,
+                     noise_fn=None, idt_loss_coef=0, **kwargs):
+            """GAN Keras Model that has a modified train_step.
+            params:
+                generator: The generative model
+                discriminator: The discriminative model
+                conditional: A boolean, which determines if the GAN is a
+                             conditional GAN
+                noise_fn: A TF function that takes a shape and returns
+                          noise (Default: normal noise)
+                idt_loss_coef: A float, which is the amount of the identity
+                               loss (generator model's loss function)
+                               to be added to the generator loss
+            """
+            super(GANTrainer.GANModel, self).__init__(**kwargs)
+            self.generator = generator
+            self.discriminator = discriminator
+            self.generator.compiled_loss.build(
+                tf.zeros(self.generator.output_shape[1:])
+            )
+            self.idt_loss_fn = self.generator.compiled_loss._losses[0]
+            self.conditional = conditional
+            if noise_fn is None:
+                noise_fn = tf.random.normal
+            self.noise_fn = noise_fn
+            self.idt_loss_coef = idt_loss_coef
+            if conditional:
+                noise_ndx = generator.input_names.index('noise')
+                self.noise_shape = generator.input_shape[noise_ndx][1:]
+            else:
+                self.noise_shape = generator.input_shape[1:]
+            self.noise_shape = tf.convert_to_tensor(self.noise_shape)
+
+        def train_step(self, batch):
+            """Trains the model 1 step.
+            params:
+                batch: A tensor, tuple, or list
+            """
+            if self.conditional:
+                cond, real_y = batch
+            else:
+                if isinstance(batch, (tuple, list)):
+                    real_y = batch[0]
+                else:
+                    real_y = batch
+
+            length = [tf.shape(real_y)[0]]
+            noise = tf.random.normal(shape=tf.concat([length, self.noise_shape], 0))
+            with tf.GradientTape(persistent=True) as tape:
+                if self.conditional:
+                    fake_y = self.generator(
+                        {'condition': cond, 'noise': noise}, training=True
+                    )
+                    dis_fake_y = self.discriminator(
+                        {'condition': cond, 'y': fake_y}, training=True
+                    )
+                    dis_real_y = self.discriminator(
+                        {'condition': cond, 'y': real_y}, training=True
+                    )
+                else:
+                    fake_y = self.generator(noise, training=True)
+                    dis_fake_y = self.discriminator(fake_y, training=True)
+                    dis_real_y = self.discriminator(real_y, training=True)
+
+                adv_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                    tf.ones_like(dis_fake_y), dis_fake_y
+                )
+                adv_loss = tf.reduce_mean(adv_loss)
+                idt_loss = self.idt_loss_fn(real_y, fake_y)
+                idt_loss = tf.reduce_mean(idt_loss)
+                gen_loss = adv_loss + idt_loss * self.idt_loss_coef
+
+                dis_fake_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                    tf.zeros_like(dis_fake_y), dis_fake_y
+                )
+                dis_fake_loss = tf.reduce_mean(dis_fake_loss)
+                dis_real_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                    tf.ones_like(dis_real_y), dis_real_y
+                )
+                dis_real_loss = tf.reduce_mean(dis_real_loss)
+                dis_loss = dis_fake_loss + dis_real_loss
+            gen_grads = tape.gradient(
+                gen_loss, self.generator.trainable_variables
+            )
+            dis_grads = tape.gradient(
+                dis_loss, self.discriminator.trainable_variables
+            )
+            self.generator.optimizer.apply_gradients(
+                zip(gen_grads, self.generator.trainable_variables)
+            )
+            self.discriminator.optimizer.apply_gradients(
+                zip(dis_grads, self.discriminator.trainable_variables)
+            )
+            return {
+                'gen_loss': gen_loss,
+                'adversarial_loss': adv_loss,
+                'identity_loss': idt_loss,
+                'discriminator_loss': dis_loss,
+                'dis_fake_input_loss': dis_fake_loss,
+                'dis_real_input_loss': dis_real_loss
+            }
+
+        def call(self, inputs, training=False):
+            """Calls the discriminator model on new inputs.
+            params:
+                inputs: A tensor or list of tensors
+                training: A boolean or boolean scalar tensor, indicating
+                          whether to run the `Network` in training mode
+                          or inference mode
+            return: A tensor if there is a single output, or a list of
+                    tensors if there are more than one outputs.
+            """
+            if self.conditional:
+                cond, real_y = inputs
+                dis_real_y = self.discriminator(
+                    {'condition': cond, 'y': real_y}, training=training
+                )
+            else:
+                if isinstance(inputs, (tuple, list)):
+                    real_y = inputs[0]
+                else:
+                    real_y = inputs
+                dis_real_y = self.discriminator(real_y, training=training)
+            return dis_real_y
+
+    def __init__(self, gen_model, dis_model, data, conditional=False,
+                 noise_fn=None, idt_loss_coef=0):
+        """Initializes data and GANModel.
         params:
-            model: A compiled keras model, which is the generator
-                   (loss function does not matter)
+            gen_model: A compiled keras model, which is the generator
             dis_model: A compiled keras model, which is the discriminator
-                       (loss function does not matter)
-            train_data: A dictionary, numpy ndarray containg train data,
-                        or a list with x and y ndarrays.
+            data: A dictionary containg train data
+                  and optionally validation and test data.
+                  If the train/validation/test key is present without
+                  the _x/_y the value will be used as a
+                  generator/Keras-Sequence/TF-Dataset and
+                  keys with _x/_y will be ignored.
+                  Ex. {'train_x': [...], 'train_y: [...]}
+                  Ex. {'train': generator()}
+                  Ex. {'train': tf.data.Dataset(), 'test': generator()}
             conditional: A boolean, which determines if the GAN is a
-                         conditional GAN and neededs x and y data
-            normal_distribution: A boolean, which determines if the
-                                 model should be trained with normal
-                                 or uniform random values
-            idt_loss_func: A function for calculating the loss
-                           between real x and predict x
-                           (default: Mean Abs Error)
+                         conditional GAN
+            noise_fn: A TF function that takes a shape and returns
+                      noise (Default: normal noise)
+            idt_loss_coef: A float, which is the amount of the identity
+                           loss (generator model's loss function)
+                           to be added to the generator loss
         """
-        if not isinstance(train_data, (dict, np.ndarray, list)):
+        if not isinstance(data, dict):
             raise TypeError(
-                'train_data must be either a dictionary, ndarray, or list'
+                'data must be a dictionary'
             )
         if conditional:
-            names = model.input_names
+            names = gen_model.input_names
             if len(names) == 2:
-                if 'x' not in names or 'noise' not in names:
-                    raise ValueError('model input names are invalid')
+                if 'condition' not in names or 'noise' not in names:
+                    raise ValueError('gen_model input names are invalid')
             else:
-                raise ValueError('dis_model should have two inputs')
-            noise_ndx = names.index('noise')
-            self.input_shape = model.input_shape[noise_ndx][1:]
+                raise ValueError('gen_model should have two inputs')
             names = dis_model.input_names
             if len(names) == 2:
-                if 'x' not in names or 'y' not in names:
+                if 'condition' not in names or 'y' not in names:
                     raise ValueError('dis_model input names are invalid')
             else:
-                raise ValueError('model should have two inputs')
+                raise ValueError('dis_model should have two inputs')
         else:
-            self.input_shape = model.input_shape[1:]
-            if len(model.input_names) != 1:
-                raise ValueError('model should only have one input')
+            if len(gen_model.input_names) != 1:
+                raise ValueError('gen_model should only have one input')
             if len(dis_model.input_names) != 1:
                 raise ValueError('dis_model should only have one input')
-        self.model = model
-        self.optimizer = model.optimizer
-        if idt_loss_func is None:
-            idt_loss_func = keras.losses.MeanAbsoluteError()
-        self.idt_loss_func = idt_loss_func
+
+        self.model = GANTrainer.GANModel(
+            gen_model, dis_model, conditional=conditional,
+            noise_fn=noise_fn, idt_loss_coef=idt_loss_coef
+        )
+        self.model.compile(optimizer=dis_model.optimizer,
+                           loss=dis_model.loss,
+                           metrics=dis_model.compiled_metrics._metrics)
+        self.gen_model = gen_model
         self.dis_model = dis_model
-        self.dis_optimizer = dis_model.optimizer
-        self.gen_adv_metric = keras.metrics.Mean(name='gen_adv_loss')
-        self.gen_idt_metric = keras.metrics.Mean(name='gen_idt_loss')
-        self.dis_metric = keras.metrics.Mean(name='dis_loss')
-        self.train_data = train_data
-        self.conditional = conditional
-        self.normal_distribution = normal_distribution
-        self.idt_loss_coef = 1
+        self.model_names = ['gen_model', 'dis_model']
+        self.train_data = None
+        self.validation_data = None
+        self.test_data = None
 
-        if isinstance(train_data, dict):
-            if ('train_x' in train_data and 'train_y' in train_data):
-                if not self.conditional:
-                    raise ValueError('Not conditional but x '
-                                     'and y data provided')
-                self.train_data = [train_data['train_x'],
-                                   train_data['train_y']]
-            elif 'train_x' in train_data:
-                if self.conditional:
-                    raise ValueError('Conditional but x and '
-                                     'y data not provided')
-                self.train_data = train_data['train_x']
-            elif 'train_y' in train_data:
-                if self.conditional:
-                    raise ValueError('Conditional but x and '
-                                     'y data not provided')
-                self.train_data = train_data['train_y']
+        if 'train_x' in data and 'train_y' in data:
+            if not conditional:
+                raise ValueError('Not conditional but x '
+                                 'and y data provided')
+            self.train_data = (data['train_x'], data['train_y'])
+        elif 'train_x' in data:
+            if conditional:
+                raise ValueError('Conditional but x and '
+                                 'y data not provided')
+            self.train_data = (data['train_x'], None)
+        elif 'train_y' in data:
+            if conditional:
+                raise ValueError('Conditional but x and '
+                                 'y data not provided')
+            self.train_data = (data['train_y'], None)
+        elif 'train' in data:
+            if isinstance(data['train'], Trainer.GEN_DATA_TYPES):
+                self.train_data = data['train']
             else:
-                raise ValueError('Invalid train_data')
-        elif isinstance(train_data, list):
-            if len(train_data) == 2:
-                if not self.conditional:
-                    raise ValueError('Not conditional but x '
-                                     'and y data provided')
-            elif len(train_data) == 1:
-                if self.conditional:
-                    raise ValueError('Conditional but x and '
-                                     'y data not provided')
-                self.train_data = train_data[0]
+                raise ValueError(
+                    f'train data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use train_x/_y for keys if using ndarrays.'
+                )
+        else:
+            raise ValueError('Invalid data. There must be train data.')
+        if 'validation_x' in data and 'validation_y' in data:
+            self.validation_data = (data['validation_x'],
+                                    data['validation_y'])
+        elif 'validation_x' in data:
+            self.validation_data = (data['validation_x'],
+                                    np.ones(data['validation_x'].shape[0]))
+        elif 'validation_y' in data:
+            self.validation_data = (data['validation_y'],
+                                    np.ones(data['validation_y'].shape[0]))
+        elif 'validation' in data:
+            if isinstance(data['validation'], Trainer.GEN_DATA_TYPES):
+                self.validation_data = data['validation']
             else:
-                raise ValueError('Invalid train_data')
-        if self.conditional:
-            self.train_data[0] = self.train_data[0].astype(
-                keras.backend.floatx()
-            )
-            self.train_data[1] = self.train_data[1].astype(
-                keras.backend.floatx()
-            )
-        else:
-            self.train_data = self.train_data.astype(
-                keras.backend.floatx()
-            )
-
-    @tf.function
-    def _train_step(self, batch):
-        """Trains the GAN 1 step.
-        params:
-            batch: A Tensor
-        """
-        if self.conditional:
-            x, y = batch
-        else:
-            y = batch
-        length = y.shape[0]
-        if self.normal_distribution:
-            noise = tf.random.normal([length, *self.input_shape])
-        else:
-            noise = tf.random.uniform([length, *self.input_shape])
-        with tf.GradientTape() as tape, tf.GradientTape() as dis_tape:
-            if self.conditional:
-                fake_y = self.model({'x': x, 'noise': noise}, training=True)
-
-                dis_fake_y = self.dis_model({'x': x, 'y': fake_y},
-                                            training=True)
-                dis_real_y = self.dis_model({'x': x, 'y': y}, training=True)
+                raise ValueError(
+                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use validation_x/_y for keys if using ndarrays.'
+                )
+        if 'test_x' in data and 'test_y' in data:
+            self.test_data = (data['test_x'], data['test_y'])
+        elif 'test_x' in data:
+            self.test_data = (data['test_x'],
+                              np.ones(data['test_x'].shape[0]))
+        elif 'test_y' in data:
+            self.test_data = (data['test_y'],
+                              np.ones(data['test_y'].shape[0]))
+        elif 'test' in data:
+            if isinstance(data['test'], Trainer.GEN_DATA_TYPES):
+                self.test_data = data['test']
             else:
-                fake_y = self.model(noise, training=True)
-
-                dis_fake_y = self.dis_model(fake_y, training=True)
-                dis_real_y = self.dis_model(y, training=True)
-
-            adv_loss = tf.nn.sigmoid_cross_entropy_with_logits(
-                tf.ones_like(dis_fake_y), dis_fake_y
-            )
-            idt_loss = (self.idt_loss_coef *
-                        self.idt_loss_func(y, fake_y))
-            gen_loss = adv_loss + idt_loss
-
-            dis_fake_loss = tf.nn.sigmoid_cross_entropy_with_logits(
-                tf.zeros_like(dis_fake_y), dis_fake_y
-            )
-            dis_real_loss = tf.nn.sigmoid_cross_entropy_with_logits(
-                tf.ones_like(dis_real_y), dis_real_y
-            )
-            dis_loss = dis_fake_loss + dis_real_loss
-
-        grads = tape.gradient(gen_loss, self.model.trainable_variables)
-        dis_grads = dis_tape.gradient(dis_loss,
-                                      self.dis_model.trainable_variables)
-
-        self.optimizer.apply_gradients(
-            zip(grads, self.model.trainable_variables)
-        )
-        self.dis_optimizer.apply_gradients(
-            zip(dis_grads, self.dis_model.trainable_variables)
-        )
-
-        self.gen_adv_metric(adv_loss)
-        self.gen_idt_metric(idt_loss)
-        self.dis_metric(dis_loss)
-
-    def train(self, epochs, batch_size=None, idt_loss_coef=0, verbose=True):
-        """Trains the keras model.
-        params:
-            epochs: An integer, which is the number of complete
-                    iterations to train
-            batch_size: An integer, which is the number of samples
-                        per graident update
-            idt_loss_coef: A float, which is the amount of the identity
-                           loss to be added to the gen model loss
-            verbose: A boolean, which determines the verbositiy level
-        """
-        self.idt_loss_coef = idt_loss_coef
-        if self.conditional:
-            length = self.train_data[0].shape[0]
-            batches = tf.data.Dataset.from_tensor_slices(
-                (self.train_data[0],
-                 self.train_data[1])
-            ).shuffle(length).batch(batch_size)
-        else:
-            length = self.train_data.shape[0]
-            batches = tf.data.Dataset.from_tensor_slices(
-                self.train_data
-            ).shuffle(length).batch(batch_size)
-        for epoch in range(1, epochs + 1):
-            if verbose:
-                print(f'Epoch {epoch}/{epochs}')
-            count = 0
-            for batch in batches:
-                self._train_step(batch)
-                count += np.minimum(batch_size, length - count)
-                if verbose:
-                    print(f'{count}/{length}', end='\r')
-            if verbose:
-                print(f'{count}/{length} - '
-                      f'gen_adv_loss: {self.gen_adv_metric.result()} - '
-                      f'gen_idt_loss: {self.gen_idt_metric.result()} - '
-                      f'dis_loss: {self.dis_metric.result()}')
-            self.gen_adv_metric.reset_states()
-            self.gen_idt_metric.reset_states()
-            self.dis_metric.reset_states()
+                raise ValueError(
+                    f'test data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use test_x/_y for keys if using ndarrays.'
+                )
 
     def load(self, path, custom_objects=None):
-        """Loads a generator and discriminator model and weights from a file.
+        """Loads models and weights from a folder.
            (overrides the inital provided model)
         params:
             path: A string, which is the path to a folder
-                  containing model.json, weights.h5, and note.txt
+                  containing model.json, model_weights.h5, note.txt, etc.
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
         return: A string of note.txt
         """
-        with open(os.path.join(path, 'model.json'), 'r') as file:
-            self.model = model_from_json(
-                file.read(), custom_objects=custom_objects
-            )
-        with open(os.path.join(path, 'dis_model.json'), 'r') as file:
-            self.dis_model = model_from_json(
-                file.read(), custom_objects=custom_objects
-            )
-        self.model.load_weights(os.path.join(path, 'weights.h5'))
-        self.dis_model.load_weights(os.path.join(path, 'dis_weights.h5'))
-        with open(os.path.join(path, 'note.txt'), 'r') as file:
-            note = file.read()
+        note = Trainer.load(self, path, custom_objects=custom_objects)
+        optimizer = self.model.optimizer
+        loss = self.model.loss
+        metrics = self.model.compiled_metrics._metrics
+        conditional = self.model.conditional
+        noise_fn = self.model.noise_fn
+        idt_loss_coef = self.model.idt_loss_coef
+        self.model = GANTrainer.GANModel(
+            self.gen_model, self.dis_model, conditional=conditional,
+            noise_fn=noise_fn, idt_loss_coef=idt_loss_coef
+        )
+        self.model.compile(optimizer=optimizer, loss=loss,
+                           metrics=metrics)
         return note
-
-    def save(self, path, note=None):
-        """Saves the generator and discriminator model and weights to a file.
-        params:
-            path: A string, which is the path to create a folder in
-                  containing model.json, weights.h5, note.txt,
-                  dis_model.json, and dis_weights.h5
-            note: A string, which is a note to save in the folder
-        return: A string, which is the given path + folder name
-        """
-        time = datetime.datetime.now()
-        path = os.path.join(path, time.strftime(r'%Y%m%d_%H%M%S_%f'))
-        os.mkdir(path)
-        self.model.save_weights(os.path.join(path, 'weights.h5'))
-        self.dis_model.save_weights(os.path.join(path, 'dis_weights.h5'))
-        with open(os.path.join(path, 'model.json'), 'w') as file:
-            file.write(self.model.to_json())
-        with open(os.path.join(path, 'dis_model.json'), 'w') as file:
-            file.write(self.dis_model.to_json())
-        with open(os.path.join(path, 'note.txt'), 'w') as file:
-            if note is None:
-                file.write('model1\n')
-                self.model.summary(print_fn=lambda line: file.write(line+'\n'))
-                file.write('\ndis_model1\n')
-                self.dis_model.summary(
-                    print_fn=lambda line: file.write(line+'\n')
-                )
-            else:
-                file.write(note)
-        return path
 
 
 class GANPredictor(Predictor):
@@ -283,8 +297,8 @@ class GANPredictor(Predictor):
        loading and predicting keras GAN models.
     """
 
-    def __init__(self, path,  weights_name='weights.h5',
-                 model_name='model.json', custom_objects=None):
+    def __init__(self, path,  weights_name='gen_model_weights.h5',
+                 model_name='gen_model.json', custom_objects=None):
         Predictor.__init__(self, path, weights_name=weights_name,
                            model_name=model_name,
                            custom_objects=custom_objects)
@@ -343,29 +357,119 @@ class GANPredictor(Predictor):
                                    'noise': noise})[0]
 
 
-class GANITrainer(GANTrainer):
+class GANITrainer(Trainer):
     """Generative Adversarial Network with provided Inputs
        Trainer is used for loading, saving, and training
        keras GAN models that do not have random inputs.
     """
 
-    def __init__(self, model, dis_model, train_data, idt_loss_func=None):
-        """Initializes data, optimizers, metrics, and models.
+    class GANModel(keras.Model):
+        def __init__(self, generator, discriminator,
+                     idt_loss_coef=0, **kwargs):
+            """GAN Keras Model that has a modified train_step.
+            params:
+                generator: The generative model
+                discriminator: The discriminative model
+                idt_loss_coef: A float, which is the amount of the identity
+                               loss (generator model's loss function)
+                               to be added to the generator loss
+            """
+            super(GANITrainer.GANModel, self).__init__(**kwargs)
+            self.generator = generator
+            self.discriminator = discriminator
+            self.generator.compiled_loss.build(
+                tf.zeros(self.generator.output_shape[1:])
+            )
+            self.idt_loss_fn = self.generator.compiled_loss._losses[0]
+            self.idt_loss_coef = idt_loss_coef
+
+        def train_step(self, batch):
+            """Trains the model 1 step.
+            params:
+                batch: A tuple/list of 2 tensors
+            """
+            x, real_y = batch
+            with tf.GradientTape(persistent=True) as tape:
+                fake_y = self.generator(x, training=True)
+                dis_fake_y = self.discriminator({'x': x, 'y': fake_y},
+                                                training=True)
+                dis_real_y = self.discriminator({'x': x, 'y': real_y},
+                                                training=True)
+
+                adv_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                    tf.ones_like(dis_fake_y), dis_fake_y
+                )
+                adv_loss = tf.reduce_mean(adv_loss)
+                idt_loss = self.idt_loss_fn(real_y, fake_y)
+                idt_loss = tf.reduce_mean(idt_loss)
+                gen_loss = adv_loss + idt_loss * self.idt_loss_coef
+
+                dis_fake_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                    tf.zeros_like(dis_fake_y), dis_fake_y
+                )
+                dis_fake_loss = tf.reduce_mean(dis_fake_loss)
+                dis_real_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                    tf.ones_like(dis_real_y), dis_real_y
+                )
+                dis_real_loss = tf.reduce_mean(dis_real_loss)
+                dis_loss = dis_fake_loss + dis_real_loss
+            gen_grads = tape.gradient(
+                gen_loss, self.generator.trainable_variables
+            )
+            dis_grads = tape.gradient(
+                dis_loss, self.discriminator.trainable_variables
+            )
+            self.generator.optimizer.apply_gradients(
+                zip(gen_grads, self.generator.trainable_variables)
+            )
+            self.discriminator.optimizer.apply_gradients(
+                zip(dis_grads, self.discriminator.trainable_variables)
+            )
+            return {
+                'gen_loss': gen_loss,
+                'adversarial_loss': adv_loss,
+                'identity_loss': idt_loss,
+                'discriminator_loss': dis_loss,
+                'dis_fake_input_loss': dis_fake_loss,
+                'dis_real_input_loss': dis_real_loss
+            }
+
+        def call(self, inputs, training=False):
+            """Calls the discriminator model on new inputs.
+            params:
+                inputs: A tensor or list of tensors
+                training: A boolean or boolean scalar tensor, indicating
+                          whether to run the `Network` in training mode
+                          or inference mode
+            return: A tensor if there is a single output, or a list of
+                    tensors if there are more than one outputs.
+            """
+            x, real_y = inputs
+            dis_real_y = self.discriminator({'x': x, 'y': real_y},
+                                            training=training)
+            return dis_real_y
+
+    def __init__(self, gen_model, dis_model, data, idt_loss_coef=0):
+        """Initializes data and GANModel.
         params:
-            model: A compiled keras model, which is the generator
-                   (loss function does not matter)
+            gen_model: A compiled keras model, which is the generator
             dis_model: A compiled keras model, which is the discriminator
-                       (loss function does not matter)
-            train_data: A dictionary containg train data or a
-                        list with x and y ndarrays
-                        Ex. {'train_x': [...], 'train_y: [...]}
-            idt_loss_func: A function for calculating the loss
-                           between real x and predict x
-                           (default: Mean Abs Error)
+            data: A dictionary containg train data
+                  and optionally validation and test data.
+                  If the train/validation/test key is present without
+                  the _x/_y the value will be used as a
+                  generator/Keras-Sequence/TF-Dataset and
+                  keys with _x/_y will be ignored.
+                  Ex. {'train_x': [...], 'train_y: [...]}
+                  Ex. {'train': generator()}
+                  Ex. {'train': tf.data.Dataset(), 'test': generator()}
+            idt_loss_coef: A float, which is the amount of the identity
+                           loss (generator model's loss function)
+                           to be added to the generator loss
         """
-        if not isinstance(train_data, (dict, list)):
+        if not isinstance(data, dict):
             raise TypeError(
-                'train_data must be either a dictionary or list'
+                'data must be a dictionary'
             )
         names = dis_model.input_names
         if len(names) == 2:
@@ -373,79 +477,83 @@ class GANITrainer(GANTrainer):
                 raise ValueError('dis_model input names are invalid')
         else:
             raise ValueError('dis_model should have two inputs')
-        if len(model.input_names) != 1:
-            raise ValueError('model should only have one input')
-        self.model = model
-        self.optimizer = model.optimizer
-        if idt_loss_func is None:
-            idt_loss_func = keras.losses.MeanAbsoluteError()
-        self.idt_loss_func = idt_loss_func
+        if len(gen_model.input_names) != 1:
+            raise ValueError('gen_model should only have one input')
+
+        self.model = GANITrainer.GANModel(
+            gen_model, dis_model, idt_loss_coef=idt_loss_coef
+        )
+        self.model.compile(optimizer=dis_model.optimizer,
+                           loss=dis_model.loss,
+                           metrics=dis_model.compiled_metrics._metrics)
+        self.gen_model = gen_model
         self.dis_model = dis_model
-        self.dis_optimizer = dis_model.optimizer
-        self.gen_adv_metric = keras.metrics.Mean(name='gen_adv_loss')
-        self.gen_idt_metric = keras.metrics.Mean(name='gen_idt_loss')
-        self.dis_metric = keras.metrics.Mean(name='dis_loss')
-        self.conditional = True
-        self.train_data = train_data
-        self.idt_loss_coef = 1
+        self.model_names = ['gen_model', 'dis_model']
+        self.train_data = None
+        self.validation_data = None
+        self.test_data = None
 
-        if isinstance(train_data, dict):
-            if 'train_x' in train_data and 'train_y' in train_data:
-                self.train_data = [train_data['train_x'],
-                                   train_data['train_y']]
+        if 'train_x' in data and 'train_y' in data:
+            self.train_data = (data['train_x'], data['train_y'])
+        elif 'train_x' in data or 'train_y' in data:
+            raise ValueError('Train x and y data must be provided')
+        elif 'train' in data:
+            if isinstance(data['train'], Trainer.GEN_DATA_TYPES):
+                self.train_data = data['train']
             else:
-                raise ValueError('train_data missing x or y data')
-        elif isinstance(train_data, list) and len(train_data) != 2:
-            raise ValueError('train_data should only have a x and y element')
-        self.train_data[0] = self.train_data[0].astype(
-            keras.backend.floatx()
-        )
-        self.train_data[1] = self.train_data[1].astype(
-            keras.backend.floatx()
-        )
+                raise ValueError(
+                    f'train data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use train_x/_y for keys if using ndarrays.'
+                )
+        else:
+            raise ValueError('Invalid data. There must be train data.')
+        if 'validation_x' in data and 'validation_y' in data:
+            self.validation_data = (data['validation_x'],
+                                    data['validation_y'])
+        elif 'validation_x' in data or 'validation_y' in data:
+            raise ValueError('Validation x and y data must be provided')
+        elif 'validation' in data:
+            if isinstance(data['validation'], Trainer.GEN_DATA_TYPES):
+                self.validation_data = data['validation']
+            else:
+                raise ValueError(
+                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use validation_x/_y for keys if using ndarrays.'
+                )
+        if 'test_x' in data and 'test_y' in data:
+            self.test_data = (data['test_x'], data['test_y'])
+        elif 'test_x' in data or 'test_y' in data:
+            raise ValueError('Test x and y data must be provided')
+        elif 'test' in data:
+            if isinstance(data['test'], Trainer.GEN_DATA_TYPES):
+                self.test_data = data['test']
+            else:
+                raise ValueError(
+                    f'test data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use test_x/_y for keys if using ndarrays.'
+                )
 
-    @tf.function
-    def _train_step(self, batch):
-        """Trains the GAN 1 step.
+    def load(self, path, custom_objects=None):
+        """Loads models and weights from a folder.
+           (overrides the inital provided model)
         params:
-            batch: A tensor
+            path: A string, which is the path to a folder
+                  containing model.json, model_weights.h5, note.txt, etc.
+            custom_objects: A dictionary mapping to custom classes
+                            or functions for loading the model
+        return: A string of note.txt
         """
-        x, y = batch
-        with tf.GradientTape() as tape, tf.GradientTape() as dis_tape:
-            fake_y = self.model(x, training=True)
-
-            dis_fake_y = self.dis_model({'x': x, 'y': fake_y}, training=True)
-            dis_real_y = self.dis_model({'x': x, 'y': y}, training=True)
-
-            adv_loss = tf.nn.sigmoid_cross_entropy_with_logits(
-                tf.ones_like(dis_fake_y), dis_fake_y
-            )
-            idt_loss = (self.idt_loss_coef *
-                        self.idt_loss_func(y, fake_y))
-            gen_loss = adv_loss + idt_loss
-
-            dis_fake_loss = tf.nn.sigmoid_cross_entropy_with_logits(
-                tf.zeros_like(dis_fake_y), dis_fake_y
-            )
-            dis_real_loss = tf.nn.sigmoid_cross_entropy_with_logits(
-                tf.ones_like(dis_real_y), dis_real_y
-            )
-            dis_loss = dis_fake_loss + dis_real_loss
-
-        grads = tape.gradient(gen_loss, self.model.trainable_variables)
-        dis_grads = dis_tape.gradient(dis_loss,
-                                      self.dis_model.trainable_variables)
-
-        self.optimizer.apply_gradients(
-            zip(grads, self.model.trainable_variables)
+        note = Trainer.load(self, path, custom_objects=custom_objects)
+        optimizer = self.model.optimizer
+        loss = self.model.loss
+        metrics = self.model.compiled_metrics._metrics
+        idt_loss_coef = self.model.idt_loss_coef
+        self.model = GANITrainer.GANModel(
+            self.gen_model, self.dis_model, idt_loss_coef=idt_loss_coef
         )
-        self.dis_optimizer.apply_gradients(
-            zip(dis_grads, self.dis_model.trainable_variables)
-        )
-
-        self.gen_adv_metric(adv_loss)
-        self.gen_idt_metric(idt_loss)
-        self.dis_metric(dis_loss)
+        self.model.compile(optimizer=optimizer, loss=loss,
+                           metrics=metrics)
+        return note
 
 
 class CycleGANTrainer(Trainer):
@@ -453,268 +561,269 @@ class CycleGANTrainer(Trainer):
        and training keras GAN models.
     """
 
-    def __init__(self, model, dis_model, train_data, idt_loss_func=None):
-        """Initializes data, optimizers, metrics, and models.
+    class GANModel(keras.Model):
+        def __init__(self, y_generator, y_discriminator,
+                     x_generator, x_discriminator,
+                     idt_loss_coef=0, cycle_loss_coef=10, **kwargs):
+            """GAN Keras Model that has a modified train_step.
+            params:
+                y_generator: The generative model that produces y
+                y_discriminator: The discriminative model for y inputs
+                x_generator: The generative model that produces x
+                x_discriminator: The discriminative model for x inputs
+                idt_loss_coef: A float, which is the amount of the identity
+                               loss (generator models' loss function)
+                               to be added to the generator loss
+                cycle_loss_coef: A float, which is the amount of the cycle
+                                 loss to be added to the gen model loss
+            """
+            super(CycleGANTrainer.GANModel, self).__init__(**kwargs)
+            self.y_generator = y_generator
+            self.y_discriminator = y_discriminator
+            self.x_generator = x_generator
+            self.x_discriminator = x_discriminator
+            self.y_generator.compiled_loss.build(
+                tf.zeros(self.y_generator.output_shape[1:])
+            )
+            self.idt_loss_fn = self.y_generator.compiled_loss._losses[0]
+            self.idt_loss_coef = idt_loss_coef
+            self.cycle_loss_coef = cycle_loss_coef
+
+        def train_step(self, batch):
+            """Trains the model 1 step.
+            params:
+                batch: A tuple/list of 2 tensors
+            """
+            real_x, real_y = batch
+            with tf.GradientTape(persistent=True) as tape:
+                fake_y = self.y_generator(real_x, training=True)
+                cycled_x = self.x_generator(fake_y, training=True)
+                fake_x = self.x_generator(real_y, training=True)
+                cycled_y = self.y_generator(fake_x, training=True)
+
+                same_x = self.x_generator(real_x, training=True)
+                same_y = self.y_generator(real_y, training=True)
+
+                dis_real_x = self.x_discriminator(real_x, training=True)
+                dis_real_y = self.y_discriminator(real_y, training=True)
+                dis_fake_x = self.x_discriminator(fake_x, training=True)
+                dis_fake_y = self.y_discriminator(fake_y, training=True)
+
+                y_adv_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                    tf.ones_like(dis_fake_y), dis_fake_y
+                )
+                y_adv_loss = tf.reduce_mean(y_adv_loss)
+                x_adv_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                    tf.ones_like(dis_fake_x), dis_fake_x
+                )
+                x_adv_loss = tf.reduce_mean(x_adv_loss)
+                y_idt_loss = self.idt_loss_fn(real_y, same_y)
+                y_idt_loss = tf.reduce_mean(y_idt_loss)
+                x_idt_loss = self.idt_loss_fn(real_x, same_x)
+                x_idt_loss = tf.reduce_mean(x_idt_loss)
+                cycle_loss = (self.idt_loss_fn(real_x, cycled_x) +
+                              self.idt_loss_fn(real_y, cycled_y))
+                cycle_loss = tf.reduce_mean(cycle_loss)
+                y_gen_loss = (cycle_loss * self.cycle_loss_coef +
+                              y_idt_loss * self.idt_loss_coef +
+                              y_adv_loss)
+                x_gen_loss = (cycle_loss * self.cycle_loss_coef +
+                              x_idt_loss * self.idt_loss_coef +
+                              x_adv_loss)
+
+                x_dis_fake_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                    tf.zeros_like(dis_fake_x), dis_fake_x
+                )
+                x_dis_fake_loss = tf.reduce_mean(x_dis_fake_loss)
+                x_dis_real_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                    tf.ones_like(dis_real_x), dis_real_x
+                )
+                x_dis_real_loss = tf.reduce_mean(x_dis_real_loss)
+                x_dis_loss = x_dis_fake_loss + x_dis_real_loss
+
+                y_dis_fake_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                    tf.zeros_like(dis_fake_y), dis_fake_y
+                )
+                y_dis_fake_loss = tf.reduce_mean(y_dis_fake_loss)
+                y_dis_real_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                    tf.ones_like(dis_real_y), dis_real_y
+                )
+                y_dis_real_loss = tf.reduce_mean(y_dis_real_loss)
+                y_dis_loss = y_dis_fake_loss + y_dis_real_loss
+
+            y_gen_grads = tape.gradient(y_gen_loss, self.y_generator.trainable_variables)
+            x_gen_grads = tape.gradient(x_gen_loss, self.x_generator.trainable_variables)
+
+            y_dis_grads = tape.gradient(y_dis_loss,
+                                        self.y_discriminator.trainable_variables)
+            x_dis_grads = tape.gradient(x_dis_loss,
+                                        self.x_discriminator.trainable_variables)
+
+            self.y_generator.optimizer.apply_gradients(
+                zip(y_gen_grads, self.y_generator.trainable_variables)
+            )
+            self.x_generator.optimizer.apply_gradients(
+                zip(x_gen_grads, self.x_generator.trainable_variables)
+            )
+
+            self.y_discriminator.optimizer.apply_gradients(
+                zip(y_dis_grads, self.y_discriminator.trainable_variables)
+            )
+            self.x_discriminator.optimizer.apply_gradients(
+                zip(x_dis_grads, self.x_discriminator.trainable_variables)
+            )
+
+            return {
+                'y_gen_loss': y_gen_loss,
+                'y_adversarial_loss': y_adv_loss,
+                'y_identity_loss': y_idt_loss,
+                'y_discriminator_loss': y_dis_loss,
+                'y_dis_fake_input_loss': y_dis_fake_loss,
+                'y_dis_real_input_loss': y_dis_real_loss,
+                'x_gen_loss': x_gen_loss,
+                'x_adversarial_loss': x_adv_loss,
+                'x_identity_loss': x_idt_loss,
+                'x_discriminator_loss': x_dis_loss,
+                'x_dis_fake_input_loss': x_dis_fake_loss,
+                'x_dis_real_input_loss': x_dis_real_loss,
+                'cycle_loss': cycle_loss
+            }
+
+        def call(self, inputs, training=False):
+            """Calls the discriminator model on new inputs.
+            params:
+                inputs: A tensor or list of tensors
+                training: A boolean or boolean scalar tensor, indicating
+                          whether to run the `Network` in training mode
+                          or inference mode
+            return: A tensor if there is a single output, or a list of
+                    tensors if there are more than one outputs.
+            """
+            real_x, real_y = inputs
+            dis_real_x = self.x_discriminator(real_x,
+                                              training=training)
+            dis_real_y = self.y_discriminator(real_y,
+                                              training=training)
+            return dis_real_x, dis_real_y
+
+    def __init__(self, gen_model, dis_model, data,
+                 idt_loss_coef=0, cycle_loss_coef=10):
+        """Initializes data and GANModel.
         params:
-            model: A compiled keras model, which is the generator
-                   (loss function does not matter)
+            gen_model: A compiled keras model, which is the generator
             dis_model: A compiled keras model, which is the discriminator
-                       (loss function does not matter)
-            train_data: A dictionary, numpy ndarray containg train data,
-                        or a list with x and y ndarrays.
-            idt_loss_func: A function for calculating the loss
-                           between real x and predict x
-                           (default: Mean Abs Error)
+            data: A dictionary containg train data
+                  and optionally validation and test data.
+                  If the train/validation/test key is present without
+                  the _x/_y the value will be used as a
+                  generator/Keras-Sequence/TF-Dataset and
+                  keys with _x/_y will be ignored.
+                  Ex. {'train_x': [...], 'train_y: [...]}
+                  Ex. {'train': generator()}
+                  Ex. {'train': tf.data.Dataset(), 'test': generator()}
+            idt_loss_coef: A float, which is the amount of the identity
+                           loss (generator model's loss function)
+                           to be added to the generator loss
+            cycle_loss_coef: A float, which is the amount of the cycle
+                             loss to be added to the gen model loss
         """
-        if not isinstance(train_data, (dict, list)):
+        if not isinstance(data, dict):
             raise TypeError(
-                'train_data must be either a dictionary or list'
+                'data must be a dictionary'
             )
         if len(dis_model.input_names) != 1:
             raise ValueError('dis_model should only have one input')
-        if len(model.input_names) != 1:
-            raise ValueError('model should only have one input')
-        self.model = model
-        self.model2 = keras.models.clone_model(model)
-        self.optimizer = model.optimizer
-        self.optimizer2 = keras.optimizers.get(
-            model.optimizer)  # share params?
-        if idt_loss_func is None:
-            idt_loss_func = keras.losses.MeanAbsoluteError()
-        self.idt_loss_func = idt_loss_func
-        self.dis_model = dis_model
-        self.dis_model2 = keras.models.clone_model(dis_model)
-        self.dis_optimizer = dis_model.optimizer
-        self.dis_optimizer2 = keras.optimizers.get(dis_model.optimizer)
-        self.gen_adv_metric1 = keras.metrics.Mean(name='gen_adv_loss')
-        self.gen_idt_metric1 = keras.metrics.Mean(name='gen_idt_loss')
-        self.dis_metric1 = keras.metrics.Mean(name='dis_loss')
-        self.gen_adv_metric2 = keras.metrics.Mean(name='gen_adv_loss')
-        self.gen_idt_metric2 = keras.metrics.Mean(name='gen_idt_loss')
-        self.dis_metric2 = keras.metrics.Mean(name='dis_loss')
-        self.cycle_metric = keras.metrics.Mean(name='cycle_loss')
-        self.train_data = train_data
-        self.cycle_loss_coef = 1
-        self.idt_loss_coef = 1
+        if len(gen_model.input_names) != 1:
+            raise ValueError('gen_model should only have one input')
+        self.y_gen_model = gen_model
+        self.x_gen_model = keras.models.clone_model(gen_model)
+        self.x_gen_model.compile(
+            optimizer=gen_model.optimizer, loss=gen_model.loss,
+            metrics=gen_model.compiled_metrics._metrics
+        )
+        self.y_dis_model = dis_model
+        self.x_dis_model = keras.models.clone_model(dis_model)
+        self.x_dis_model.compile(
+            optimizer=dis_model.optimizer, loss=dis_model.loss,
+            metrics=dis_model.compiled_metrics._metrics
+        )
+        self.model_names = ['y_gen_model', 'y_dis_model',
+                            'x_gen_model', 'x_dis_model']
+        self.model = CycleGANTrainer.GANModel(
+            self.y_gen_model, self.y_dis_model,
+            self.x_gen_model, self.x_dis_model,
+            idt_loss_coef=idt_loss_coef,
+            cycle_loss_coef=cycle_loss_coef
+        )
+        self.model.compile(optimizer=dis_model.optimizer,
+                           loss=dis_model.loss,
+                           metrics=dis_model.compiled_metrics._metrics)
+        self.train_data = None
+        self.validation_data = None
+        self.test_data = None
 
-        if isinstance(train_data, dict):
-            if 'train_x' in train_data and 'train_y' in train_data:
-                self.train_data = [train_data['train_x'],
-                                   train_data['train_y']]
+        if 'train_x' in data and 'train_y' in data:
+            self.train_data = (data['train_x'], data['train_y'])
+        elif 'train_x' in data or 'train_y' in data:
+            raise ValueError('Train x and y data must be provided')
+        elif 'train' in data:
+            if isinstance(data['train'], Trainer.GEN_DATA_TYPES):
+                self.train_data = data['train']
             else:
-                raise ValueError('There must be x and y train data')
-        elif len(train_data) != 2:
-            raise ValueError('Invalid train_data')
-        self.train_data[0] = self.train_data[0].astype(
-            keras.backend.floatx()
-        )
-        self.train_data[1] = self.train_data[1].astype(
-            keras.backend.floatx()
-        )
-
-    @tf.function
-    def _train_step(self, x, y):
-        """Trains the GAN 1 step.
-        params:
-            x: A Tensor
-            y: A Tensor
-        """
-        with tf.GradientTape(persistent=True) as tape:
-            fake_y = self.model(x, training=True)
-            cycled_x = self.model2(fake_y, training=True)
-            fake_x = self.model2(y, training=True)
-            cycled_y = self.model(fake_x, training=True)
-
-            same_x = self.model2(x, training=True)
-            same_y = self.model(y, training=True)
-
-            dis_real_x = self.dis_model2(x, training=True)
-            dis_real_y = self.dis_model(y, training=True)
-            dis_fake_x = self.dis_model2(fake_x, training=True)
-            dis_fake_y = self.dis_model(fake_y, training=True)
-
-            adv_loss1 = tf.nn.sigmoid_cross_entropy_with_logits(
-                tf.ones_like(dis_fake_y), dis_fake_y
-            )
-            adv_loss2 = tf.nn.sigmoid_cross_entropy_with_logits(
-                tf.ones_like(dis_fake_x), dis_fake_x
-            )
-            idt_loss1 = (self.idt_loss_func(y, same_y) *
-                         self.idt_loss_coef)
-            idt_loss2 = (self.idt_loss_func(x, same_x) *
-                         self.idt_loss_coef)
-            cycle_loss = ((self.idt_loss_func(x, cycled_x) +
-                           self.idt_loss_func(y, cycled_y)) *
-                          self.cycle_loss_coef)
-            gen_loss1 = cycle_loss + idt_loss1
-            gen_loss2 = cycle_loss + idt_loss2
-
-            dis_fake_loss2 = tf.nn.sigmoid_cross_entropy_with_logits(
-                tf.zeros_like(dis_fake_x), dis_fake_x
-            )
-            dis_real_loss2 = tf.nn.sigmoid_cross_entropy_with_logits(
-                tf.ones_like(dis_real_x), dis_real_x
-            )
-            dis_loss2 = dis_fake_loss2 + dis_real_loss2
-
-            dis_fake_loss1 = tf.nn.sigmoid_cross_entropy_with_logits(
-                tf.zeros_like(dis_fake_y), dis_fake_y
-            )
-            dis_real_loss1 = tf.nn.sigmoid_cross_entropy_with_logits(
-                tf.ones_like(dis_real_y), dis_real_y
-            )
-            dis_loss1 = dis_fake_loss1 + dis_real_loss1
-
-        grads = tape.gradient(gen_loss1, self.model.trainable_variables)
-        grads2 = tape.gradient(gen_loss2, self.model2.trainable_variables)
-
-        dis_grads = tape.gradient(dis_loss1,
-                                  self.dis_model.trainable_variables)
-        dis_grads2 = tape.gradient(dis_loss2,
-                                   self.dis_model2.trainable_variables)
-
-        self.optimizer.apply_gradients(
-            zip(grads, self.model.trainable_variables)
-        )
-        self.optimizer2.apply_gradients(
-            zip(grads2, self.model2.trainable_variables)
-        )
-
-        self.dis_optimizer.apply_gradients(
-            zip(dis_grads, self.dis_model.trainable_variables)
-        )
-        self.dis_optimizer2.apply_gradients(
-            zip(dis_grads2, self.dis_model2.trainable_variables)
-        )
-
-        self.gen_adv_metric1(adv_loss1)
-        self.gen_idt_metric1(idt_loss1)
-        self.dis_metric1(dis_loss1)
-        self.gen_adv_metric2(adv_loss2)
-        self.gen_idt_metric2(idt_loss2)
-        self.dis_metric2(dis_loss2)
-        self.cycle_metric(cycle_loss)
-
-    def train(self, epochs, batch_size=None, idt_loss_coef=10,
-              cycle_loss_coef=10, verbose=True):
-        """Trains the keras model.
-        params:
-            epochs: An integer, which is the number of complete
-                    iterations to train
-            batch_size: An integer, which is the number of samples
-                        per graident update
-            idt_loss_coef: A float, which is the amount of the identity
-                          loss to be added to the gen model loss
-            cycle_loss_coef: A float, which is the amount of the cycle
-                             loss to be added to the gen model loss
-            verbose: A boolean, which determines the verbositiy level
-        """
-        self.idt_loss_coef = idt_loss_coef
-        self.cycle_loss_coef = cycle_loss_coef
-        length = self.train_data[0].shape[0]
-        batches = tf.data.Dataset.from_tensor_slices(
-            (self.train_data[0],
-             self.train_data[1])
-        ).shuffle(length).batch(batch_size)
-        for epoch in range(1, epochs + 1):
-            if verbose:
-                print(f'Epoch {epoch}/{epochs}')
-            count = 0
-            for batch in batches:
-                self._train_step(*batch)
-                count += np.minimum(batch_size, length - count)
-                if verbose:
-                    print(f'{count}/{length}', end='\r')
-            if verbose:
-                print(f'{count}/{length} - '
-                      f'gen_adv_loss1: {self.gen_adv_metric1.result()} - '
-                      f'gen_idt_loss1: {self.gen_idt_metric1.result()} - '
-                      f'dis_loss1: {self.dis_metric1.result()}'
-                      f'gen_adv_loss2: {self.gen_adv_metric2.result()} - '
-                      f'gen_idt_loss2: {self.gen_idt_metric2.result()} - '
-                      f'dis_loss2: {self.dis_metric2.result()} - '
-                      f'cycle_loss: {self.cycle_metric.result()}')
-            self.gen_adv_metric1.reset_states()
-            self.gen_idt_metric1.reset_states()
-            self.dis_metric1.reset_states()
-            self.gen_adv_metric2.reset_states()
-            self.gen_idt_metric2.reset_states()
-            self.dis_metric2.reset_states()
-            self.cycle_metric.reset_states()
+                raise ValueError(
+                    f'train data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use train_x/_y for keys if using ndarrays.'
+                )
+        else:
+            raise ValueError('Invalid data. There must be train data.')
+        if 'validation_x' in data and 'validation_y' in data:
+            self.validation_data = (data['validation_x'],
+                                    data['validation_y'])
+        elif 'validation_x' in data or 'validation_y' in data:
+            raise ValueError('Validation x and y data must be provided')
+        elif 'validation' in data:
+            if isinstance(data['validation'], Trainer.GEN_DATA_TYPES):
+                self.validation_data = data['validation']
+            else:
+                raise ValueError(
+                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use validation_x/_y for keys if using ndarrays.'
+                )
+        if 'test_x' in data and 'test_y' in data:
+            self.test_data = (data['test_x'], data['test_y'])
+        elif 'test_x' in data or 'test_y' in data:
+            raise ValueError('Test x and y data must be provided')
+        elif 'test' in data:
+            if isinstance(data['test'], Trainer.GEN_DATA_TYPES):
+                self.test_data = data['test']
+            else:
+                raise ValueError(
+                    f'test data must be of type {Trainer.GEN_DATA_TYPES}. '
+                    f'Use test_x/_y for keys if using ndarrays.'
+                )
 
     def load(self, path, custom_objects=None):
-        """Loads a generator and discriminator model and weights from a file.
+        """Loads models and weights from a folder.
            (overrides the inital provided model)
         params:
             path: A string, which is the path to a folder
-                  containing model.json, weights.h5, and note.txt
+                  containing model.json, model_weights.h5, note.txt, etc.
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
         return: A string of note.txt
         """
-        with open(os.path.join(path, 'model.json'), 'r') as file:
-            self.model = model_from_json(
-                file.read(), custom_objects=custom_objects
-            )
-        with open(os.path.join(path, 'model2.json'), 'r') as file:
-            self.model2 = model_from_json(
-                file.read(), custom_objects=custom_objects
-            )
-        with open(os.path.join(path, 'dis_model.json'), 'r') as file:
-            self.dis_model = model_from_json(
-                file.read(), custom_objects=custom_objects
-            )
-        with open(os.path.join(path, 'dis_model2.json'), 'r') as file:
-            self.dis_model2 = model_from_json(
-                file.read(), custom_objects=custom_objects
-            )
-        self.model.load_weights(os.path.join(path, 'weights.h5'))
-        self.model2.load_weights(os.path.join(path, 'weights2.h5'))
-        self.dis_model.load_weights(os.path.join(path, 'dis_weights.h5'))
-        self.dis_model2.load_weights(os.path.join(path, 'dis_weights2.h5'))
-        with open(os.path.join(path, 'note.txt'), 'r') as file:
-            note = file.read()
+        note = Trainer.load(self, path, custom_objects=custom_objects)
+        optimizer = self.model.optimizer
+        loss = self.model.loss
+        metrics = self.model.compiled_metrics._metrics
+        idt_loss_coef = self.model.idt_loss_coef
+        cycle_loss_coef = self.model.cycle_loss_coef
+        self.model = CycleGANTrainer.GANModel(
+            self.y_gen_model, self.y_dis_model,
+            self.x_gen_model, self.x_dis_model,
+            idt_loss_coef=idt_loss_coef,
+            cycle_loss_coef=cycle_loss_coef
+        )
+        self.model.compile(optimizer=optimizer, loss=loss,
+                           metrics=metrics)
         return note
-
-    def save(self, path, note=None):
-        """Saves the generator and discriminator model and weights to a file.
-        params:
-            path: A string, which is the path to create a folder in
-                  containing model.json, weights.h5, note.txt,
-                  dis_model.json, and dis_weights.h5
-            note: A string, which is a note to save in the folder
-        return: A string, which is the given path + folder name
-        """
-        time = datetime.datetime.now()
-        path = os.path.join(path, time.strftime(r'%Y%m%d_%H%M%S_%f'))
-        os.mkdir(path)
-        self.model.save_weights(os.path.join(path, 'weights.h5'))
-        self.model2.save_weights(os.path.join(path, 'weights2.h5'))
-        self.dis_model.save_weights(os.path.join(path, 'dis_weights.h5'))
-        self.dis_model2.save_weights(os.path.join(path, 'dis_weights2.h5'))
-        with open(os.path.join(path, 'model.json'), 'w') as file:
-            file.write(self.model.to_json())
-        with open(os.path.join(path, 'model2.json'), 'w') as file:
-            file.write(self.model2.to_json())
-        with open(os.path.join(path, 'dis_model.json'), 'w') as file:
-            file.write(self.dis_model.to_json())
-        with open(os.path.join(path, 'dis_model2.json'), 'w') as file:
-            file.write(self.dis_model2.to_json())
-        with open(os.path.join(path, 'note.txt'), 'w') as file:
-            if note is None:
-                file.write('model1\n')
-                self.model.summary(print_fn=lambda line: file.write(line+'\n'))
-                file.write('\ndis_model1\n')
-                self.dis_model.summary(
-                    print_fn=lambda line: file.write(line+'\n')
-                )
-                file.write('\n\nmodel2\n')
-                self.model2.summary(
-                    print_fn=lambda line: file.write(line+'\n'))
-                file.write('\ndis_model2\n')
-                self.dis_model2.summary(
-                    print_fn=lambda line: file.write(line+'\n')
-                )
-            else:
-                file.write(note)
-        return path
