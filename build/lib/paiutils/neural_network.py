@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_14_2020
+Version: 12_15_2020
 """
 
 from types import GeneratorType
@@ -20,9 +20,26 @@ class Trainer:
     )
 
     def __init__(self, model, data):
-        """Initializes train, validation, and test data.
+        """Initializes the model and the train/validation/test data.
         params:
             model: A compiled keras model
+            data: A dictionary containg train data
+                  and optionally validation and test data.
+                  If the train/validation/test key is present without
+                  the _x/_y the value will be used as a
+                  generator/Keras-Sequence/TF-Dataset and
+                  keys with _x/_y will be ignored.
+                  Ex. {'train_x': [...], 'train_y: [...]}
+                  Ex. {'train': generator(), 'test': [...]}
+                  Ex. {'train': tf.data.Dataset(), 'test': generator()}
+        """
+        self.model = model
+        self.model_names = ['model']
+        self.set_data(data)
+
+    def set_data(self, data):
+        """Sets train, validation, and test data from data.
+        params:
             data: A dictionary containg train data
                   and optionally validation and test data.
                   If the train/validation/test key is present without
@@ -37,8 +54,6 @@ class Trainer:
             raise TypeError(
                 'data must be a dictionary'
             )
-        self.model = model
-        self.model_names = ['model']
         self.train_data = None
         self.validation_data = None
         self.test_data = None
@@ -63,8 +78,8 @@ class Trainer:
                 self.validation_data = data['validation']
             else:
                 raise ValueError(
-                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}. '
-                    f'Use validation_x/_y for keys if using ndarrays.'
+                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}'
+                    f'. Use validation_x/_y for keys if using ndarrays.'
                 )
         if 'test_x' in data and 'test_y' in data:
             self.test_data = (data['test_x'], data['test_y'])
@@ -185,7 +200,7 @@ class Trainer:
             self.__dict__[name].save_weights(
                 os.path.join(path, f'{name}_weights.h5')
             )
-            
+
             with open(os.path.join(path, f'{name}.json'), 'w') as file:
                 file.write(self.__dict__[name].to_json())
 

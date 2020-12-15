@@ -1,15 +1,12 @@
 """
 Author: Travis Hammond
-Version: 12_14_2020
+Version: 12_15_2020
 """
 
 
-import os
-import datetime
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras.models import model_from_json
 
 from paiutils.neural_network import (
     Trainer, Predictor
@@ -33,14 +30,10 @@ class AutoencoderTrainer(Trainer):
                   the _x the value will be used as a
                   generator/Keras-Sequence/TF-Dataset and
                   keys with _x will be ignored.
-                  Ex. {'train_x': [...], 'train_y: [...]}
+                  Ex. {'train_x': [...]}
                   Ex. {'train': generator()}
                   Ex. {'train': tf.data.Dataset(), 'test': generator()}
         """
-        if not isinstance(data, dict):
-            raise TypeError(
-                'data must be a dictionary'
-            )
         x0 = keras.layers.Input(shape=encoder_model.input_shape[1:])
         x1 = encoder_model(x0)
         x2 = decoder_model(x1)
@@ -51,6 +44,25 @@ class AutoencoderTrainer(Trainer):
         self.encoder_model = encoder_model
         self.decoder_model = decoder_model
         self.model_names = ['model', 'encoder_model', 'decoder_model']
+        self.set_data(data)
+
+    def set_data(self, data):
+        """Sets train, validation, and test data from data.
+        params:
+            data: A dictionary containg train data
+                  and optionally validation and test data.
+                  If the train/validation/test key is present without
+                  the _x the value will be used as a
+                  generator/Keras-Sequence/TF-Dataset and
+                  keys with _x will be ignored.
+                  Ex. {'train_x': [...]}
+                  Ex. {'train': generator()}
+                  Ex. {'train': tf.data.Dataset(), 'test': generator()}
+        """
+        if not isinstance(data, dict):
+            raise TypeError(
+                'data must be a dictionary'
+            )
         self.train_data = None
         self.validation_data = None
         self.test_data = None
@@ -166,10 +178,6 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
                             be appened with the x-data for training the
                             autoencoder
         """
-        if not isinstance(data, dict):
-            raise TypeError(
-                'data must be a dictionary'
-            )
         x0 = keras.layers.Input(shape=encoder_model.input_shape[1:])
         x1 = encoder_model(x0)
         x2 = decoder_model(x1)
@@ -182,6 +190,22 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
         self.decoder_model2 = decoder_model2
         self.model_names = ['model', 'encoder_model',
                             'decoder_model', 'decoder_model2']
+        self.set_data(data, include_y_data=include_y_data)
+
+    def set_data(self, data, include_y_data=True):
+        """Sets train, validation, and test data from data.
+        params:
+            data: A dictionary containg train data
+                  and optionally validation and test data.
+                  Ex. {'train_x': [...], 'train_y: [...]}
+            include_y_data: A boolean, which determines if y-data should
+                            be appened with the x-data for training the
+                            autoencoder
+        """
+        if not isinstance(data, dict):
+            raise TypeError(
+                'data must be a dictionary'
+            )
         self.train_data = None
         self.validation_data = None
         self.test_data = None
@@ -298,14 +322,14 @@ class VAETrainer(AutoencoderTrainer):
         def __init__(self, encoder, decoder, use_logits=True, **kwargs):
             """VAE Keras Model that has a modified train_step.
             params:
-                encoder_model: The encoder model
-                decoder_model: The decoder model (full model shares optimizer
-                               and other attributes with this model)
+                encoder: The encoder model
+                decoder: The decoder model (full model shares optimizer
+                         and other attributes with this model)
                 use_logits: A boolean that determines if binary crossentropy
                             should be used with logit inputs (decoder_model
                             loss will be ignored for training)
             """
-            super(VAETrainer.VAEModel, self).__init__(**kwargs)
+            super().__init__(**kwargs)
             self.encoder = encoder
             self.decoder = decoder
             self.use_logits = use_logits
@@ -334,23 +358,16 @@ class VAETrainer(AutoencoderTrainer):
                     reconstruction_loss = self.rloss.fn(
                         x, self.decoder(z, training=True)
                     )
-                reconstruction_loss = tf.reduce_sum(
-                    reconstruction_loss,
-                    axis=tf.range(1, reconstruction_loss.get_shape().ndims)
-                )
                 reconstruction_loss = tf.reduce_mean(
                     reconstruction_loss
                 )
                 log2pi = tf.math.log(2. * np.pi)
-                logpz = tf.reduce_sum(.5 * (z ** 2. + log2pi), axis=1)
-                logqz_x = tf.reduce_sum(
+                logpz = tf.reduce_mean(.5 * (z ** 2. + log2pi))
+                logqz_x = tf.reduce_mean(
                     -.5 * ((z - z_mean) ** 2. *
-                           tf.exp(-z_log_var) + z_log_var + log2pi),
-                    axis=1
+                           tf.exp(-z_log_var) + z_log_var + log2pi)
                 )
-                divergence_loss = tf.reduce_mean(
-                    logqz_x + logpz
-                )
+                divergence_loss = logqz_x + logpz
                 loss = reconstruction_loss + divergence_loss
             grads = tape.gradient(loss, self.trainable_weights)
             self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
@@ -397,10 +414,6 @@ class VAETrainer(AutoencoderTrainer):
                         should be used with logit inputs (decoder_model
                         loss will be ignored for training)
         """
-        if not isinstance(data, dict):
-            raise TypeError(
-                'data must be a dictionary'
-            )
         self.model = VAETrainer.VAEModel(
             encoder_model, decoder_model, use_logits=use_logits
         )
@@ -409,48 +422,8 @@ class VAETrainer(AutoencoderTrainer):
                            metrics=decoder_model.compiled_metrics._metrics)
         self.encoder_model = encoder_model
         self.decoder_model = decoder_model
-        self.model2 = None
         self.model_names = ['model', 'encoder_model', 'decoder_model']
-        self.train_data = None
-        self.validation_data = None
-        self.test_data = None
-
-        if 'train_x' in data:
-            self.train_data = data['train_x']
-            self.train_data = (self.train_data, self.train_data)
-        elif 'train' in data:
-            if isinstance(data['train'], Trainer.GEN_DATA_TYPES):
-                self.train_data = data['train']
-            else:
-                raise ValueError(
-                    f'train data must be of type {Trainer.GEN_DATA_TYPES}. '
-                    f'Use train_x for keys if using ndarrays.'
-                )
-        else:
-            raise ValueError('Invalid data. There must be train data.')
-        if 'validation_x' in data:
-            self.validation_data = data['validation_x']
-            self.validation_data = (self.validation_data,
-                                    self.validation_data)
-        elif 'validation' in data:
-            if isinstance(data['validation'], Trainer.GEN_DATA_TYPES):
-                self.validation_data = data['validation']
-            else:
-                raise ValueError(
-                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}'
-                    f'. Use validation_x for the key if using ndarrays.'
-                )
-        if 'test_x' in data:
-            self.test_data = data['test_x']
-            self.test_data = (self.test_data, self.test_data)
-        elif 'test' in data:
-            if isinstance(data['test'], Trainer.GEN_DATA_TYPES):
-                self.test_data = data['test']
-            else:
-                raise ValueError(
-                    f'test data must be of type {Trainer.GEN_DATA_TYPES}. '
-                    f'Use test_x for the key if using ndarrays.'
-                )
+        self.set_data(data)
 
     def load(self, path, custom_objects=None):
         """Loads models and weights from a folder.

@@ -1,15 +1,12 @@
 """
 Author: Travis Hammond
-Version: 12_14_2020
+Version: 12_15_2020
 """
 
 
-import os
-import datetime
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras.models import model_from_json
 
 from paiutils.neural_network import (
     Trainer, Predictor
@@ -36,7 +33,7 @@ class GANTrainer(Trainer):
                                loss (generator model's loss function)
                                to be added to the generator loss
             """
-            super(GANTrainer.GANModel, self).__init__(**kwargs)
+            super().__init__(**kwargs)
             self.generator = generator
             self.discriminator = discriminator
             self.generator.compiled_loss.build(
@@ -69,7 +66,9 @@ class GANTrainer(Trainer):
                     real_y = batch
 
             length = [tf.shape(real_y)[0]]
-            noise = tf.random.normal(shape=tf.concat([length, self.noise_shape], 0))
+            noise = tf.random.normal(
+                shape=tf.concat([length, self.noise_shape], 0)
+            )
             with tf.GradientTape(persistent=True) as tape:
                 if self.conditional:
                     fake_y = self.generator(
@@ -170,10 +169,6 @@ class GANTrainer(Trainer):
                            loss (generator model's loss function)
                            to be added to the generator loss
         """
-        if not isinstance(data, dict):
-            raise TypeError(
-                'data must be a dictionary'
-            )
         if conditional:
             names = gen_model.input_names
             if len(names) == 2:
@@ -203,22 +198,41 @@ class GANTrainer(Trainer):
         self.gen_model = gen_model
         self.dis_model = dis_model
         self.model_names = ['gen_model', 'dis_model']
+        self.set_data(data)
+
+    def set_data(self, data):
+        """Sets train, validation, and test data from data.
+        params:
+            data: A dictionary containg train data
+                  and optionally validation and test data.
+                  If the train/validation/test key is present without
+                  the _x/_y the value will be used as a
+                  generator/Keras-Sequence/TF-Dataset and
+                  keys with _x/_y will be ignored.
+                  Ex. {'train_x': [...], 'train_y: [...]}
+                  Ex. {'train': generator(), 'test': [...]}
+                  Ex. {'train': tf.data.Dataset(), 'test': generator()}
+        """
+        if not isinstance(data, dict):
+            raise TypeError(
+                'data must be a dictionary'
+            )
         self.train_data = None
         self.validation_data = None
         self.test_data = None
 
         if 'train_x' in data and 'train_y' in data:
-            if not conditional:
+            if not self.model.conditional:
                 raise ValueError('Not conditional but x '
                                  'and y data provided')
             self.train_data = (data['train_x'], data['train_y'])
         elif 'train_x' in data:
-            if conditional:
+            if self.model.conditional:
                 raise ValueError('Conditional but x and '
                                  'y data not provided')
             self.train_data = (data['train_x'], None)
         elif 'train_y' in data:
-            if conditional:
+            if self.model.conditional:
                 raise ValueError('Conditional but x and '
                                  'y data not provided')
             self.train_data = (data['train_y'], None)
@@ -246,8 +260,8 @@ class GANTrainer(Trainer):
                 self.validation_data = data['validation']
             else:
                 raise ValueError(
-                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}. '
-                    f'Use validation_x/_y for keys if using ndarrays.'
+                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}'
+                    f'. Use validation_x/_y for keys if using ndarrays.'
                 )
         if 'test_x' in data and 'test_y' in data:
             self.test_data = (data['test_x'], data['test_y'])
@@ -374,7 +388,7 @@ class GANITrainer(Trainer):
                                loss (generator model's loss function)
                                to be added to the generator loss
             """
-            super(GANITrainer.GANModel, self).__init__(**kwargs)
+            super().__init__(**kwargs)
             self.generator = generator
             self.discriminator = discriminator
             self.generator.compiled_loss.build(
@@ -467,10 +481,6 @@ class GANITrainer(Trainer):
                            loss (generator model's loss function)
                            to be added to the generator loss
         """
-        if not isinstance(data, dict):
-            raise TypeError(
-                'data must be a dictionary'
-            )
         names = dis_model.input_names
         if len(names) == 2:
             if 'x' not in names or 'y' not in names:
@@ -489,6 +499,25 @@ class GANITrainer(Trainer):
         self.gen_model = gen_model
         self.dis_model = dis_model
         self.model_names = ['gen_model', 'dis_model']
+        self.set_data(data)
+
+    def set_data(self, data):
+        """Sets train, validation, and test data from data.
+        params:
+            data: A dictionary containg train data
+                  and optionally validation and test data.
+                  If the train/validation/test key is present without
+                  the _x/_y the value will be used as a
+                  generator/Keras-Sequence/TF-Dataset and
+                  keys with _x/_y will be ignored.
+                  Ex. {'train_x': [...], 'train_y: [...]}
+                  Ex. {'train': generator(), 'test': [...]}
+                  Ex. {'train': tf.data.Dataset(), 'test': generator()}
+        """
+        if not isinstance(data, dict):
+            raise TypeError(
+                'data must be a dictionary'
+            )
         self.train_data = None
         self.validation_data = None
         self.test_data = None
@@ -517,8 +546,8 @@ class GANITrainer(Trainer):
                 self.validation_data = data['validation']
             else:
                 raise ValueError(
-                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}. '
-                    f'Use validation_x/_y for keys if using ndarrays.'
+                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}'
+                    f'. Use validation_x/_y for keys if using ndarrays.'
                 )
         if 'test_x' in data and 'test_y' in data:
             self.test_data = (data['test_x'], data['test_y'])
@@ -557,8 +586,8 @@ class GANITrainer(Trainer):
 
 
 class CycleGANTrainer(Trainer):
-    """Cyle Generative Adversarial Network Trainer is used for loading, saving,
-       and training keras GAN models.
+    """Cycle Generative Adversarial Network Trainer is used for
+       loading, saving, and training keras GAN models.
     """
 
     class GANModel(keras.Model):
@@ -577,7 +606,7 @@ class CycleGANTrainer(Trainer):
                 cycle_loss_coef: A float, which is the amount of the cycle
                                  loss to be added to the gen model loss
             """
-            super(CycleGANTrainer.GANModel, self).__init__(**kwargs)
+            super().__init__(**kwargs)
             self.y_generator = y_generator
             self.y_discriminator = y_discriminator
             self.x_generator = x_generator
@@ -651,13 +680,17 @@ class CycleGANTrainer(Trainer):
                 y_dis_real_loss = tf.reduce_mean(y_dis_real_loss)
                 y_dis_loss = y_dis_fake_loss + y_dis_real_loss
 
-            y_gen_grads = tape.gradient(y_gen_loss, self.y_generator.trainable_variables)
-            x_gen_grads = tape.gradient(x_gen_loss, self.x_generator.trainable_variables)
+            y_gen_grads = tape.gradient(y_gen_loss,
+                                        self.y_generator.trainable_variables)
+            x_gen_grads = tape.gradient(x_gen_loss,
+                                        self.x_generator.trainable_variables)
 
-            y_dis_grads = tape.gradient(y_dis_loss,
-                                        self.y_discriminator.trainable_variables)
-            x_dis_grads = tape.gradient(x_dis_loss,
-                                        self.x_discriminator.trainable_variables)
+            y_dis_grads = tape.gradient(
+                y_dis_loss, self.y_discriminator.trainable_variables
+            )
+            x_dis_grads = tape.gradient(
+                x_dis_loss, self.x_discriminator.trainable_variables
+            )
 
             self.y_generator.optimizer.apply_gradients(
                 zip(y_gen_grads, self.y_generator.trainable_variables)
@@ -727,10 +760,6 @@ class CycleGANTrainer(Trainer):
             cycle_loss_coef: A float, which is the amount of the cycle
                              loss to be added to the gen model loss
         """
-        if not isinstance(data, dict):
-            raise TypeError(
-                'data must be a dictionary'
-            )
         if len(dis_model.input_names) != 1:
             raise ValueError('dis_model should only have one input')
         if len(gen_model.input_names) != 1:
@@ -758,6 +787,25 @@ class CycleGANTrainer(Trainer):
         self.model.compile(optimizer=dis_model.optimizer,
                            loss=dis_model.loss,
                            metrics=dis_model.compiled_metrics._metrics)
+        self.set_data(data)
+
+    def set_data(self, data):
+        """Sets train, validation, and test data from data.
+        params:
+            data: A dictionary containg train data
+                  and optionally validation and test data.
+                  If the train/validation/test key is present without
+                  the _x/_y the value will be used as a
+                  generator/Keras-Sequence/TF-Dataset and
+                  keys with _x/_y will be ignored.
+                  Ex. {'train_x': [...], 'train_y: [...]}
+                  Ex. {'train': generator(), 'test': [...]}
+                  Ex. {'train': tf.data.Dataset(), 'test': generator()}
+        """
+        if not isinstance(data, dict):
+            raise TypeError(
+                'data must be a dictionary'
+            )
         self.train_data = None
         self.validation_data = None
         self.test_data = None
@@ -786,8 +834,8 @@ class CycleGANTrainer(Trainer):
                 self.validation_data = data['validation']
             else:
                 raise ValueError(
-                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}. '
-                    f'Use validation_x/_y for keys if using ndarrays.'
+                    f'validation data must be of type {Trainer.GEN_DATA_TYPES}'
+                    f'. Use validation_x/_y for keys if using ndarrays.'
                 )
         if 'test_x' in data and 'test_y' in data:
             self.test_data = (data['test_x'], data['test_y'])
