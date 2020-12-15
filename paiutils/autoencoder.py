@@ -300,9 +300,9 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
 
         results = {}
         for name, data in to_eval:
-            if verbose == 1:
-                print(f'{name} Data Evaluation: ')
             if data is not None:
+                if verbose == 1:
+                    print(f'{name} Data Evaluation: ')
                 data_0 = self.encoder_model.predict(
                     data[0], batch_size=batch_size
                 )

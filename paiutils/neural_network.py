@@ -142,19 +142,20 @@ class Trainer:
 
         results = {}
         for name, data in to_eval:
-            if verbose == 1:
-                print(f'{name} Data Evaluation: ')
-            if isinstance(data, Trainer.GEN_DATA_TYPES):
-                if 'steps' not in kwargs and batch_size is not None:
-                    kwargs['steps'] = batch_size
-                results[name] = self.model.evaluate(
-                    data, verbose=verbose, **kwargs
-                )
-            elif data is not None:
-                results[name] = self.model.evaluate(
-                    data[0], data[1], batch_size=batch_size,
-                    verbose=verbose, **kwargs
-                )
+            if data is not None:
+                if verbose == 1:
+                    print(f'{name} Data Evaluation: ')
+                if isinstance(data, Trainer.GEN_DATA_TYPES):
+                    if 'steps' not in kwargs and batch_size is not None:
+                        kwargs['steps'] = batch_size
+                    results[name] = self.model.evaluate(
+                        data, verbose=verbose, **kwargs
+                    )
+                else:
+                    results[name] = self.model.evaluate(
+                        data[0], data[1], batch_size=batch_size,
+                        verbose=verbose, **kwargs
+                    )
         return results
 
     def load(self, path, custom_objects=None):
