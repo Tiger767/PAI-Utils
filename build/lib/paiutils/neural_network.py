@@ -240,7 +240,7 @@ class Predictor:
         note_path = os.path.join(path, 'note.txt')
         if os.path.exists(note_path):
             with open(note_path, 'r') as file:
-                print(file.read(), end='')
+                self.note = file.read()
 
     def predict(self, x):
         """Predicts on a single sample.

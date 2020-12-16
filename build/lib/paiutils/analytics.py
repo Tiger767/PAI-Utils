@@ -185,6 +185,7 @@ class Analyzer:
             ndx_groups: A dictionary returned from create_label_ndx_groups
         return: unmodified x
         """
+        x = np.squeeze(x)
         if ndx_groups is None:
             ndx_groups = self.create_label_ndx_groups()
         labels = []

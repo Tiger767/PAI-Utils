@@ -319,12 +319,15 @@ class VAETrainer(AutoencoderTrainer):
     """
 
     class VAEModel(keras.Model):
-        def __init__(self, encoder, decoder, use_logits=True, **kwargs):
+        def __init__(self, encoder, decoder, rloss_coef=1000,
+                     use_logits=True, **kwargs):
             """VAE Keras Model that has a modified train_step.
             params:
                 encoder: The encoder model
                 decoder: The decoder model (full model shares optimizer
                          and other attributes with this model)
+                rloss_coef: A scalar value, which scales the reconstruction
+                            loss
                 use_logits: A boolean that determines if binary crossentropy
                             should be used with logit inputs (decoder_model
                             loss will be ignored for training)
@@ -332,6 +335,7 @@ class VAETrainer(AutoencoderTrainer):
             super().__init__(**kwargs)
             self.encoder = encoder
             self.decoder = decoder
+            self.rloss_coef = rloss_coef
             self.use_logits = use_logits
             self.decoder.compiled_loss.build(
                 tf.zeros(self.decoder.output_shape[1:])
@@ -361,14 +365,10 @@ class VAETrainer(AutoencoderTrainer):
                 reconstruction_loss = tf.reduce_mean(
                     reconstruction_loss
                 )
-                log2pi = tf.math.log(2. * np.pi)
-                logpz = tf.reduce_mean(.5 * (z ** 2. + log2pi))
-                logqz_x = tf.reduce_mean(
-                    -.5 * ((z - z_mean) ** 2. *
-                           tf.exp(-z_log_var) + z_log_var + log2pi)
+                divergence_loss = .5 * tf.reduce_mean(
+                    tf.exp(z_log_var) + z_mean**2 - 1. - z_log_var
                 )
-                divergence_loss = logqz_x + logpz
-                loss = reconstruction_loss + divergence_loss
+                loss = reconstruction_loss * self.rloss_coef + divergence_loss
             grads = tape.gradient(loss, self.trainable_weights)
             self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
             return {
@@ -395,7 +395,8 @@ class VAETrainer(AutoencoderTrainer):
                 y = tf.math.sigmoid(y)
             return y
 
-    def __init__(self, encoder_model, decoder_model, data, use_logits=True):
+    def __init__(self, encoder_model, decoder_model,
+                 data, rloss_coef=1000, use_logits=True):
         """Initializes train, validation, and test data.
         params:
             encoder_model: A compiled keras model
@@ -410,12 +411,15 @@ class VAETrainer(AutoencoderTrainer):
                   Ex. {'train_x': [...], 'train_y: [...]}
                   Ex. {'train': generator()}
                   Ex. {'train': tf.data.Dataset(), 'test': generator()}
+            rloss_coef: A scalar value, which scales the reconstruction
+                        loss
             use_logits: A boolean that determines if binary crossentropy
                         should be used with logit inputs (decoder_model
                         loss will be ignored for training)
         """
         self.model = VAETrainer.VAEModel(
-            encoder_model, decoder_model, use_logits=use_logits
+            encoder_model, decoder_model, rloss_coef=rloss_coef,
+            use_logits=use_logits
         )
         self.model.compile(optimizer=decoder_model.optimizer,
                            loss=decoder_model.loss,
