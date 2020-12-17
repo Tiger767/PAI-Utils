@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_14_2020
+Version: 12_16_2020
 """
 
 import pytest
@@ -188,8 +188,8 @@ def test_gan_predictor():
     assert predictor.predict(np.random.random((100,))).shape == (12, 12, 1)
     assert predictor.predict_all(np.random.random(
         (10, 100))).shape == (10, 12, 12, 1)
-    assert predictor.random_normal_predict().shape == (12, 12, 1)
-    assert predictor.random_uniform_predict().shape == (12, 12, 1)
+    assert predictor.generate().shape == (1, 12, 12, 1)
+    assert predictor.generate(10).shape == (10, 12, 12, 1)
 
 
 def test_gani_trainer():

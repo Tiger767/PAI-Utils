@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_15_2020
+Version: 12_16_2020
 """
 
 
@@ -28,7 +28,7 @@ class GANTrainer(Trainer):
                 conditional: A boolean, which determines if the GAN is a
                              conditional GAN
                 noise_fn: A TF function that takes a shape and returns
-                          noise (Default: normal noise)
+                          noise (Default: uniform noise)
                 idt_loss_coef: A float, which is the amount of the identity
                                loss (generator model's loss function)
                                to be added to the generator loss
@@ -42,7 +42,7 @@ class GANTrainer(Trainer):
             self.idt_loss_fn = self.generator.compiled_loss._losses[0]
             self.conditional = conditional
             if noise_fn is None:
-                noise_fn = tf.random.normal
+                noise_fn = tf.random.uniform
             self.noise_fn = noise_fn
             self.idt_loss_coef = idt_loss_coef
             if conditional:
@@ -66,7 +66,7 @@ class GANTrainer(Trainer):
                     real_y = batch
 
             length = [tf.shape(real_y)[0]]
-            noise = tf.random.normal(
+            noise = self.noise_fn(
                 shape=tf.concat([length, self.noise_shape], 0)
             )
             with tf.GradientTape(persistent=True) as tape:
@@ -144,6 +144,7 @@ class GANTrainer(Trainer):
                 else:
                     real_y = inputs
                 dis_real_y = self.discriminator(real_y, training=training)
+            dis_real_y = tf.math.sigmoid(dis_real_y)
             return dis_real_y
 
     def __init__(self, gen_model, dis_model, data, conditional=False,
@@ -164,7 +165,7 @@ class GANTrainer(Trainer):
             conditional: A boolean, which determines if the GAN is a
                          conditional GAN
             noise_fn: A TF function that takes a shape and returns
-                      noise (Default: normal noise)
+                      noise (Default: uniform noise)
             idt_loss_coef: A float, which is the amount of the identity
                            loss (generator model's loss function)
                            to be added to the generator loss
@@ -311,64 +312,73 @@ class GANPredictor(Predictor):
        loading and predicting keras GAN models.
     """
 
-    def __init__(self, path,  weights_name='gen_model_weights.h5',
+    def __init__(self, path, noise_fn=None,
+                 weights_name='gen_model_weights.h5',
                  model_name='gen_model.json', custom_objects=None):
+        """Loads the model and weights.
+        params:
+            path: A string, which is the path to a folder containing
+                  model.json, weights.h5, and maybe note.txt
+            noise_fn: A function for generating input for the GAN
+                      (Default: tf.random.uniform)
+            weights_name: A string, which is the name of the weights to load
+            model_name: A string, which is the name of the model to load
+            custom_objects: A dictionary mapping to custom classes
+                            or functions for loading the model
+        """
         Predictor.__init__(self, path, weights_name=weights_name,
                            model_name=model_name,
                            custom_objects=custom_objects)
+        if noise_fn is None:
+            noise_fn = tf.random.uniform
+        self.noise_fn = noise_fn
         if isinstance(self.model.input_shape, list):
             noise_ndx = self.model.input_names.index('noise')
             self.input_shape = self.model.input_shape[noise_ndx][1:]
         else:
             self.input_shape = self.model.input_shape[1:]
 
-    def predict(self, noise, x=None):
+    def generate(self, n=1, conditions=None):
+        """Generates n samples.
+        params:
+            n: A integer, which is the number of
+               samples to produce
+            conditions: A ndarray of model conditional input
+        return: A result from the model output
+        """
+        noise = self.noise_fn([n, *self.input_shape])
+        if conditions is None:
+            return self.model.predict(noise)
+        if n != len(conditions):
+            raise ValueError('n should equal the number '
+                             'of conditions provided')
+        return self.model.predict({'condition': conditions, 'noise': noise})
+
+    def predict(self, noise, condition=None):
         """Predicts on a single sample.
         params:
-            noise: A single model noise input
-            x: A single model conditional input
+            noise: A 1D ndarray for the input of the model
+            condition: A ndarray of model conditional input
         return: A result from the model output
         """
-        if x is None:
+        if condition is None:
             return self.model.predict(np.expand_dims(noise, axis=0))[0]
-        return self.model.predict({'x': np.expand_dims(x, axis=0),
-                                   'noise': np.expand_dims(noise, axis=0)})[0]
+        return self.model.predict(
+            {'condition': np.expand_dims(condition, axis=0),
+             'noise': np.expand_dims(noise, axis=0)}
+        )[0]
 
-    def predict_all(self, noise, x=None, batch_size=None):
+    def predict_all(self, noise, conditions=None, batch_size=None):
         """Predicts on many samples.
         params:
-            noise: A ndarray of model noise input
-            x: A ndarray of model conditional input
+            noise: A 1D ndarray for the input of the model
+            conditions: A ndarray of model conditional input
         return: A result from the model output
         """
-        if x is None:
+        if conditions is None:
             return self.model.predict(noise, batch_size=batch_size)
-        return self.model.predict({'x': x, 'noise': noise},
+        return self.model.predict({'condition': conditions, 'noise': noise},
                                   batch_size=batch_size)
-
-    def random_normal_predict(self, x=None):
-        """Predicts an output with a random normal distribution.
-        params:
-            x: A single model conditional input
-        return: A result from the model output
-        """
-        noise = tf.random.normal([1, *self.input_shape])
-        if x is None:
-            return self.model.predict(noise)[0]
-        return self.model.predict({'x': np.expand_dims(x, axis=0),
-                                   'noise': noise})[0]
-
-    def random_uniform_predict(self, x=None):
-        """Predicts an output with a random uniform distribution.
-        params:
-            x: A single model conditional input
-        return: A result from the model output
-        """
-        noise = tf.random.uniform([1, *self.input_shape])
-        if x is None:
-            return self.model.predict(noise)[0]
-        return self.model.predict({'x': np.expand_dims(x, axis=0),
-                                   'noise': noise})[0]
 
 
 class GANITrainer(Trainer):
