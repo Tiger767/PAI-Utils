@@ -180,16 +180,17 @@ def test_gan_predictor():
     trainer = GANTrainer(gen_model, dis_model, {'train_y': y_data})
 
     path = trainer.save('')
-    predictor = GANPredictor(path)
-    for filename in os.listdir(path):
-        os.remove(os.path.join(path, filename))
-    os.rmdir(path)
 
+    predictor = GANPredictor(path)
     assert predictor.predict(np.random.random((100,))).shape == (12, 12, 1)
     assert predictor.predict_all(np.random.random(
         (10, 100))).shape == (10, 12, 12, 1)
     assert predictor.generate().shape == (1, 12, 12, 1)
     assert predictor.generate(10).shape == (10, 12, 12, 1)
+
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)
 
 
 def test_gani_trainer():
@@ -250,7 +251,6 @@ def test_gani_trainer():
                           idt_loss_coef=10)
     trainer.train(2, 2)
 
-
     path = trainer.save('')
     note = trainer.load(path)
     for filename in os.listdir(path):
@@ -263,6 +263,59 @@ def test_gani_trainer():
     with pytest.raises(ValueError):
         GANITrainer(gen_model, dis_model,
                     {'train_x': x_data, 'train_a': y_data})
+
+def test_gani_predictor():
+    x_data = np.random.random((10, 12, 12, 1))
+    y_data = np.random.random((10, 12, 12, 1))
+
+    inputs = keras.layers.Input(shape=(12, 12, 1))
+    x = conv2d(64, 3)(inputs)
+    output = conv2d(1, 3, activation='tanh', batch_norm=False)(x)
+    gen_model = keras.Model(inputs=inputs, outputs=output)
+    gen_model.compile(optimizer=keras.optimizers.Adam(.0002, .5), loss='mse')
+
+    x_input = keras.layers.Input(shape=(12, 12, 1), name='x')
+    y_input = keras.layers.Input(shape=(12, 12, 1), name='y')
+    x = conv2d(64, 3, strides=2, activation=None,
+               batch_norm=False)(x_input)
+    x = keras.layers.LeakyReLU(alpha=0.2)(x)
+    x = conv2d(128, 3, strides=2, activation=None)(x)
+    x = keras.layers.LeakyReLU(alpha=0.2)(x)
+    x = conv2d(256, 3, strides=2, activation=None)(x)
+    x = keras.layers.LeakyReLU(alpha=0.2)(x)
+    x = keras.layers.Flatten()(x)
+
+    x2 = conv2d(64, 3, strides=2, activation=None,
+                batch_norm=False)(y_input)
+    x2 = keras.layers.LeakyReLU(alpha=0.2)(x2)
+    x2 = conv2d(128, 3, strides=2, activation=None)(x2)
+    x2 = keras.layers.LeakyReLU(alpha=0.2)(x2)
+    x2 = conv2d(256, 3, strides=2, activation=None)(x2)
+    x2 = keras.layers.LeakyReLU(alpha=0.2)(x2)
+    x2 = keras.layers.Flatten()(x2)
+    x = keras.layers.Concatenate()([x, x2])
+    outputs = dense(1, activation=None, batch_norm=False)(x)
+    dis_model = keras.Model(inputs=[x_input, y_input], outputs=outputs)
+    dis_model.compile(optimizer=keras.optimizers.Adam(.0002, .5), loss='mse')
+
+    trainer = GANITrainer(gen_model, dis_model,
+                          {'train_x': x_data, 'train_y': y_data})
+
+    path = trainer.save('')
+
+    predictor = GANIPredictor(path)
+    assert predictor.predict(np.random.random(
+        (12, 12, 1))).shape == (12, 12, 1)
+    assert predictor.predict_all(np.random.random(
+        (10, 12, 12, 1))).shape == (10, 12, 12, 1)
+
+    predictor = GANIPredictor(path, uses_generator=False)
+    assert predictor.predict({'x': x_data[0], 'y': y_data[0]}).shape == (1,)
+    assert predictor.predict_all({'x': x_data, 'y': y_data}).shape == (10, 1)
+
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)
 
 
 def test_cycle_gan_trainer():
@@ -324,3 +377,58 @@ def test_cycle_gan_trainer():
     with pytest.raises(ValueError):
         CycleGANTrainer(gen_model, dis_model,
                         {'train_x': x_data, 'train_a': y_data})
+
+
+def test_cycle_gan_predictor():
+    x_data = np.random.random((10, 12, 12, 1))
+    y_data = np.random.random((10, 12, 12, 1))
+
+    inputs = keras.layers.Input(shape=(12, 12, 1))
+    x = conv2d(64, 3)(inputs)
+    output = conv2d(1, 3, activation='tanh', batch_norm=False)(x)
+    gen_model = keras.Model(inputs=inputs, outputs=output)
+    gen_model.compile(optimizer=keras.optimizers.Adam(.0002, .5), loss='mse')
+
+    inputs = keras.layers.Input(shape=(12, 12, 1))
+    x = conv2d(64, 3, strides=2, activation=None,
+               batch_norm=False)(inputs)
+    x = keras.layers.LeakyReLU(alpha=0.2)(x)
+    x = conv2d(128, 3, strides=2, activation=None)(x)
+    x = keras.layers.LeakyReLU(alpha=0.2)(x)
+    x = conv2d(256, 3, strides=2, activation=None)(x)
+    x = keras.layers.LeakyReLU(alpha=0.2)(x)
+    x = keras.layers.Flatten()(x)
+    outputs = dense(1, activation=None, batch_norm=False)(x)
+    dis_model = keras.Model(inputs=inputs, outputs=outputs)
+    dis_model.compile(optimizer=keras.optimizers.Adam(.0002, .5), loss='mse')
+
+    trainer = CycleGANTrainer(gen_model, dis_model,
+                              {'train_x': x_data, 'train_y': y_data})
+
+    path = trainer.save('')
+
+    predictor = CycleGANPredictor(path)
+    assert predictor.predict(np.random.random(
+        (12, 12, 1))).shape == (12, 12, 1)
+    assert predictor.predict_all(np.random.random(
+        (10, 12, 12, 1))).shape == (10, 12, 12, 1)
+
+    predictor = CycleGANPredictor(path, uses_generator=False)
+    assert predictor.predict(x_data[0]).shape == (1,)
+    assert predictor.predict_all(x_data).shape == (10, 1)
+
+
+    predictor = CycleGANPredictor(path, uses_x_model=False)
+    assert predictor.predict(np.random.random(
+        (12, 12, 1))).shape == (12, 12, 1)
+    assert predictor.predict_all(np.random.random(
+        (10, 12, 12, 1))).shape == (10, 12, 12, 1)
+
+    predictor = CycleGANPredictor(path, uses_x_model=False,
+                                  uses_generator=False)
+    assert predictor.predict(y_data[0]).shape == (1,)
+    assert predictor.predict_all(y_data).shape == (10, 1)
+
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)

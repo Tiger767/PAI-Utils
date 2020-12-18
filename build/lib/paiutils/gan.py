@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_16_2020
+Version: 12_18_2020
 """
 
 
@@ -595,6 +595,34 @@ class GANITrainer(Trainer):
         return note
 
 
+class GANIPredictor(Predictor):
+    """GANIPredictor is used for loading and predicting GANI keras models."""
+
+    def __init__(self, path, uses_generator=True,
+                 custom_objects=None):
+        """Initializes the model and weights.
+        params:
+            path: A string, which is the path to a folder containing
+                  model.json, weights.h5, note.txt, and maybe encoder/decoder
+                  parts
+            uses_generator: A boolean, which determines if the generator
+                            or discriminator should be loaded
+            custom_objects: A dictionary mapping to custom classes
+                            or functions for loading the model
+        """
+        weights = '_model_weights.h5'
+        model = '_model.json'
+        if uses_generator:
+            weights = 'gen' + weights
+            model = 'gen' + model
+        else:
+            weights = 'dis' + weights
+            model = 'dis' + model
+        super().__init__(path, weights_name=weights,
+                         model_name=model,
+                         custom_objects=custom_objects)
+
+
 class CycleGANTrainer(Trainer):
     """Cycle Generative Adversarial Network Trainer is used for
        loading, saving, and training keras GAN models.
@@ -742,12 +770,15 @@ class CycleGANTrainer(Trainer):
             return: A tensor if there is a single output, or a list of
                     tensors if there are more than one outputs.
             """
-            real_x, real_y = inputs
-            dis_real_x = self.x_discriminator(real_x,
-                                              training=training)
-            dis_real_y = self.y_discriminator(real_y,
-                                              training=training)
-            return dis_real_x, dis_real_y
+            if len(inputs) == 2:
+                real_x, real_y = inputs
+                dis_real_x = self.x_discriminator(real_x,
+                                                  training=training)
+                dis_real_y = self.y_discriminator(real_y,
+                                                  training=training)
+                return dis_real_x, dis_real_y
+            else:
+                return None
 
     def __init__(self, gen_model, dis_model, data,
                  idt_loss_coef=0, cycle_loss_coef=10):
@@ -885,3 +916,39 @@ class CycleGANTrainer(Trainer):
         self.model.compile(optimizer=optimizer, loss=loss,
                            metrics=metrics)
         return note
+
+
+class CycleGANPredictor(Predictor):
+    """CycleGANPredictor is used for loading and predicting Cylce GAN keras models."""
+
+    def __init__(self, path, uses_x_model=True, uses_generator=True,
+                 custom_objects=None):
+        """Initializes the model and weights.
+        params:
+            path: A string, which is the path to a folder containing
+                  model.json, weights.h5, note.txt, and maybe encoder/decoder
+                  parts
+            uses_x_model: A boolean, which determines if the x or y
+                          model should be loaded
+            uses_generator: A boolean, which determines if the generator
+                            or discriminator should be loaded
+            custom_objects: A dictionary mapping to custom classes
+                            or functions for loading the model
+        """
+        weights = '_model_weights.h5'
+        model = '_model.json'
+        if uses_generator:
+            weights = '_gen' + weights
+            model = '_gen' + model
+        else:
+            weights = '_dis' + weights
+            model = '_dis' + model
+        if uses_x_model:
+            weights = 'x' + weights
+            model = 'x' + model
+        else:
+            weights = 'y' + weights
+            model = 'y' + model
+        super().__init__(path, weights_name=weights,
+                         model_name=model,
+                         custom_objects=custom_objects)

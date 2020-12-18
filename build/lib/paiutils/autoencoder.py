@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_15_2020
+Version: 12_18_2020
 """
 
 
@@ -132,7 +132,7 @@ class AutoencoderPredictor(Predictor):
     """AutoenocderPredictor is used for loading and predicting keras models."""
 
     def __init__(self, path, uses_encoder_model=False,
-                 uses_decoder_model=False):
+                 uses_decoder_model=False, custom_objects=None):
         """Initializes the model and weights.
         params:
             path: A string, which is the path to a folder containing
@@ -144,15 +144,19 @@ class AutoencoderPredictor(Predictor):
             uses_decoder_model: A boolean, which determines if decoder model
                                 should be used for predictions
                                 (cannot also enable uses_encoder_model)
+            custom_objects: A dictionary mapping to custom classes
+                            or functions for loading the model
         """
         if uses_encoder_model:
             super().__init__(path, 'encoder_model_weights.h5',
-                             'encoder_model.json')
+                             'encoder_model.json',
+                             custom_objects=custom_objects)
         elif uses_decoder_model:
             super().__init__(path, 'decoder_model_weights.h5',
-                             'decoder_model.json')
+                             'decoder_model.json',
+                             custom_objects=custom_objects)
         else:
-            super().__init__(path)
+            super().__init__(path, custom_objects=custom_objects)
 
 
 class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):

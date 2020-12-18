@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_15_2020
+Version: 12_17_2020
 """
 
 from types import GeneratorType
@@ -221,7 +221,7 @@ class Trainer:
 class Predictor:
     """Predictor is used for loading and predicting keras models."""
 
-    def __init__(self, path,  weights_name='model_weights.h5',
+    def __init__(self, path, weights_name='model_weights.h5',
                  model_name='model.json', custom_objects=None):
         """Initializes the model and weights.
         params:
@@ -260,7 +260,7 @@ class Predictor:
 
 
 def dense(units, activation='relu', l1=0, l2=0, batch_norm=True,
-          momentum=0.999, epsilon=1e-5, name=None):
+          momentum=0.99, epsilon=1e-5, name=None):
     """Creates a dense layer function.
     params:
         units: An integer, which is the dimensionality of the output space
@@ -281,13 +281,11 @@ def dense(units, activation='relu', l1=0, l2=0, batch_norm=True,
         kernel_initializer = 'glorot_uniform'
     if l1 == l2 == 0:
         dl = keras.layers.Dense(units, activation=activation, name=name,
-                                kernel_initializer=kernel_initializer,
-                                use_bias=not batch_norm)
+                                kernel_initializer=kernel_initializer)
     else:
         dl = keras.layers.Dense(units, activation=activation,
                                 kernel_regularizer=l1_l2(l1, l2), name=name,
-                                kernel_initializer=kernel_initializer,
-                                use_bias=not batch_norm)
+                                kernel_initializer=kernel_initializer)
     if batch_norm:
         bn_name = name + '_batchnorm' if name is not None else None
         bnl = keras.layers.BatchNormalization(epsilon=epsilon,
@@ -310,7 +308,7 @@ def dense(units, activation='relu', l1=0, l2=0, batch_norm=True,
 def conv1d(filters, kernel_size, strides=1, activation='relu',
            padding='same', max_pool_size=None, max_pool_strides=None,
            upsampling_size=None, l1=0, l2=0, batch_norm=True,
-           momentum=0.999, epsilon=1e-5, transpose=False, name=None):
+           momentum=0.99, epsilon=1e-5, transpose=False, name=None):
     """Creates a 1D convolution layer function.
     params:
         filters: An integer, which is the dimensionality of the output space
@@ -348,14 +346,14 @@ def conv1d(filters, kernel_size, strides=1, activation='relu',
         cl = kl_conv1d(filters, kernel_size,
                        activation=activation,
                        strides=strides, padding=padding,
-                       name=name, use_bias=not batch_norm,
+                       name=name,
                        kernel_initializer=kernel_initializer)
     else:
         cl = kl_conv1d(filters, kernel_size,
                        activation=activation,
                        strides=strides, padding=padding,
                        kernel_regularizer=l1_l2(l1, l2),
-                       name=name, use_bias=not batch_norm,
+                       name=name,
                        kernel_initializer=kernel_initializer)
     if batch_norm:
         bn_name = name + '_batchnorm' if name is not None else None
@@ -391,7 +389,7 @@ def conv1d(filters, kernel_size, strides=1, activation='relu',
 
 def conv2d(filters, kernel_size=3, strides=1, activation='relu',
            padding='same', max_pool_size=None, max_pool_strides=None,
-           l1=0, l2=0, batch_norm=True, momentum=0.999, epsilon=1e-5,
+           l1=0, l2=0, batch_norm=True, momentum=0.99, epsilon=1e-5,
            upsampling_size=None, transpose=False, name=None):
     """Creates a 2D convolution layer function.
     params:
@@ -432,14 +430,14 @@ def conv2d(filters, kernel_size=3, strides=1, activation='relu',
         cl = kl_conv2d(filters, kernel_size,
                        activation=activation,
                        strides=strides, padding=padding,
-                       name=name, use_bias=not batch_norm,
+                       name=name,
                        kernel_initializer=kernel_initializer)
     else:
         cl = kl_conv2d(filters, kernel_size,
                        activation=activation,
                        strides=strides, padding=padding,
                        kernel_regularizer=l1_l2(l1, l2),
-                       name=name, use_bias=not batch_norm,
+                       name=name,
                        kernel_initializer=kernel_initializer)
     if batch_norm:
         bn_name = name + '_batchnorm' if name is not None else None
