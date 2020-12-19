@@ -8,6 +8,7 @@ import os
 from datetime import datetime
 
 import h5py
+import gym
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras.backend as K
@@ -20,15 +21,15 @@ class Environment:
        performs actions in and can get rewards from.
     """
 
-    def __init__(self, state_shape, action_shape):
+    def __init__(self, state_shape, action_size):
         """Initalizes state and action shapes and sets the state.
         params:
             state_shape: A tuple of integers, which is the
                          expected state shape for the agent,
                          or an integer of the discrete state
                          space
-            action_shape: A tuple of integers, which is the
-                          expected action shape
+            action_size: An integer which is the discrete size
+                         of the action space
         """
         if isinstance(state_shape, int):
             self.discrete_state_space = state_shape
@@ -36,7 +37,7 @@ class Environment:
         else:
             self.discrete_state_space = None
         self.state_shape = state_shape
-        self.action_shape = action_shape
+        self.action_size = action_size
 
     def reset(self):
         """Resets the environment to its initialized state.
@@ -87,10 +88,10 @@ class Environment:
         for step in range(1, max_steps + 1):
             if random:
                 if random_bounds is None:
-                    action = np.random.randint(0, self.action_shape[0])
+                    action = np.random.randint(0, self.action_size)
                 else:
                     action = np.random.uniform(*random_bounds,
-                                               size=self.action_shape)
+                                               size=self.action_size)
             else:
                 action = agent.select_action(
                     state, training=agent.playing_data.training
@@ -186,31 +187,34 @@ class Environment:
 class GymWrapper(Environment):
     """This class is a environment wrapper for OpenAI Gyms."""
 
-    def __init__(self, gym, state_shape, action_shape):
+    def __init__(self, genv):
         """Initalizes state and action shapes and sets the state.
         params:
-            gym: A OpenAI Gym
-            state_shape: A tuple of integers, which is the
-                         expected state shape for the agent,
-                         or an integer of the discrete state
-                         space
-            action_shape: A tuple of integers, which is the
-                          expected action shape
+            genv: An OpenAI Gym
         """
-        self.gym = gym
-        if isinstance(state_shape, int):
-            self.discrete_state_space = state_shape
-            state_shape = 1
-        else:
+        self.genv = genv
+        if isinstance(self.genv.observation_space, gym.spaces.Discrete):
+            self.discrete_state_space = self.genv.observation_space.n
+            self.state_shape = 1
+        elif isinstance(self.genv.observation_space, gym.spaces.Box):
             self.discrete_state_space = None
-        self.state_shape = state_shape
-        self.action_shape = action_shape
+            self.state_shape = self.genv.observation_space.shape
+        else:
+            raise NotImplementedError('Only Discrete and Box '
+                                      'observation spaces '
+                                      'are supported')
+
+        if isinstance(self.genv.action_space, gym.spaces.Discrete):
+            self.action_size = self.genv.action_space.n
+        else:
+            raise NotImplementedError('Only Discrete action '
+                                      'spaces are supported')
 
     def reset(self):
         """Resets the environment to its initialized state.
         return: A numpy ndarray, which is the state
         """
-        self.state = self.gym.reset()
+        self.state = self.genv.reset()
         if self.discrete_state_space is None:
             return self.state
         else:
@@ -224,7 +228,7 @@ class GymWrapper(Environment):
         return: A tuple of a ndarray (state), a float/integer (reward),
                 and a boolean (terminal state)
         """
-        self.state, reward, terminal, _ = self.gym.step(action)
+        self.state, reward, terminal, _ = self.genv.step(action)
         if self.discrete_state_space is None:
             return self.state, reward, terminal
         else:
@@ -233,12 +237,12 @@ class GymWrapper(Environment):
     def close(self):
         """Closes any threads or loose ends of the environment.
         """
-        self.gym.close()
+        self.genv.close()
 
     def render(self):
         """Renders the environment.
         """
-        self.gym.render()
+        self.genv.render()
 
 
 class MultiSeqAgentEnvironment(Environment):
@@ -246,13 +250,13 @@ class MultiSeqAgentEnvironment(Environment):
        can perform actions against eachother in a sequential manner.
     """
 
-    def __init__(self, state_shape, action_shape):
+    def __init__(self, state_shape, action_size):
         """Initalizes state and action shapes and sets the state.
         params:
             state_shape: A tuple of integers, which is the
                          expected state shape for the agent
-            action_shape: A tuple of integers, which is the
-                          expected action shape
+            action_size: An integer which is the discrete size
+                         of the action space
         """
         if isinstance(state_shape, int):
             self.discrete_state_space = state_shape
@@ -260,7 +264,7 @@ class MultiSeqAgentEnvironment(Environment):
         else:
             self.discrete_state_space = None
         self.state_shape = state_shape
-        self.action_shape = action_shape
+        self.action_size = action_size
 
     def reset(self, num_agents):
         """Resets the environment to its initialized state.
@@ -326,10 +330,10 @@ class MultiSeqAgentEnvironment(Environment):
             for ndx in ndxs:
                 if random:
                     if random_bounds is None:
-                        action = np.random.randint(0, self.action_shape[0])
+                        action = np.random.randint(0, self.action_size)
                     else:
                         action = np.random.uniform(*random_bounds,
-                                                   size=self.action_shape)
+                                                   size=self.action_size)
                 else:
                     action = agents[ndx].select_action(
                         states[ndx], training=agents[ndx].playing_data.training
@@ -1110,18 +1114,18 @@ class Agent:
        and essentially is a random agent.
     """
 
-    def __init__(self, action_shape, policy):
+    def __init__(self, action_size, policy):
         """Initalizes the agent.
         params:
-            action_shape: A tuple of integers, which is the
-                          action shape of the environment
+            action_size: An integer which is the discrete size
+                         of the action space
             policy: A policy instance
         """
-        if not isinstance(action_shape, tuple):
-            raise TypeError('action_shape must be a tuple')
+        if not isinstance(action_size, int):
+            raise TypeError('action_size must be an integer')
         if not isinstance(policy, Policy):
             raise TypeError('policy must be a Policy instance')
-        self.action_shape = action_shape
+        self.action_size = action_size
         self.policy = policy
         self.playing_data = None
 
@@ -1136,7 +1140,7 @@ class Agent:
         return: A value, which is the selected action
         """
         def _select_action():
-            return np.random.random(self.action_shape)
+            return np.random.random(self.action_size)
         return self.policy.select_action(_select_action,
                                          training=training)
 
@@ -1222,11 +1226,11 @@ class QAgent(Agent):
                              future rewards should be counted for the current
                              reward
         """
-        Agent.__init__(self, (action_size,), policy)
+        Agent.__init__(self, action_size, policy)
         self.discrete_state_space = discrete_state_space
         self.discounted_rate = discounted_rate
         self.qtable = np.zeros((self.discrete_state_space,
-                                self.action_shape[0]))
+                                self.action_size))
         self.state = None
         self.action = None
         self.new_state = None
@@ -1363,7 +1367,7 @@ class PQAgent(QAgent):
                            that the table is updated with the currect
                            Q reward
         """
-        Agent.__init__(self, (action_size,), policy)
+        Agent.__init__(self, action_size, policy)
         self.discrete_state_space = discrete_state_space
         self.discounted_rates = np.array(discounted_rates)
         self.learning_rates = np.array(learning_rates)
@@ -1371,7 +1375,7 @@ class PQAgent(QAgent):
         self.qtables = np.zeros((len(self.learning_rates),
                                  len(self.discounted_rates),
                                  self.discrete_state_space,
-                                 self.action_shape[0]))
+                                 self.action_size))
         self.selected_qtable = lambda: self.qtables[0, 0]
         self.state = None
         self.action = None
@@ -1522,14 +1526,14 @@ class MemoryAgent(Agent):
     """This class is the base class for all agent that use memory.
     """
 
-    def __init__(self, action_shape, policy):
+    def __init__(self, action_size, policy):
         """Initalizes the agent.
         params:
-            action_shape: A tuple of integers, which is the
-                          action shape of the environment
+            action_size: An integer which is the discrete size
+                         of the action space
             policy: A policy instance
         """
-        Agent.__init__(self, action_shape, policy)
+        Agent.__init__(self, action_size, policy)
         self.memory = {}
         self.time_distributed_states = None
 
@@ -1590,14 +1594,14 @@ class DQNAgent(MemoryAgent):
     """
 
     @staticmethod
-    def get_dueling_output_layer(action_shape, dueling_type='avg'):
+    def get_dueling_output_layer(action_size, dueling_type='avg'):
         assert dueling_type in ['avg', 'max', 'naive'], (
             "Dueling type must be 'avg', 'max', or 'naive'"
         )
 
         def layer(x1, x2):
             x1 = keras.layers.Dense(1)(x1)
-            x2 = keras.layers.Dense(action_shape[0])(x2)
+            x2 = keras.layers.Dense(action_size)(x2)
             x = keras.layers.Concatenate()([x1, x2])
             if dueling_type == 'avg':
                 def dueling(a):
@@ -1610,7 +1614,7 @@ class DQNAgent(MemoryAgent):
             else:
                 def dueling(a):
                     return K.expand_dims(a[:, 0], -1) + a[:, 1:]
-            return keras.layers.Lambda(dueling, output_shape=action_shape,
+            return keras.layers.Lambda(dueling, output_shape=(action_size,),
                                        name='q_output')(x)
         return layer
 
@@ -1637,8 +1641,11 @@ class DQNAgent(MemoryAgent):
                         the probabilily of being choosen and not also the
                         gradient)
         """
-        MemoryAgent.__init__(self, qmodel.output_shape[1:], policy)
+        MemoryAgent.__init__(self, qmodel.output_shape[1], policy)
         self.qmodel = qmodel
+        self.qmodel.compiled_loss.build(
+            tf.zeros(self.qmodel.output_shape[1:])
+        )
         self.target_qmodel = None
         self.enable_target = enable_target or enable_double
         self.enable_double = enable_double
@@ -1677,7 +1684,7 @@ class DQNAgent(MemoryAgent):
             self.max_loss = 100.0
         else:
             self.per_losses = None
-        self.action_identity = np.identity(self.action_shape[0])
+        self.action_identity = np.identity(self.action_size)
         self.total_steps = 0
         self.metric = tf.keras.metrics.Mean(name='loss')
 
@@ -1821,7 +1828,7 @@ class DQNAgent(MemoryAgent):
             qvalues = self.target_qmodel(next_states, training=False)
             qvalues = tf.squeeze(tf.gather(qvalues, actions[:, tf.newaxis],
                                            axis=-1, batch_dims=1))
-            actions = tf.one_hot(actions, self.action_shape[0],
+            actions = tf.one_hot(actions, self.action_size,
                                  dtype=qvalues.dtype)
         else:
             qvalues = self.target_qmodel(next_states, training=False)
@@ -1836,7 +1843,7 @@ class DQNAgent(MemoryAgent):
                 reg_loss = 0
             y_true = (y_pred * (1 - actions) +
                       qvalues[:, tf.newaxis] * actions)
-            loss = self.qmodel.compiled_loss._losses.fn(
+            loss = self.qmodel.compiled_loss._losses[0].fn(
                 y_true, y_pred
             ) + reg_loss
         grads = tape.gradient(loss, self.qmodel.trainable_variables)
@@ -2019,7 +2026,7 @@ class PGAgent(MemoryAgent):
                              reward
             create_memory: A function, which returns a Memory instance
         """
-        MemoryAgent.__init__(self, amodel.output_shape[1:], Policy())
+        MemoryAgent.__init__(self, amodel.output_shape[1], Policy())
         self.amodel = amodel
         self.discounted_rate = discounted_rate
         self.states = create_memory(self.amodel.input_shape,
@@ -2038,7 +2045,7 @@ class PGAgent(MemoryAgent):
                 for _ in range(self.memory['states'].num_time_steps)
             ])
         self.episode_rewards = []
-        self.action_identity = np.identity(self.action_shape[0])
+        self.action_identity = np.identity(self.action_size)
         self.metric = tf.keras.metrics.Mean(name='loss')
         self._tf_train_step = tf.function(
             self._train_step,
@@ -2072,7 +2079,7 @@ class PGAgent(MemoryAgent):
 
         actions = self.amodel(np.expand_dims(state, axis=0),
                               training=False)[0].numpy()
-        return np.random.choice(np.arange(self.action_shape[0]),
+        return np.random.choice(np.arange(self.action_size),
                                 p=actions)
 
     def set_playing_data(self, training=False, memorizing=False,
@@ -2325,9 +2332,17 @@ class DDPGAgent(MemoryAgent):
             raise ValueError('The policy parameter must be a '
                              'instance of NoisePolicy.')
         print('WARNING: This implementation may be incorrect.')
-        MemoryAgent.__init__(self, amodel.output_shape[1:], policy)
+        MemoryAgent.__init__(self, amodel.output_shape[1], policy)
         self.amodel = amodel
         self.cmodel = cmodel
+        if isinstance(self.cmodel.output_shape, list):
+            self.cmodel.compiled_loss.build(
+                tf.zeros(self.cmodel.output_shape[0][1:])
+            )
+        else: 
+            self.cmodel.compiled_loss.build(
+                tf.zeros(self.cmodel.output_shape[1:])
+            )
         self.target_cmodel = None
         self.enable_target = enable_target
         self.discounted_rate = discounted_rate
@@ -2513,7 +2528,7 @@ class DDPGAgent(MemoryAgent):
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss = self.cmodel.compiled_loss._losses.fn(
+            loss = self.cmodel.compiled_loss._losses[0].fn(
                 qvalues_true, qvalues_pred
             )
             loss = tf.reduce_mean(loss) + reg_loss

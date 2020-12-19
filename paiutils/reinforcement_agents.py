@@ -147,7 +147,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
             qvalues = self.target_qmodel(next_states, training=False)
             qvalues = tf.squeeze(tf.gather(qvalues, actions[:, tf.newaxis],
                                            axis=-1, batch_dims=1))
-            actions = tf.one_hot(actions, self.action_shape[0],
+            actions = tf.one_hot(actions, self.action_size,
                                  dtype=qvalues.dtype)
         else:
             qvalues = self.target_qmodel(next_states, training=False)
@@ -162,7 +162,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
                 reg_loss = 0
             y_true = (y_pred * (1 - actions) +
                       qvalues[:, tf.newaxis] * actions)
-            loss = self.qmodel.compiled_loss._losses.fn(
+            loss = self.qmodel.compiled_loss._losses[0].fn(
                 y_true, y_pred
             ) + reg_loss
         grads = tape.gradient(loss, self.qmodel.trainable_variables)
@@ -381,6 +381,9 @@ class A2CAgent(PGAgent):
         PGAgent.__init__(self, amodel, discounted_rate,
                          create_memory=create_memory)
         self.cmodel = cmodel
+        self.cmodel.compiled_loss.build(
+            tf.zeros(self.cmodel.output_shape[1:])
+        )
         self.lambda_rate = lambda_rate
         if lambda_rate != 0:
             self.terminals = create_memory((None,),
@@ -465,7 +468,7 @@ class A2CAgent(PGAgent):
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss = self.cmodel.compiled_loss._losses.fn(drewards, value_pred)
+            loss = self.cmodel.compiled_loss._losses[0].fn(drewards, value_pred)
             loss = loss + reg_loss
         grads = tape.gradient(loss, self.cmodel.trainable_variables)
         self.cmodel.optimizer.apply_gradients(
@@ -726,7 +729,7 @@ class PPOAgent(A2CAgent):
 
         actions = self.amodel(np.expand_dims(state, axis=0),
                               training=False)[0].numpy()
-        action = np.random.choice(np.arange(self.action_shape[0]),
+        action = np.random.choice(np.arange(self.action_size),
                                   p=actions)
         self.prob = actions[action]
         return action
@@ -755,7 +758,7 @@ class PPOAgent(A2CAgent):
             self.old_probs.add(prob)
 
             # Assuming a uniform distribution
-            # self.old_probs.add(1 / self.action_shape[0])
+            # self.old_probs.add(1 / self.action_size)
         else:
             self.old_probs.add(self.prob)
             self.prob = None
@@ -783,7 +786,7 @@ class PPOAgent(A2CAgent):
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss = self.cmodel.compiled_loss._losses.fn(drewards, value_pred)
+            loss = self.cmodel.compiled_loss._losses[0].fn(drewards, value_pred)
             loss = loss + reg_loss
         grads = tape.gradient(loss, self.cmodel.trainable_variables)
         self.cmodel.optimizer.apply_gradients(
@@ -1110,10 +1113,10 @@ class TD3Agent(DDPGAgent):
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss1 = self.cmodel.compiled_loss._losses.fn(
+            loss1 = self.cmodel.compiled_loss._losses[0].fn(
                 qvalues_true, qvalues_pred1
             )
-            loss2 = self.cmodel.compiled_loss._losses.fn(
+            loss2 = self.cmodel.compiled_loss._losses[0].fn(
                 qvalues_true, qvalues_pred2
             )
             loss = tf.reduce_mean(loss1) + tf.reduce_mean(loss2) + reg_loss

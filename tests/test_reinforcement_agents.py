@@ -84,7 +84,7 @@ def test_dqn_pg_agent():
     x = keras.layers.Dense(1024)(inputs)
     x1 = keras.layers.Dense(128)(x)
     x2 = keras.layers.Dense(128)(x)
-    outputs = DQNAgent.get_dueling_output_layer((5,),
+    outputs = DQNAgent.get_dueling_output_layer(5,
                                                 dueling_type='avg')(x1, x2)
     qmodel = keras.models.Model(inputs=[inputs], outputs=[outputs])
     qmodel.compile(optimizer='adam', loss=keras.losses.MeanSquaredError())

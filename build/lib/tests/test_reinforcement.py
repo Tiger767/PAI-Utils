@@ -10,16 +10,16 @@ from paiutils.reinforcement import *
 
 
 def test_environment():
-    env = Environment((5, 10), (3,))
+    env = Environment((5, 10), 3)
     assert env.state_shape == (5, 10)
-    assert env.action_shape == (3,)
+    assert env.action_size == 3
     assert env.discrete_state_space == None
     env.state = 5
     env.reset()
     assert env.state == None
     assert len(env.step(0)) == 3
 
-    agent = Agent((3,), GreedyPolicy())
+    agent = Agent(3, GreedyPolicy())
     agent.set_playing_data()
     env.play_episode(agent, 1, random=True)
     env.play_episode(agent, 1, render=True)
@@ -29,7 +29,7 @@ def test_environment():
 
     with pytest.raises(TypeError):
         env.play_episode([1], 1)
-    agent = Agent((3,), GreedyPolicy())
+    agent = Agent(3, GreedyPolicy())
     with pytest.raises(ValueError):
         env.play_episode(agent, 1)
 
@@ -39,15 +39,15 @@ def test_environment():
 
 def test_gym_wrapper():
     env = gym.make('CartPole-v0')
-    env = GymWrapper(env, env.observation_space.shape, (env.action_space.n,))
+    env = GymWrapper(env)
     assert env.state_shape == (4,)
-    assert env.action_shape == (2,)
+    assert env.action_size == 2
     assert env.discrete_state_space == None
     env.reset()
     assert env.state.shape == (4,)
     assert len(env.step(0)) == 3
 
-    agent = Agent((2,), GreedyPolicy())
+    agent = Agent(2, GreedyPolicy())
     agent.set_playing_data()
     env.play_episode(agent, 1, random=True)
     env.play_episode(agent, 1, render=True)
@@ -57,7 +57,7 @@ def test_gym_wrapper():
 
     with pytest.raises(TypeError):
         env.play_episode([1], 1)
-    agent = Agent((3,), GreedyPolicy())
+    agent = Agent(3, GreedyPolicy())
     with pytest.raises(ValueError):
         env.play_episode(agent, 1)
 
@@ -66,9 +66,9 @@ def test_gym_wrapper():
 
 
 def test_multiseq_agent_environment():
-    env = MultiSeqAgentEnvironment((5, 10), (3,))
+    env = MultiSeqAgentEnvironment((5, 10), 3)
     assert env.state_shape == (5, 10)
-    assert env.action_shape == (3,)
+    assert env.action_size == 3
     assert env.discrete_state_space == None
     env.state = 5
     assert len(env.reset(5)) == 5
@@ -76,11 +76,11 @@ def test_multiseq_agent_environment():
     assert len(env.step(0, 0)) == 3
     assert len(env.step(4, 0)) == 3
 
-    agent1 = Agent((3,), GreedyPolicy())
+    agent1 = Agent(3, GreedyPolicy())
     agent1.set_playing_data()
-    agent2 = Agent((3,), GreedyPolicy())
+    agent2 = Agent(3, GreedyPolicy())
     agent2.set_playing_data()
-    agent3 = Agent((3,), GreedyPolicy())
+    agent3 = Agent(3, GreedyPolicy())
     agent3.set_playing_data()
     env.play_episode([agent1], 1, random=True)
     env.play_episode([agent1, agent2], 1, render=True)
@@ -90,7 +90,7 @@ def test_multiseq_agent_environment():
 
     with pytest.raises(TypeError):
         env.play_episode([agent1, 1], 1)
-    agent = Agent((3,), GreedyPolicy())
+    agent = Agent(3, GreedyPolicy())
     with pytest.raises(ValueError):
         env.play_episode([agent1, agent], 1)
 
@@ -120,7 +120,7 @@ def test_ascetic_policy():
 
 
 def test_stochastic_policy():
-    policy = StochasticPolicy(GreedyPolicy(), Decay(.5, .1), 0, (3,))
+    policy = StochasticPolicy(GreedyPolicy(), Decay(.5, .1), 0, 3)
     assert policy.select_action(lambda: [5, 1, 2], False) == 0
     assert 2 >= policy.select_action(lambda: [5, 1, 2], True) >= 0
     for _ in range(5):
@@ -389,12 +389,9 @@ def test_playingdata():
 
 def test_agent():
     with pytest.raises(TypeError):
-        Agent(5, Policy())
+        Agent(5, lambda x: 5)
 
-    with pytest.raises(TypeError):
-        Agent((5,), lambda x: 5)
-
-    agent = Agent((5,), GreedyPolicy())
+    agent = Agent(5, GreedyPolicy())
     for _ in range(10):
         assert 0 <= agent.select_action(5, training=True) <= 4
 
@@ -468,12 +465,9 @@ def test_pq_agent():
 
 def test_memory_agent():
     with pytest.raises(TypeError):
-        MemoryAgent(5, Policy())
+        MemoryAgent(5, lambda x: 5)
 
-    with pytest.raises(TypeError):
-        MemoryAgent((5,), lambda x: 5)
-
-    agent = MemoryAgent((5,), GreedyPolicy())
+    agent = MemoryAgent(5, GreedyPolicy())
     for _ in range(10):
         assert 0 <= agent.select_action(np.random.random(512),
                                         training=True) <= 4
@@ -579,7 +573,7 @@ def test_dqn_agent():
     x = keras.layers.Dense(1024)(inputs)
     x1 = keras.layers.Dense(128)(x)
     x2 = keras.layers.Dense(128)(x)
-    outputs = DQNAgent.get_dueling_output_layer((5,),
+    outputs = DQNAgent.get_dueling_output_layer(5,
                                                 dueling_type='avg')(x1, x2)
     qmodel = keras.models.Model(inputs=[inputs], outputs=[outputs])
     qmodel.compile(optimizer='adam', loss=keras.losses.MeanSquaredError())

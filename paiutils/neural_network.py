@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_17_2020
+Version: 12_19_2020
 """
 
 from types import GeneratorType
@@ -245,10 +245,16 @@ class Predictor:
     def predict(self, x):
         """Predicts on a single sample.
         params:
-            x: A single model input
+            x: A ndarray or list/tuple/dict of ndarrays
         return: A result from the model output
         """
-        return self.model.predict(np.expand_dims(x, axis=0))[0]
+        if isinstance(x, (list, tuple)):
+            x = [np.expand_dims(y, axis=0) for y in x]
+        elif isinstance(x, dict):
+            x = {key: np.expand_dims(x[key], axis=0) for key in x}
+        else:
+            x = np.expand_dims(x, axis=0)
+        return self.model.predict(x)[0]
 
     def predict_all(self, x, batch_size=None):
         """Predicts on many samples.
