@@ -272,6 +272,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
                      should be verbose (print information to the screen)
         """
         self.total_steps += 1
+        if batch_size is None:
+            batch_size = len(self.states)
         if mini_batch > 0 and len(self.states) > mini_batch:
             length = mini_batch
         else:
@@ -567,6 +569,8 @@ class A2CAgent(PGAgent):
             verbose: A boolean, which determines if training
                      should be verbose (print information to the screen)
         """
+        if batch_size is None:
+            batch_size = len(self.states)
         if mini_batch > 0 and len(self.states) > mini_batch:
             length = mini_batch
         else:
@@ -684,7 +688,6 @@ class PPOAgent(A2CAgent):
                         between new and old action probabilities
             create_memory: A function, which returns a Memory instance
         """
-        print('WARNING: This implementation may be incorrect.')
         A2CAgent.__init__(self, amodel, cmodel, discounted_rate,
                           lambda_rate=lambda_rate,
                           create_memory=create_memory)
@@ -896,6 +899,8 @@ class PPOAgent(A2CAgent):
             verbose: A boolean, which determines if training
                      should be verbose (print information to the screen)
         """
+        if batch_size is None:
+            batch_size = len(self.states)
         if mini_batch > 0 and len(self.states) > mini_batch:
             length = mini_batch
         else:
@@ -1241,6 +1246,8 @@ class TD3Agent(DDPGAgent):
                      should be verbose (print information to the screen)
         """
         self.total_steps += 1
+        if batch_size is None:
+            batch_size = len(self.states)
         if mini_batch > 0 and len(self.states) > mini_batch:
             length = mini_batch
         else:

@@ -1955,6 +1955,8 @@ class DQNAgent(MemoryAgent):
                      should be verbose (print information to the screen)
         """
         self.total_steps += 1
+        if batch_size is None:
+            batch_size = len(self.states)
         if mini_batch > 0 and len(self.states) > mini_batch:
             length = mini_batch
         else:
@@ -2270,6 +2272,8 @@ class PGAgent(MemoryAgent):
             verbose: A boolean, which determines if training
                      should be verbose (print information to the screen)
         """
+        if batch_size is None:
+            batch_size = len(self.states)
         if mini_batch > 0 and len(self.states) > mini_batch:
             length = mini_batch
         else:
@@ -2648,6 +2652,8 @@ class DDPGAgent(MemoryAgent):
                      should be verbose (print information to the screen)
         """
         self.total_steps += 1
+        if batch_size is None:
+            batch_size = len(self.states)
         if mini_batch > 0 and len(self.states) > mini_batch:
             length = mini_batch
         else:
