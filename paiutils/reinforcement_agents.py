@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_8_2020
+Version: 12_19_2020
 """
 
 
@@ -631,7 +631,7 @@ class A2CAgent(PGAgent):
             self, path, load_model=load_model, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'cmodel.json'), 'r') as file:
-                self.amodel = model_from_json(
+                self.cmodel = model_from_json(
                     file.read(), custom_objects=custom_objects
                 )
             self.cmodel.load_weights(os.path.join(path, 'cweights.h5'))

@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_12_2020
+Version: 12_19_2020
 """
 
 
@@ -126,7 +126,8 @@ class Environment:
     def play_episodes(self, agent, num_episodes, max_steps,
                       random=False, random_bounds=None,
                       render=False, verbose=True,
-                      episode_verbose=None):
+                      episode_verbose=None,
+                      end_episode_callback=None):
         """Plays atleast 1 complete episode with the agent.
         params:
             agent: An instance of Agent, which will be used to
@@ -144,6 +145,11 @@ class Environment:
                      printed to the screen
             episode_verbose: A boolean, which determines if single episode
                              information should be printed to the screen
+            end_episode_callback: A function called at the end of each episode
+                                  with episode count, steps, and total reward
+                                  from the most recent episode. If True
+                                  is returned, play_episodes will stop
+                                  early.
         return: A float, which is the average total reward of all episodes
         """
         if episode_verbose is None:
@@ -171,6 +177,12 @@ class Environment:
                       f'Best Total Reward: {best_reward} - '
                       f'Average Total Reward: {total_rewards / episode}'
                       f'{mem_str}')
+            if end_episode_callback is not None:
+                end = end_episode_callback(
+                    episode, step, total_reward
+                )
+                if end:
+                    break
         return total_rewards / episode
 
     def close(self):
@@ -373,7 +385,8 @@ class MultiSeqAgentEnvironment(Environment):
 
     def play_episodes(self, agents, num_episodes, max_steps, shuffle=True,
                       random=False, random_bounds=None, render=False,
-                      verbose=True, episode_verbose=None):
+                      verbose=True, episode_verbose=None,
+                      end_episode_callback=None):
         """Plays at least 1 complete episode with the agents.
         params:
             agents: A list of Agent instances, which will be used to
@@ -393,6 +406,11 @@ class MultiSeqAgentEnvironment(Environment):
                      printed to the screen
             episode_verbose: A boolean, which determines if single episode
                              information should be printed to the screen
+            end_episode_callback: A function called at the end of each episode
+                                  with episode count, steps, and total reward
+                                  from the most recent episode. If True
+                                  is returned, play_episodes will stop
+                                  early.
         return: A list of floats, which are the average total reward of all
                 episodes for each agent
         """
@@ -422,6 +440,12 @@ class MultiSeqAgentEnvironment(Environment):
                           f'Total Reward: {total_reward[ndx]} - '
                           f'Best Total Reward: {best_rewards[ndx]} - '
                           f'Average Total Reward: {avg_total_reward}')
+            if end_episode_callback is not None:
+                end = end_episode_callback(
+                    episode, step, total_reward
+                )
+                if end:
+                    break
         return [tr / episode for tr in total_rewards]
 
 
