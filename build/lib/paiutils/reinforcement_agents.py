@@ -1,17 +1,19 @@
 """
 Author: Travis Hammond
-Version: 12_19_2020
+Version: 12_20_2020
 """
 
 
 import os
 import numpy as np
 import tensorflow as tf
+import tensorflow_probability as tfp
+from tensorflow import keras
 from tensorflow.keras.models import model_from_json
 
 from paiutils.reinforcement import (
-    Memory, PlayingData, DQNAgent,
-    MemoryAgent, PGAgent, DDPGAgent,
+    Memory, ETDMemory, PlayingData, Policy,
+    DQNAgent, MemoryAgent, PGAgent, DDPGAgent
 )
 
 
@@ -55,24 +57,24 @@ class DQNPGAgent(DQNAgent, PGAgent):
         self.amodel = amodel
         self.uses_dqn_method = True
         self.drewards = create_memory((None,),
-                                      tf.keras.backend.floatx())
+                                      keras.backend.floatx())
         self.memory['drewards'] = self.drewards
         self.episode_rewards = []
-        self.pg_metric = tf.keras.metrics.Mean(name='pg_loss')
+        self.pg_metric = keras.metrics.Mean(name='pg_loss')
         self._tf_train_step = tf.function(
             self._train_step,
             input_signature=(tf.TensorSpec(shape=self.qmodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=self.qmodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None, None),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()))
+                                           dtype=keras.backend.floatx()))
         )
 
     def use_dqn(self):
@@ -179,7 +181,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
             # seems to give worse results
             log_probs = tf.reduce_sum(
                 actions *
-                tf.math.log(y_pred + tf.keras.backend.epsilon()), axis=1
+                tf.math.log(y_pred + keras.backend.epsilon()), axis=1
             )
             loss = -tf.reduce_mean(drewards * log_probs)
         grads = tape.gradient(loss, self.amodel.trainable_variables)
@@ -215,7 +217,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
                 the data
         """
         length = states.shape[0]
-        float_type = tf.keras.backend.floatx()
+        float_type = keras.backend.floatx()
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              next_states.astype(float_type),
@@ -389,24 +391,24 @@ class A2CAgent(PGAgent):
         self.lambda_rate = lambda_rate
         if lambda_rate != 0:
             self.terminals = create_memory((None,),
-                                           tf.keras.backend.floatx())
+                                           keras.backend.floatx())
             self.rewards = create_memory((None,),
-                                         tf.keras.backend.floatx())
+                                         keras.backend.floatx())
             self.memory['terminals'] = self.terminals
             self.memory['rewards'] = self.rewards
-        self.metric_c = tf.keras.metrics.Mean(name='critic_loss')
+        self.metric_c = keras.metrics.Mean(name='critic_loss')
         self._tf_train_step = tf.function(
             self._train_step,
             input_signature=(tf.TensorSpec(shape=self.amodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None, None),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(),
-                                           dtype=tf.keras.backend.floatx()))
+                                           dtype=keras.backend.floatx()))
         )
 
     def add_memory(self, state, action, new_state, reward, terminal):
@@ -465,7 +467,7 @@ class A2CAgent(PGAgent):
                           to the actor loss
         """
         with tf.GradientTape() as tape:
-            value_pred = tf.reshape(self.cmodel(states, training=True), [-1])
+            value_pred = tf.squeeze(self.cmodel(states, training=True))
             if len(self.cmodel.losses) > 0:
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
@@ -480,19 +482,17 @@ class A2CAgent(PGAgent):
 
         with tf.GradientTape() as tape:
             action_pred = self.amodel(states, training=True)
-            # log_softmax may be mathematically correct, but in practice
-            # seems to give worse results
+            log_action_pred = tf.math.log(
+                action_pred + keras.backend.epsilon()
+            )
             log_probs = tf.reduce_sum(
-                actions *
-                tf.math.log(action_pred + tf.keras.backend.epsilon()), axis=1
+                actions * log_action_pred, axis=1
             )
             if self.lambda_rate == 0:
                 advantages = (drewards - value_pred)
             loss = -tf.reduce_mean(advantages * log_probs)
             entropy = tf.reduce_sum(
-                action_pred *
-                tf.math.log(action_pred + tf.keras.backend.epsilon()),
-                axis=1
+                action_pred * log_action_pred, axis=1
             )
             loss += tf.reduce_mean(entropy) * entropy_coef
         grads = tape.gradient(loss, self.amodel.trainable_variables)
@@ -523,7 +523,7 @@ class A2CAgent(PGAgent):
         return: A float, which is the mean critic loss of the batches
         """
         length = states.shape[0]
-        float_type = tf.keras.backend.floatx()
+        float_type = keras.backend.floatx()
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              drewards.astype(float_type),
@@ -584,8 +584,8 @@ class A2CAgent(PGAgent):
                 advantages_arr = np.empty(length)
             else:
                 # cmodel predict on batches if large?
-                values = tf.reshape(
-                    self.cmodel(self.states.array()), [-1]
+                values = tf.squeeze(
+                    self.cmodel(self.states.array())
                 ).numpy()
                 advantages = np.empty(len(self.rewards))
                 for ndx in reversed(range(len(self.rewards))):
@@ -693,23 +693,23 @@ class PPOAgent(A2CAgent):
                           create_memory=create_memory)
         self.clip_ratio = clip_ratio
         self.old_probs = create_memory((None,),
-                                       tf.keras.backend.floatx())
+                                       keras.backend.floatx())
         self.memory['old_probs'] = self.old_probs
         self.prob = None
         self._tf_train_step = tf.function(
             self._train_step,
             input_signature=(tf.TensorSpec(shape=self.amodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None, None),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(),
-                                           dtype=tf.keras.backend.floatx()))
+                                           dtype=keras.backend.floatx()))
         )
 
     def select_action(self, state, training=False):
@@ -755,13 +755,13 @@ class PPOAgent(A2CAgent):
         """
         A2CAgent.add_memory(self, state, action, new_state, reward, terminal)
         if self.prob is None:
-            actions = self.amodel(np.expand_dims(state, axis=0),
-                                  training=False)[0].numpy()
-            prob = actions[action]
-            self.old_probs.add(prob)
+            # actions = self.amodel(np.expand_dims(state, axis=0),
+            #                       training=False)[0].numpy()
+            # prob = actions[action]
+            # self.old_probs.add(prob)
 
             # Assuming a uniform distribution
-            # self.old_probs.add(1 / self.action_size)
+            self.old_probs.add(1 / self.action_size)
         else:
             self.old_probs.add(self.prob)
             self.prob = None
@@ -784,7 +784,7 @@ class PPOAgent(A2CAgent):
         return: A tensor of the new probs
         """
         with tf.GradientTape() as tape:
-            value_pred = tf.reshape(self.cmodel(states, training=True), [-1])
+            value_pred = tf.squeeze(self.cmodel(states, training=True))
             if len(self.cmodel.losses) > 0:
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
@@ -800,7 +800,7 @@ class PPOAgent(A2CAgent):
         with tf.GradientTape() as tape:
             action_pred = self.amodel(states, training=True)
             probs = tf.reduce_sum(actions * action_pred, axis=1)
-            ratio = probs / (old_probs + tf.keras.backend.epsilon())
+            ratio = probs / (old_probs + keras.backend.epsilon())
             clipped_ratio = tf.clip_by_value(ratio, 1.0 - self.clip_ratio,
                                              1.0 + self.clip_ratio)
             if self.lambda_rate == 0:
@@ -810,7 +810,7 @@ class PPOAgent(A2CAgent):
             )
             entropy = tf.reduce_sum(
                 action_pred *
-                tf.math.log(action_pred + tf.keras.backend.epsilon()),
+                tf.math.log(action_pred + keras.backend.epsilon()),
                 axis=1
             )
             loss += tf.reduce_mean(entropy) * entropy_coef
@@ -847,7 +847,7 @@ class PPOAgent(A2CAgent):
                 a numpy ndarray of probs
         """
         length = states.shape[0]
-        float_type = tf.keras.backend.floatx()
+        float_type = keras.backend.floatx()
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              drewards.astype(float_type),
@@ -914,8 +914,8 @@ class PPOAgent(A2CAgent):
                 advantages_arr = np.empty(length)
             else:
                 # cmodel predict on batches if large?
-                values = tf.reshape(
-                    self.cmodel(self.states.array()), [-1]
+                values = tf.squeeze(
+                    self.cmodel(self.states.array())
                 ).numpy()
                 advantages = np.empty(len(self.rewards))
                 for ndx in reversed(range(len(self.rewards))):
@@ -1002,19 +1002,19 @@ class TD3Agent(DDPGAgent):
         self._tf_train_step = tf.function(
             self._train_step,
             input_signature=(tf.TensorSpec(shape=self.amodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=self.amodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=self.amodel.output_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(), dtype=tf.int32))
         )
         self.gradient_step_count = 0
@@ -1106,7 +1106,7 @@ class TD3Agent(DDPGAgent):
         next_qvalues1, next_qvalues2 = self.target_cmodel(
             [next_states, next_actions], training=False
         )
-        next_qvalues = tf.minimum(next_qvalues1, next_qvalues2)
+        next_qvalues = tf.squeeze(tf.minimum(next_qvalues1, next_qvalues2))
         qvalues_true = (rewards +
                         self.discounted_rate * next_qvalues * terminals)
         # Critic
@@ -1114,6 +1114,8 @@ class TD3Agent(DDPGAgent):
             qvalues_pred1, qvalues_pred2 = self.cmodel(
                 [states, actions], training=True
             )
+            qvalues_pred1 = tf.squeeze(qvalues_pred1)
+            qvalues_pred2 = tf.squeeze(qvalues_pred2)
             if len(self.cmodel.losses) > 0:
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
@@ -1174,7 +1176,7 @@ class TD3Agent(DDPGAgent):
         return: A float, which is the mean critic loss of the batches
         """
         length = states.shape[0]
-        float_type = tf.keras.backend.floatx()
+        float_type = keras.backend.floatx()
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              next_states.astype(float_type),
@@ -1286,3 +1288,197 @@ class TD3Agent(DDPGAgent):
         """
         return DDPGAgent.save(self, path, save_model=save_model,
                               save_data=save_data, note=note)
+
+
+class Continuous:
+    """This interface is used for the continuous action space
+       variants of algorithms.
+    """
+
+    @staticmethod
+    def scale(lower_bound, upper_bound, name=None):
+        def _scale(x):
+            x = tf.multiply(x, upper_bound - lower_bound)
+            x = x + upper_bound + lower_bound
+            return tf.multiply(.5, x)
+        return _scale
+
+    @staticmethod
+    def sample(name=None):
+        def _sample(x):
+            mean, stddev = x
+            eps = tf.random.normal(tf.shape(mean))
+            action = eps * stddev + mean
+            return action
+        return _sample
+
+    @staticmethod
+    def clip(lower_bound, upper_bound, name=None):
+        def _clip(x):
+            return tf.clip_by_value(x, lower_bound, upper_bound)
+        return _clip
+
+
+class PGCAgent(PGAgent, Continuous):
+    """This class is a continuous action space variant of the PGAgent.
+    """
+
+    def __init__(self, amodel, discounted_rate,
+                 create_memory=lambda shape, dtype: Memory()):
+        """Initalizes the Policy Gradient Agent.
+        params:
+            amodel: A keras model, which takes the state as input and outputs
+                    actions (regularization losses are not applied,
+                    and compiled loss are not used)
+            discounted_rate: A float within 0.0-1.0, which is the rate that
+                             future rewards should be counted for the current
+                             reward
+            create_memory: A function, which returns a Memory instance
+        """
+        if len(amodel.output_shape) != 3:
+            raise ValueError('The model must have three outputs: '
+                             'mean, stddev, and actions')
+        PGAgent.__init__(self, amodel, discounted_rate,
+                         create_memory=create_memory)
+
+    def add_memory(self, state, action, new_state, reward, terminal):
+        """Adds information from one step in the environment to the agent.
+        params:
+            state: A value or list of values, which is the
+                   state of the environment before the
+                   action was performed
+            action: A value or list of values, which is the action
+                    the agent took
+            new_state: A value or list of values, which is the
+                       state of the environment after performing
+                       the action (discarded)
+            reward: A float, which is the evaluation of
+                    the action performed
+            terminal: A boolean, which determines if this call to
+                      add memory is the last for the episode
+                      (discarded)
+        """
+        self.states.add(np.array(state))
+        self.actions.add(action)
+        self.episode_rewards.append(reward)
+
+    def _train_step(self, states, drewards, actions, entropy_coef):
+        """Performs one gradient step with a batch of data.
+        params:
+            states: A tensor that contains environment states
+            drewards: A tensor that contains the discounted reward
+                      for the action performed in the environment
+            actions: A tensor that contains onehot encodings of
+                     the action performed
+            entropy_coef: A tensor constant float, which is the
+                          coefficent of entropy to add to the
+                          actor loss
+        """
+        with tf.GradientTape() as tape:
+            locs, scales, _ = self.amodel(states, training=True)
+            normal = tfp.distributions.Normal(locs, scales)
+            probs = normal.prob(actions)
+            log_probs = tf.math.log(probs + keras.backend.epsilon())
+            loss = -tf.reduce_mean(drewards * log_probs)
+            entropy = tf.reduce_mean(probs * log_probs)
+            loss += entropy * entropy_coef
+        grads = tape.gradient(loss, self.amodel.trainable_variables)
+        self.amodel.optimizer.apply_gradients(
+            zip(grads, self.amodel.trainable_variables)
+        )
+        self.metric(loss)
+
+
+class A2CCAgent(A2CAgent, Continuous):
+    """This class is a continuous action space variant of the A2CAgent.
+    """
+
+    def __init__(self, amodel, cmodel, discounted_rate,
+                 lambda_rate=0, create_memory=lambda shape, dtype: Memory()):
+        """Initalizes the Policy Gradient Agent.
+        params:
+            amodel: A keras model, which takes the state as input and outputs
+                    actions (regularization losses are not applied,
+                    and compiled loss are not used)
+            cmodel: A keras model, which takes the state as input and outputs
+                    the value of that state
+            discounted_rate: A float within 0.0-1.0, which is the rate that
+                             future rewards should be counted for the current
+                             reward
+            lambda_rate: A float within 0.0-1.0, which if nonzero will enable
+                         generalized advantage estimation
+            create_memory: A function, which returns a Memory instance
+        """
+        if len(amodel.output_shape) != 3:
+            raise ValueError('The model must have three outputs: '
+                             'mean, stddev, and actions')
+        A2CAgent.__init__(self, amodel, cmodel, discounted_rate,
+                          lambda_rate=lambda_rate,
+                          create_memory=create_memory)
+
+    def add_memory(self, state, action, new_state, reward, terminal):
+        """Adds information from one step in the environment to the agent.
+        params:
+            state: A value or list of values, which is the
+                   state of the environment before the
+                   action was performed
+            action: A value or list of values, which is the action
+                    the agent took
+            new_state: A value or list of values, which is the
+                       state of the environment after performing
+                       the action
+            reward: A float/integer, which is the evaluation of
+                    the action performed
+            terminal: A boolean, which determines if this call to
+                      add memory is the last for the episode
+        """
+        self.states.add(np.array(state))
+        self.actions.add(action)
+        self.episode_rewards.append(reward)
+        if self.lambda_rate > 0:
+            self.terminals.add(terminal)
+            self.rewards.add(reward)
+
+    def _train_step(self, states, drewards, advantages,
+                    actions, entropy_coef):
+        """Performs one gradient step with a batch of data.
+        params:
+            states: A tensor that contains environment states
+            drewards: A tensor that contains the discounted reward
+                      for the action performed in the environment
+            advantages: A tensor, which if valid (lambda_rate > 0) contains
+                        advantages for the actions performed
+            actions: A tensor that contains onehot encodings of
+                     the action performed
+            entropy_coef: A float, which is the coefficent of entropy to add
+                          to the actor loss
+        """
+        with tf.GradientTape() as tape:
+            value_pred = tf.squeeze(self.cmodel(states, training=True))
+            if len(self.cmodel.losses) > 0:
+                reg_loss = tf.math.add_n(self.cmodel.losses)
+            else:
+                reg_loss = 0
+            loss = self.cmodel.compiled_loss._losses[0].fn(drewards, value_pred)
+            loss = loss + reg_loss
+        grads = tape.gradient(loss, self.cmodel.trainable_variables)
+        self.cmodel.optimizer.apply_gradients(
+            zip(grads, self.cmodel.trainable_variables)
+        )
+        self.metric_c(loss)
+
+        with tf.GradientTape() as tape:
+            locs, scales, _ = self.amodel(states, training=True)
+            normal = tfp.distributions.Normal(locs, scales)
+            probs = normal.prob(actions)
+            log_probs = tf.math.log(probs + keras.backend.epsilon())
+            if self.lambda_rate == 0:
+                advantages = (drewards - value_pred)
+            loss = -tf.reduce_mean(advantages * log_probs)
+            entropy = tf.reduce_mean(probs * log_probs)
+            loss += entropy * entropy_coef
+        grads = tape.gradient(loss, self.amodel.trainable_variables)
+        self.amodel.optimizer.apply_gradients(
+            zip(grads, self.amodel.trainable_variables)
+        )
+        self.metric(loss)

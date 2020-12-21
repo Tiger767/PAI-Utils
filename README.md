@@ -22,14 +22,14 @@ Package Features
   - Trainer and Predictor
   - Trainer with extra decoder
   - VAE Trainer
-  - Basic network architecture creation
 - Evolution Algorithm
   - One dimensional evolution algorithm
   - Hyperparameter tuner
 - GAN
-  - Trainer and Predictor
+  - GAN Trainer
   - GANI Trainer (GAN which takes provided Inputs)
   - Cycle GAN Trainer
+  - Predictors
 - Neural Network
   - Trainer and Predictor
   - Dense layers that combine batch norm
@@ -47,9 +47,11 @@ Package Features
     - PGAgent: State to action neural network model (Actor) trained with
                policy gradients
     - DDPGAgent: State to continous action space neural network model trained
-                 with deterministic policy gradients (Not working yet)
+                 with deterministic policy gradients
 - Reinforcement Agents
-  - DQNPGAgent: A combination of a DQN and PG agent into one agent
+  - DQNPGAgent: Combination of a DQN and PG agent into one agent
   - A2CAgent: Advantage Actor Critic agent
   - PPOAgent: Proximal Policy Optimization agent
-  - TD3Agent: Twin Delayed DDPG Agent (Not working yet)
+  - TD3Agent: Twin Delayed DDPG Agent
+  - PGCAgent: Continuous variant of PGAgent
+  - A2CCAgent: Continuous variant of A2CAgent

@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_19_2020
+Version: 12_20_2020
 """
 
 
@@ -218,6 +218,12 @@ class GymWrapper(Environment):
 
         if isinstance(self.genv.action_space, gym.spaces.Discrete):
             self.action_size = self.genv.action_space.n
+        elif isinstance(self.genv.observation_space, gym.spaces.Box):
+            if len(self.genv.action_space.shape) > 1:
+                raise NotImplementedError('Box action spaces with more '
+                                          'than one dimension are not '
+                                          'supported')
+            self.action_size = self.genv.action_space.shape[0]
         else:
             raise NotImplementedError('Only Discrete action '
                                       'spaces are supported')
@@ -1680,15 +1686,15 @@ class DQNAgent(MemoryAgent):
             self.target_qmodel = self.qmodel
         self.discounted_rate = discounted_rate
         self.states = create_memory(self.qmodel.input_shape,
-                                    tf.keras.backend.floatx())
+                                    keras.backend.floatx())
         self.next_states = create_memory(self.qmodel.input_shape,
-                                         tf.keras.backend.floatx())
+                                         keras.backend.floatx())
         self.actions = create_memory(self.qmodel.output_shape,
-                                     tf.keras.backend.floatx())
+                                     keras.backend.floatx())
         self.rewards = create_memory((None,),
-                                     tf.keras.backend.floatx())
+                                     keras.backend.floatx())
         self.terminals = create_memory((None,),
-                                       tf.keras.backend.floatx())
+                                       keras.backend.floatx())
         self.memory = {
             'states': self.states, 'next_states': self.next_states,
             'actions': self.actions, 'rewards': self.rewards,
@@ -1701,7 +1707,7 @@ class DQNAgent(MemoryAgent):
             ])
         if enable_per:
             self.per_losses = create_memory((None,),
-                                            tf.keras.backend.floatx())
+                                            keras.backend.floatx())
             self.memory['per_losses'] = self.per_losses
             # assuming the true max loss will be less than 100
             # at least at the begining
@@ -1710,20 +1716,20 @@ class DQNAgent(MemoryAgent):
             self.per_losses = None
         self.action_identity = np.identity(self.action_size)
         self.total_steps = 0
-        self.metric = tf.keras.metrics.Mean(name='loss')
+        self.metric = keras.metrics.Mean(name='loss')
 
         self._tf_train_step = tf.function(
             self._train_step,
             input_signature=(tf.TensorSpec(shape=self.qmodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=self.qmodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None, None),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()))
+                                           dtype=keras.backend.floatx()))
         )
 
     def select_action(self, state, training=False):
@@ -1901,7 +1907,7 @@ class DQNAgent(MemoryAgent):
                 the data
         """
         length = states.shape[0]
-        float_type = tf.keras.backend.floatx()
+        float_type = keras.backend.floatx()
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              next_states.astype(float_type),
@@ -2052,15 +2058,18 @@ class PGAgent(MemoryAgent):
                              reward
             create_memory: A function, which returns a Memory instance
         """
-        MemoryAgent.__init__(self, amodel.output_shape[1], Policy())
+        output_shape = amodel.output_shape
+        if isinstance(output_shape, list):
+            output_shape = output_shape[-1]
+        MemoryAgent.__init__(self, output_shape[1], Policy())
         self.amodel = amodel
         self.discounted_rate = discounted_rate
         self.states = create_memory(self.amodel.input_shape,
-                                    tf.keras.backend.floatx())
-        self.actions = create_memory(self.amodel.output_shape,
-                                     tf.keras.backend.floatx())
+                                    keras.backend.floatx())
+        self.actions = create_memory(output_shape,
+                                     keras.backend.floatx())
         self.drewards = create_memory((None,),
-                                      tf.keras.backend.floatx())
+                                      keras.backend.floatx())
         self.memory = {
             'states': self.states, 'actions': self.actions,
             'drewards': self.drewards,
@@ -2072,17 +2081,17 @@ class PGAgent(MemoryAgent):
             ])
         self.episode_rewards = []
         self.action_identity = np.identity(self.action_size)
-        self.metric = tf.keras.metrics.Mean(name='loss')
+        self.metric = keras.metrics.Mean(name='loss')
         self._tf_train_step = tf.function(
             self._train_step,
             input_signature=(tf.TensorSpec(shape=self.amodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None, None),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(),
-                                           dtype=tf.keras.backend.floatx()))
+                                           dtype=keras.backend.floatx()))
         )
 
     def select_action(self, state, training=False):
@@ -2104,9 +2113,11 @@ class PGAgent(MemoryAgent):
             state = self.time_distributed_states
 
         actions = self.amodel(np.expand_dims(state, axis=0),
-                              training=False)[0].numpy()
+                              training=False)
+        if isinstance(actions, list):
+            return actions[-1][0].numpy()
         return np.random.choice(np.arange(self.action_size),
-                                p=actions)
+                                p=actions[0].numpy())
 
     def set_playing_data(self, training=False, memorizing=False,
                          batch_size=None, mini_batch=0, epochs=1,
@@ -2192,16 +2203,13 @@ class PGAgent(MemoryAgent):
         """
         with tf.GradientTape() as tape:
             y_pred = self.amodel(states, training=True)
-            # log_softmax may be mathematically correct, but in practice
-            # seems to give worse results
+            log_y_pred = tf.math.log(y_pred + keras.backend.epsilon())
             log_probs = tf.reduce_sum(
-                actions *
-                tf.math.log(y_pred + tf.keras.backend.epsilon()), axis=1
+                actions * log_y_pred, axis=1
             )
             loss = -tf.reduce_mean(drewards * log_probs)
             entropy = tf.reduce_sum(
-                y_pred * tf.math.log(y_pred + tf.keras.backend.epsilon()),
-                axis=1
+                y_pred * log_y_pred, axis=1
             )
             loss += tf.reduce_mean(entropy) * entropy_coef
         grads = tape.gradient(loss, self.amodel.trainable_variables)
@@ -2217,8 +2225,8 @@ class PGAgent(MemoryAgent):
             states: A numpy array that contains environment states
             drewards: A numpy array that contains the discounted reward
                       for the action performed in the environment
-            actions: A numpy array that contains onehot encodings of
-                     the action performed
+            actions: A numpy array that contains the actions performed
+                     (onehot encodings for discrete action spaces)
             epochs: An integer, which is the number of complete gradient
                     steps to perform
             batch_size: An integer, which is the size of the batch for
@@ -2230,7 +2238,7 @@ class PGAgent(MemoryAgent):
         return: A float, which is the mean loss of batches (not exactly a loss)
         """
         length = states.shape[0]
-        float_type = tf.keras.backend.floatx()
+        float_type = keras.backend.floatx()
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              drewards.astype(float_type),
@@ -2359,7 +2367,6 @@ class DDPGAgent(MemoryAgent):
         if not isinstance(policy, NoisePolicy):
             raise ValueError('The policy parameter must be a '
                              'instance of NoisePolicy.')
-        print('WARNING: This implementation may be incorrect.')
         MemoryAgent.__init__(self, amodel.output_shape[1], policy)
         self.amodel = amodel
         self.cmodel = cmodel
@@ -2384,15 +2391,15 @@ class DDPGAgent(MemoryAgent):
             self.target_cmodel = self.cmodel
 
         self.states = create_memory(self.amodel.input_shape,
-                                    tf.keras.backend.floatx())
+                                    keras.backend.floatx())
         self.next_states = create_memory(self.amodel.input_shape,
-                                         tf.keras.backend.floatx())
+                                         keras.backend.floatx())
         self.actions = create_memory(self.amodel.output_shape,
-                                     tf.keras.backend.floatx())
+                                     keras.backend.floatx())
         self.rewards = create_memory((None,),
-                                     tf.keras.backend.floatx())
+                                     keras.backend.floatx())
         self.terminals = create_memory((None,),
-                                       tf.keras.backend.floatx())
+                                       keras.backend.floatx())
         self.memory = {
             'states': self.states, 'next_states': self.next_states,
             'actions': self.actions, 'rewards': self.rewards,
@@ -2404,21 +2411,21 @@ class DDPGAgent(MemoryAgent):
                 for _ in range(self.memory['states'].num_time_steps)
             ])
         self.total_steps = 0
-        self.metric_c = tf.keras.metrics.Mean(name='critic_loss')
-        self.metric_a = tf.keras.metrics.Mean(name='actor_loss')
+        self.metric_c = keras.metrics.Mean(name='critic_loss')
+        self.metric_a = keras.metrics.Mean(name='actor_loss')
 
         self._tf_train_step = tf.function(
             self._train_step,
             input_signature=(tf.TensorSpec(shape=self.amodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=self.amodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=self.amodel.output_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()))
+                                           dtype=keras.backend.floatx()))
         )
 
     def select_action(self, state, training=False):
@@ -2545,13 +2552,17 @@ class DDPGAgent(MemoryAgent):
                      performed in the environment
         """
         next_actions = self.target_amodel(next_states, training=False)
-        next_qvalues = self.target_cmodel([next_states, next_actions],
-                                          training=False)
+        next_qvalues = tf.squeeze(
+            self.target_cmodel([next_states, next_actions], training=False)
+        )
         qvalues_true = (rewards +
                         self.discounted_rate * next_qvalues * terminals)
+
         # Critic
         with tf.GradientTape() as tape:
-            qvalues_pred = self.cmodel([states, actions], training=True)
+            qvalues_pred = tf.squeeze(
+                self.cmodel([states, actions], training=True)
+            )
             if len(self.cmodel.losses) > 0:
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
@@ -2569,8 +2580,8 @@ class DDPGAgent(MemoryAgent):
         # Actor
         with tf.GradientTape() as tape:
             action_preds = self.amodel(states, training=True)
-            loss = -tf.reduce_mean(tf.reduce_sum(
-                self.cmodel([states, action_preds], training=False), axis=1
+            loss = -tf.reduce_mean(tf.squeeze(
+                self.cmodel([states, action_preds], training=False)
             ))
         grads = tape.gradient(loss, self.amodel.trainable_variables)
         self.amodel.optimizer.apply_gradients(
@@ -2599,7 +2610,7 @@ class DDPGAgent(MemoryAgent):
         return: A float, which is the mean critic loss of the batches
         """
         length = states.shape[0]
-        float_type = tf.keras.backend.floatx()
+        float_type = keras.backend.floatx()
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              next_states.astype(float_type),
@@ -2622,8 +2633,8 @@ class DDPGAgent(MemoryAgent):
             self.metric_a.reset_states()
             if verbose:
                 print(f'{count}/{length} - '
-                      f'critic_loss: {critic_loss_results} - '
-                      f'actor_loss: {actor_loss_results}')
+                      f'actor_loss: {actor_loss_results} - '
+                      f'critic_loss: {critic_loss_results}')
         return critic_loss_results
 
     def learn(self, batch_size=None, mini_batch=0,

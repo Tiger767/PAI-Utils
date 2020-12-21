@@ -26,6 +26,8 @@ setuptools.setup(
                       'scikit-learn', 'opencv-python>=4'],
     extras_require={'tf': ['tensorflow>=2.1'],
                     'tf_gpu': ['tensorflow-gpu>=2.1'],
+                    'tfp': ['tensorflow_probability>=0.11.1'],
+                    'gym': ['gym>=0.17.1'],
                     'pa': ['pyaudio>=0.2'],
                     'wv': ['webrtcvad>=2.0']}
 )
