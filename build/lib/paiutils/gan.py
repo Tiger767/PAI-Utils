@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_18_2020
+Version: 12_21_2020
 """
 
 
@@ -22,7 +22,7 @@ class GANTrainer(Trainer):
         def __init__(self, generator, discriminator, conditional=False,
                      noise_fn=None, idt_loss_coef=0, **kwargs):
             """GAN Keras Model that has a modified train_step.
-            params:
+            Args:
                 generator: The generative model
                 discriminator: The discriminative model
                 conditional: A boolean, which determines if the GAN is a
@@ -54,7 +54,7 @@ class GANTrainer(Trainer):
 
         def train_step(self, batch):
             """Trains the model 1 step.
-            params:
+            Args:
                 batch: A tensor, tuple, or list
             """
             if self.conditional:
@@ -125,13 +125,15 @@ class GANTrainer(Trainer):
 
         def call(self, inputs, training=False):
             """Calls the discriminator model on new inputs.
-            params:
+            Args:
                 inputs: A tensor or list of tensors
                 training: A boolean or boolean scalar tensor, indicating
                           whether to run the `Network` in training mode
                           or inference mode
-            return: A tensor if there is a single output, or a list of
-                    tensors if there are more than one outputs.
+
+            Returns:
+                A tensor if there is a single output, or a list of
+                tensors if there are more than one outputs.
             """
             if self.conditional:
                 cond, real_y = inputs
@@ -150,7 +152,8 @@ class GANTrainer(Trainer):
     def __init__(self, gen_model, dis_model, data, conditional=False,
                  noise_fn=None, idt_loss_coef=0):
         """Initializes data and GANModel.
-        params:
+
+        Args:
             gen_model: A compiled keras model, which is the generator
             dis_model: A compiled keras model, which is the discriminator
             data: A dictionary containg train data
@@ -203,7 +206,8 @@ class GANTrainer(Trainer):
 
     def set_data(self, data):
         """Sets train, validation, and test data from data.
-        params:
+
+        Args:
             data: A dictionary containg train data
                   and optionally validation and test data.
                   If the train/validation/test key is present without
@@ -284,12 +288,15 @@ class GANTrainer(Trainer):
     def load(self, path, custom_objects=None):
         """Loads models and weights from a folder.
            (overrides the inital provided model)
-        params:
+
+        Args:
             path: A string, which is the path to a folder
                   containing model.json, model_weights.h5, note.txt, etc.
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         note = Trainer.load(self, path, custom_objects=custom_objects)
         optimizer = self.model.optimizer
@@ -316,7 +323,8 @@ class GANPredictor(Predictor):
                  weights_name='gen_model_weights.h5',
                  model_name='gen_model.json', custom_objects=None):
         """Loads the model and weights.
-        params:
+
+        Args:
             path: A string, which is the path to a folder containing
                   model.json, weights.h5, and maybe note.txt
             noise_fn: A function for generating input for the GAN
@@ -340,11 +348,14 @@ class GANPredictor(Predictor):
 
     def generate(self, n=1, conditions=None):
         """Generates n samples.
-        params:
+
+        Args:
             n: A integer, which is the number of
                samples to produce
             conditions: A ndarray of model conditional input
-        return: A result from the model output
+
+        Returns:
+            A result from the model output
         """
         noise = self.noise_fn([n, *self.input_shape])
         if conditions is None:
@@ -356,10 +367,13 @@ class GANPredictor(Predictor):
 
     def predict(self, noise, condition=None):
         """Predicts on a single sample.
-        params:
+
+        Args:
             noise: A 1D ndarray for the input of the model
             condition: A ndarray of model conditional input
-        return: A result from the model output
+
+        Returns:
+            A result from the model output
         """
         if condition is None:
             return self.model.predict(np.expand_dims(noise, axis=0))[0]
@@ -370,10 +384,13 @@ class GANPredictor(Predictor):
 
     def predict_all(self, noise, conditions=None, batch_size=None):
         """Predicts on many samples.
-        params:
+
+        Args:
             noise: A 1D ndarray for the input of the model
             conditions: A ndarray of model conditional input
-        return: A result from the model output
+
+        Returns:
+            A result from the model output
         """
         if conditions is None:
             return self.model.predict(noise, batch_size=batch_size)
@@ -391,7 +408,7 @@ class GANITrainer(Trainer):
         def __init__(self, generator, discriminator,
                      idt_loss_coef=0, **kwargs):
             """GAN Keras Model that has a modified train_step.
-            params:
+            Args:
                 generator: The generative model
                 discriminator: The discriminative model
                 idt_loss_coef: A float, which is the amount of the identity
@@ -409,7 +426,7 @@ class GANITrainer(Trainer):
 
         def train_step(self, batch):
             """Trains the model 1 step.
-            params:
+            Args:
                 batch: A tuple/list of 2 tensors
             """
             x, real_y = batch
@@ -460,13 +477,15 @@ class GANITrainer(Trainer):
 
         def call(self, inputs, training=False):
             """Calls the discriminator model on new inputs.
-            params:
+            Args:
                 inputs: A tensor or list of tensors
                 training: A boolean or boolean scalar tensor, indicating
                           whether to run the `Network` in training mode
                           or inference mode
-            return: A tensor if there is a single output, or a list of
-                    tensors if there are more than one outputs.
+
+            Returns:
+                A tensor if there is a single output, or a list of
+                tensors if there are more than one outputs.
             """
             x, real_y = inputs
             dis_real_y = self.discriminator({'x': x, 'y': real_y},
@@ -475,7 +494,8 @@ class GANITrainer(Trainer):
 
     def __init__(self, gen_model, dis_model, data, idt_loss_coef=0):
         """Initializes data and GANModel.
-        params:
+
+        Args:
             gen_model: A compiled keras model, which is the generator
             dis_model: A compiled keras model, which is the discriminator
             data: A dictionary containg train data
@@ -513,7 +533,8 @@ class GANITrainer(Trainer):
 
     def set_data(self, data):
         """Sets train, validation, and test data from data.
-        params:
+
+        Args:
             data: A dictionary containg train data
                   and optionally validation and test data.
                   If the train/validation/test key is present without
@@ -575,12 +596,15 @@ class GANITrainer(Trainer):
     def load(self, path, custom_objects=None):
         """Loads models and weights from a folder.
            (overrides the inital provided model)
-        params:
+
+        Args:
             path: A string, which is the path to a folder
                   containing model.json, model_weights.h5, note.txt, etc.
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         note = Trainer.load(self, path, custom_objects=custom_objects)
         optimizer = self.model.optimizer
@@ -601,7 +625,8 @@ class GANIPredictor(Predictor):
     def __init__(self, path, uses_generator=True,
                  custom_objects=None):
         """Initializes the model and weights.
-        params:
+
+        Args:
             path: A string, which is the path to a folder containing
                   model.json, weights.h5, note.txt, and maybe encoder/decoder
                   parts
@@ -633,7 +658,7 @@ class CycleGANTrainer(Trainer):
                      x_generator, x_discriminator,
                      idt_loss_coef=0, cycle_loss_coef=10, **kwargs):
             """GAN Keras Model that has a modified train_step.
-            params:
+            Args:
                 y_generator: The generative model that produces y
                 y_discriminator: The discriminative model for y inputs
                 x_generator: The generative model that produces x
@@ -658,7 +683,7 @@ class CycleGANTrainer(Trainer):
 
         def train_step(self, batch):
             """Trains the model 1 step.
-            params:
+            Args:
                 batch: A tuple/list of 2 tensors
             """
             real_x, real_y = batch
@@ -762,13 +787,15 @@ class CycleGANTrainer(Trainer):
 
         def call(self, inputs, training=False):
             """Calls the discriminator model on new inputs.
-            params:
+            Args:
                 inputs: A tensor or list of tensors
                 training: A boolean or boolean scalar tensor, indicating
                           whether to run the `Network` in training mode
                           or inference mode
-            return: A tensor if there is a single output, or a list of
-                    tensors if there are more than one outputs.
+
+            Returns:
+                A tensor if there is a single output, or a list of
+                tensors if there are more than one outputs.
             """
             if len(inputs) == 2:
                 real_x, real_y = inputs
@@ -783,7 +810,8 @@ class CycleGANTrainer(Trainer):
     def __init__(self, gen_model, dis_model, data,
                  idt_loss_coef=0, cycle_loss_coef=10):
         """Initializes data and GANModel.
-        params:
+
+        Args:
             gen_model: A compiled keras model, which is the generator
             dis_model: A compiled keras model, which is the discriminator
             data: A dictionary containg train data
@@ -832,7 +860,8 @@ class CycleGANTrainer(Trainer):
 
     def set_data(self, data):
         """Sets train, validation, and test data from data.
-        params:
+
+        Args:
             data: A dictionary containg train data
                   and optionally validation and test data.
                   If the train/validation/test key is present without
@@ -894,12 +923,15 @@ class CycleGANTrainer(Trainer):
     def load(self, path, custom_objects=None):
         """Loads models and weights from a folder.
            (overrides the inital provided model)
-        params:
+
+        Args:
             path: A string, which is the path to a folder
                   containing model.json, model_weights.h5, note.txt, etc.
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         note = Trainer.load(self, path, custom_objects=custom_objects)
         optimizer = self.model.optimizer
@@ -919,12 +951,15 @@ class CycleGANTrainer(Trainer):
 
 
 class CycleGANPredictor(Predictor):
-    """CycleGANPredictor is used for loading and predicting Cylce GAN keras models."""
+    """CycleGANPredictor is used for loading and predicting
+       Cylce GAN keras models.
+    """
 
     def __init__(self, path, uses_x_model=True, uses_generator=True,
                  custom_objects=None):
         """Initializes the model and weights.
-        params:
+
+        Args:
             path: A string, which is the path to a folder containing
                   model.json, weights.h5, note.txt, and maybe encoder/decoder
                   parts

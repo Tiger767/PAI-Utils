@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_18_2020
+Version: 12_21_2020
 """
 
 
@@ -20,7 +20,8 @@ class AutoencoderTrainer(Trainer):
 
     def __init__(self, encoder_model, decoder_model, data):
         """Initializes train, validation, and test data.
-        params:
+
+        Args:
             encoder_model: A compiled keras model
             decoder_model: A compiled keras model (full model shares
                            optimizer and other attributes with this model)
@@ -48,7 +49,8 @@ class AutoencoderTrainer(Trainer):
 
     def set_data(self, data):
         """Sets train, validation, and test data from data.
-        params:
+
+        Args:
             data: A dictionary containg train data
                   and optionally validation and test data.
                   If the train/validation/test key is present without
@@ -107,12 +109,15 @@ class AutoencoderTrainer(Trainer):
     def load(self, path, custom_objects=None):
         """Loads models and weights from a folder.
            (overrides the inital provided model)
-        params:
+
+        Args:
             path: A string, which is the path to a folder
                   containing model.json, model_weights.h5, note.txt, etc.
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         self.model_names.remove('model')
         note = super().load(path, custom_objects=custom_objects)
@@ -134,7 +139,8 @@ class AutoencoderPredictor(Predictor):
     def __init__(self, path, uses_encoder_model=False,
                  uses_decoder_model=False, custom_objects=None):
         """Initializes the model and weights.
-        params:
+
+        Args:
             path: A string, which is the path to a folder containing
                   model.json, weights.h5, note.txt, and maybe encoder/decoder
                   parts
@@ -167,7 +173,8 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
     def __init__(self, encoder_model, decoder_model,
                  decoder_model2, data, include_y_data=True):
         """Initializes train, validation, and test data.
-        params:
+
+        Args:
             encoder_model: A compiled keras model
             decoder_model: A compiled keras model (full model shares
                            optimizer and other attributes with this model)
@@ -198,7 +205,8 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
 
     def set_data(self, data, include_y_data=True):
         """Sets train, validation, and test data from data.
-        params:
+
+        Args:
             data: A dictionary containg train data
                   and optionally validation and test data.
                   Ex. {'train_x': [...], 'train_y: [...]}
@@ -250,7 +258,8 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
                             verbose=True, **kwargs):
         """Trains the second decoder keras model on the outputs
            of the assumingly trained encoder.
-        params:
+
+        Args:
             epochs: An integer, which is the number of complete
                     iterations to train
             batch_size: An integer, which is the number of samples
@@ -280,7 +289,8 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
                            verbose=True, **kwargs):
         """Evaluates the second decoder model with the
            train/validation/test data.
-        params:
+
+        Args:
             train_data: A boolean, which determines if
                         train_data should be evaluated
             validation_data: A boolean, which determines if
@@ -290,7 +300,9 @@ class AutoencoderExtraDecoderTrainer(AutoencoderTrainer):
             batch_size: An integer, which is the number of samples
                         per graident update
             verbose: A boolean, which determines the verbositiy level
-        return: A dictionary of the results
+
+        Returns:
+            A dictionary of the results
         """
         verbose = 1 if verbose else 0
 
@@ -326,7 +338,7 @@ class VAETrainer(AutoencoderTrainer):
         def __init__(self, encoder, decoder, rloss_coef=1000,
                      use_logits=True, **kwargs):
             """VAE Keras Model that has a modified train_step.
-            params:
+            Args:
                 encoder: The encoder model
                 decoder: The decoder model (full model shares optimizer
                          and other attributes with this model)
@@ -348,7 +360,7 @@ class VAETrainer(AutoencoderTrainer):
 
         def train_step(self, x):
             """Trains the model 1 step.
-            params:
+            Args:
                 x: A tensor, tuple, or list
             """
             if isinstance(x, (tuple, list)):
@@ -383,13 +395,14 @@ class VAETrainer(AutoencoderTrainer):
 
         def call(self, inputs, training=False):
             """Calls the model on new inputs.
-            params:
+            Args:
                 inputs: A tensor or list of tensors
                 training: A boolean or boolean scalar tensor, indicating
                           whether to run the `Network` in training mode
                           or inference mode
-            return: A tensor if there is a single output, or a list of
-                    tensors if there are more than one outputs.
+            Returns:
+                A tensor if there is a single output, or a list of
+                tensors if there are more than one outputs.
             """
             z_mean, z_log_var = self.encoder(inputs, training=training)
             eps = tf.random.normal(shape=tf.shape(z_mean))
@@ -402,7 +415,8 @@ class VAETrainer(AutoencoderTrainer):
     def __init__(self, encoder_model, decoder_model,
                  data, rloss_coef=1000, use_logits=True):
         """Initializes train, validation, and test data.
-        params:
+
+        Args:
             encoder_model: A compiled keras model
             decoder_model: A compiled keras model (full model shares
                            optimizer and other attributes with this model)
@@ -436,12 +450,15 @@ class VAETrainer(AutoencoderTrainer):
     def load(self, path, custom_objects=None):
         """Loads models and weights from a folder.
            (overrides the inital provided model)
-        params:
+
+        Args:
             path: A string, which is the path to a folder
                   containing model.json, model_weights.h5, note.txt, etc.
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         self.model_names.remove('model')
         note = Trainer.load(self, path, custom_objects=custom_objects)
@@ -458,11 +475,14 @@ class VAETrainer(AutoencoderTrainer):
 
     def save(self, path, note=None):
         """Saves the models and weights to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to create a folder in
                   containing model.json, model_weights.h5, note.txt, etc.
             note: A string, which is a note to save in the folder
-        return: A string, which is the given path + created folder
+
+        Returns:
+            A string, which is the given path + created folder
         """
         x0 = keras.layers.Input(shape=self.model.encoder.input_shape[1:])
         z_mean, z_log_var = self.model.encoder(x0)

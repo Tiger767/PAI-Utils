@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_20_2020
+Version: 12_21_2020
 """
 
 
@@ -12,8 +12,8 @@ from tensorflow import keras
 from tensorflow.keras.models import model_from_json
 
 from paiutils.reinforcement import (
-    Memory, ETDMemory, PlayingData, Policy,
-    DQNAgent, MemoryAgent, PGAgent, DDPGAgent
+    Memory, PlayingData, DQNAgent,
+    MemoryAgent, PGAgent, DDPGAgent
 )
 
 
@@ -28,7 +28,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
                  enable_target=True, enable_double=False,
                  enable_per=False):
         """Initalizes the Deep Q Network and Policy Gradient Agent.
-        params:
+
+        Args:
             policy: A policy instance (for DQN Agent)
             qmodel: A keras model, which takes the state as input and outputs
                     Q Values
@@ -86,12 +87,15 @@ class DQNPGAgent(DQNAgent, PGAgent):
     def select_action(self, state, training=False):
         """Returns the action the Agent "believes" to be
            suited for the given state.
-        params:
+
+        Args:
             state: A value, which is the state to predict
                    the Q values for
             training: A boolean, which determines if the
                       agent is training
-        return: A value, which is the selected action
+
+        Returns:
+            A value, which is the selected action
         """
         if self.uses_dqn_method:
             return DQNAgent.select_action(self, state, training=training)
@@ -100,7 +104,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
 
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state of the environment before the
                    action was performed
@@ -130,7 +135,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
     def _train_step(self, states, next_states, actions,
                     terminals, rewards, drewards):
         """Performs one gradient step with a batch of data.
-        params:
+
+        Args:
             states: A tensor that contains environment states
             next_states: A tensor that contains the states of
                          the environment after an action was performed
@@ -195,7 +201,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
     def _train(self, states, next_states, actions, terminals,
                rewards, drewards, epochs, batch_size, verbose=True):
         """Performs multiple gradient steps of all the data.
-        params:
+
+        Args:
             states: A numpy array that contains environment states
             next_states: A numpy array that contains the states of
                          the environment after an action was performed
@@ -213,7 +220,9 @@ class DQNPGAgent(DQNAgent, PGAgent):
                         each partial gradient step
             verbose: A boolean, which determines if information should
                      be printed to the screen
-        return: A list of floats, which are the absolute losses for all
+
+        Returns:
+            A list of floats, which are the absolute losses for all
                 the data
         """
         length = states.shape[0]
@@ -253,7 +262,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
               epochs=1, repeat=1,
               target_update_interval=1, tau=1.0, verbose=True):
         """Trains the agent on a sample of its experiences.
-        params:
+
+        Args:
             batch_size: An integer, which is the size of each batch
                         within the mini-batch during one training instance
             mini_batch: An integer, which is the entire batch size for
@@ -316,7 +326,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
 
     def load(self, path, load_model=True, load_data=True, custom_objects=None):
         """Loads a save from a folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to load
             load_model: A boolean, which determines if the model
                         architectures and weights
@@ -325,7 +336,9 @@ class DQNPGAgent(DQNAgent, PGAgent):
                        from a folder should be loaded
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         note = DQNAgent.load(
             self, path, load_model=load_model, load_data=load_data)
@@ -340,7 +353,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
     def save(self, path, save_model=True,
              save_data=True, note='DQNPGAgent Save'):
         """Saves a note, model weights, and memory to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             save_model: A boolean, which determines if the model
                         architectures and weights
@@ -348,7 +362,9 @@ class DQNPGAgent(DQNAgent, PGAgent):
             save_data: A boolean, which determines if the memory
                        should be saved
             note: A string, which is a note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         path = DQNAgent.save(self, path, save_model=save_model,
                              save_data=save_data, note=note)
@@ -369,7 +385,8 @@ class A2CAgent(PGAgent):
     def __init__(self, amodel, cmodel, discounted_rate,
                  lambda_rate=0, create_memory=lambda shape, dtype: Memory()):
         """Initalizes the Policy Gradient Agent.
-        params:
+
+        Args:
             amodel: A keras model, which takes the state as input and outputs
                     actions (regularization losses are not applied,
                     and compiled loss are not used)
@@ -413,7 +430,8 @@ class A2CAgent(PGAgent):
 
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state of the environment before the
                    action was performed
@@ -455,7 +473,8 @@ class A2CAgent(PGAgent):
     def _train_step(self, states, drewards, advantages,
                     actions, entropy_coef):
         """Performs one gradient step with a batch of data.
-        params:
+
+        Args:
             states: A tensor that contains environment states
             drewards: A tensor that contains the discounted reward
                       for the action performed in the environment
@@ -472,7 +491,8 @@ class A2CAgent(PGAgent):
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss = self.cmodel.compiled_loss._losses[0].fn(drewards, value_pred)
+            loss = self.cmodel.compiled_loss._losses[0].fn(drewards,
+                                                           value_pred)
             loss = loss + reg_loss
         grads = tape.gradient(loss, self.cmodel.trainable_variables)
         self.cmodel.optimizer.apply_gradients(
@@ -504,7 +524,8 @@ class A2CAgent(PGAgent):
     def _train(self, states, drewards, advantages, actions,
                epochs, batch_size, entropy_coef, verbose=True):
         """Performs multiple gradient steps of all the data.
-        params:
+
+        Args:
             states: A numpy array that contains environment states
             drewards: A numpy array that contains the discounted rewards
                       for the actions performed in the environment
@@ -520,7 +541,9 @@ class A2CAgent(PGAgent):
                           to the actor loss
             verbose: A boolean, which determines if information should
                      be printed to the screen
-        return: A float, which is the mean critic loss of the batches
+
+        Returns:
+            A float, which is the mean critic loss of the batches
         """
         length = states.shape[0]
         float_type = keras.backend.floatx()
@@ -554,7 +577,8 @@ class A2CAgent(PGAgent):
     def learn(self, batch_size=None, mini_batch=0,
               epochs=1, repeat=1, entropy_coef=0, verbose=True):
         """Trains the agent on a sample of its experiences.
-        params:
+
+        Args:
             batch_size: An integer, which is the size of each batch
                         within the mini_batch during one training instance
             mini_batch: An integer, which is the entire batch size for
@@ -620,7 +644,8 @@ class A2CAgent(PGAgent):
 
     def load(self, path, load_model=True, load_data=True, custom_objects=None):
         """Loads a save from a folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to load
             load_model: A boolean, which determines if the model
                         architectures and weights
@@ -629,7 +654,9 @@ class A2CAgent(PGAgent):
                        from a folder should be loaded
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         note = PGAgent.load(
             self, path, load_model=load_model, load_data=load_data)
@@ -644,7 +671,8 @@ class A2CAgent(PGAgent):
     def save(self, path, save_model=True,
              save_data=True, note='A2CAgent Save'):
         """Saves a note, models, weights, and memory to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             save_model: A boolean, which determines if the model
                         architectures and weights
@@ -652,7 +680,9 @@ class A2CAgent(PGAgent):
             save_data: A boolean, which determines if the memory
                        should be saved
             note: A string, which is a note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         path = PGAgent.save(self, path, save_model=save_model,
                             save_data=save_data, note=note)
@@ -673,7 +703,8 @@ class PPOAgent(A2CAgent):
                  lambda_rate=0, clip_ratio=.2,
                  create_memory=lambda shape, dtype: Memory()):
         """Initalizes the Policy Gradient Agent.
-        params:
+
+        Args:
             amodel: A keras model, which takes the state as input and outputs
                     actions (regularization losses are not applied,
                     and compiled loss are not used)
@@ -715,12 +746,15 @@ class PPOAgent(A2CAgent):
     def select_action(self, state, training=False):
         """Returns the action the Agent "believes" to be
            suited for the given state.
-        params:
+
+        Args:
             state: A value, which is the state to predict
                    the action for
             training: A boolean, which determines if the
                       agent is training
-        return: A value, which is the selected action
+
+        Returns:
+            A value, which is the selected action
         """
         if (self.time_distributed_states is not None
                 and state.shape == self.amodel.input_shape[2:]):
@@ -739,7 +773,8 @@ class PPOAgent(A2CAgent):
 
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state of the environment before the
                    action was performed
@@ -769,7 +804,8 @@ class PPOAgent(A2CAgent):
     def _train_step(self, states, drewards, advantages, actions,
                     old_probs, entropy_coef):
         """Performs one gradient step with a batch of data.
-        params:
+
+        Args:
             states: A tensor that contains environment states
             drewards: A tensor that contains the discounted reward
                       for the action performed in the environment
@@ -781,7 +817,9 @@ class PPOAgent(A2CAgent):
             entropy_coef: A tensor constant float, which is the
                           coefficent of entropy to add to the
                           actor loss
-        return: A tensor of the new probs
+
+        Returns:
+            A tensor of the new probs
         """
         with tf.GradientTape() as tape:
             value_pred = tf.squeeze(self.cmodel(states, training=True))
@@ -789,7 +827,8 @@ class PPOAgent(A2CAgent):
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss = self.cmodel.compiled_loss._losses[0].fn(drewards, value_pred)
+            loss = self.cmodel.compiled_loss._losses[0].fn(drewards,
+                                                           value_pred)
             loss = loss + reg_loss
         grads = tape.gradient(loss, self.cmodel.trainable_variables)
         self.cmodel.optimizer.apply_gradients(
@@ -826,7 +865,8 @@ class PPOAgent(A2CAgent):
                old_probs, epochs, batch_size, entropy_coef,
                verbose=True):
         """Performs multiple gradient steps of all the data.
-        params:
+
+        Args:
             states: A numpy array that contains environment states
             drewards: A numpy array that contains the discounted reward
                       for the action performed in the environment
@@ -843,7 +883,9 @@ class PPOAgent(A2CAgent):
                           to the actor loss
             verbose: A boolean, which determines if information should
                      be printed to the screen
-        return: A tuple of a float (mean critic loss of the batches) and
+
+        Returns:
+            A tuple of a float (mean critic loss of the batches) and
                 a numpy ndarray of probs
         """
         length = states.shape[0]
@@ -884,7 +926,8 @@ class PPOAgent(A2CAgent):
     def learn(self, batch_size=None, mini_batch=0,
               epochs=1, repeat=1, entropy_coef=0, verbose=True):
         """Trains the agent on a sample of its experiences.
-        params:
+
+        Args:
             batch_size: An integer, which is the size of each batch
                         within the mini_batch during one training instance
             mini_batch: An integer, which is the entire batch size for
@@ -956,7 +999,8 @@ class PPOAgent(A2CAgent):
     def save(self, path, save_model=True,
              save_data=True, note='PPOAgent Save'):
         """Saves a note, models, weights, and memory to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             save_model: A boolean, which determines if the model
                         architectures and weights
@@ -964,7 +1008,9 @@ class PPOAgent(A2CAgent):
             save_data: A boolean, which determines if the memory
                        should be saved
             note: A string, which is a note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         path = A2CAgent.save(self, path, save_model=save_model,
                              save_data=save_data, note=note)
@@ -981,7 +1027,8 @@ class TD3Agent(DDPGAgent):
     def __init__(self, policy, amodel, cmodel, discounted_rate,
                  create_memory=lambda shape, dtype: Memory()):
         """Initalizes the DDPG Agent.
-        params:
+
+        Args:
             policy: A noise policy instance, which used for exploring
             amodel: A keras model, which takes the state as input and outputs
                     actions (regularization losses are not applied,
@@ -1027,7 +1074,8 @@ class TD3Agent(DDPGAgent):
                          actor_update_infreq=2,
                          verbose=True):
         """Sets the playing data.
-        params:
+
+        Args:
             training: A boolean, which determines if the agent
                       should be treated as in a training mode
             memorizing: A boolean, which determines if the agent
@@ -1079,7 +1127,8 @@ class TD3Agent(DDPGAgent):
                     rewards, policy_noise_std, policy_noise_clip,
                     actor_update):
         """Performs one gradient step with a batch of data.
-        params:
+
+        Args:
             states: A tensor that contains environment states
             next_states: A tensor that contains the states of
                          the environment after an action was performed
@@ -1150,7 +1199,8 @@ class TD3Agent(DDPGAgent):
                epochs, batch_size, policy_noise_std, policy_noise_clip,
                actor_update_infreq, verbose=True):
         """Performs multiple gradient steps of all the data.
-        params:
+
+        Args:
             states: A numpy array that contains environment states
             next_states: A numpy array that contains the states of
                          the environment after an action was performed
@@ -1173,7 +1223,9 @@ class TD3Agent(DDPGAgent):
                                the actor is updated compared to the critic
             verbose: A boolean, which determines if information should
                      be printed to the screen
-        return: A float, which is the mean critic loss of the batches
+
+        Returns:
+            A float, which is the mean critic loss of the batches
         """
         length = states.shape[0]
         float_type = keras.backend.floatx()
@@ -1218,7 +1270,8 @@ class TD3Agent(DDPGAgent):
               tau=1.0, policy_noise_std=.2, policy_noise_clip=.5,
               actor_update_infreq=2, verbose=True):
         """Trains the agent on a sample of its experiences.
-        params:
+
+        Args:
             batch_size: An integer, which is the size of each batch
                         within the mini_batch during one training instance
             mini_batch: An integer, which is the entire batch size for
@@ -1276,7 +1329,8 @@ class TD3Agent(DDPGAgent):
     def save(self, path, save_model=True, save_data=True,
              note='T3DAgent Save'):
         """Saves a note, weights of the models, and memory to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             save_model: A boolean, which determines if the model
                         architectures and weights
@@ -1284,7 +1338,9 @@ class TD3Agent(DDPGAgent):
             save_data: A boolean, which determines if the memory
                        should be saved
             note: A string, which is a note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         return DDPGAgent.save(self, path, save_model=save_model,
                               save_data=save_data, note=note)
@@ -1306,9 +1362,9 @@ class Continuous:
     @staticmethod
     def sample(name=None):
         def _sample(x):
-            mean, stddev = x
+            mean, std = x
             eps = tf.random.normal(tf.shape(mean))
-            action = eps * stddev + mean
+            action = eps * std + mean
             return action
         return _sample
 
@@ -1326,7 +1382,8 @@ class PGCAgent(PGAgent, Continuous):
     def __init__(self, amodel, discounted_rate,
                  create_memory=lambda shape, dtype: Memory()):
         """Initalizes the Policy Gradient Agent.
-        params:
+
+        Args:
             amodel: A keras model, which takes the state as input and outputs
                     actions (regularization losses are not applied,
                     and compiled loss are not used)
@@ -1343,7 +1400,8 @@ class PGCAgent(PGAgent, Continuous):
 
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state of the environment before the
                    action was performed
@@ -1364,7 +1422,8 @@ class PGCAgent(PGAgent, Continuous):
 
     def _train_step(self, states, drewards, actions, entropy_coef):
         """Performs one gradient step with a batch of data.
-        params:
+
+        Args:
             states: A tensor that contains environment states
             drewards: A tensor that contains the discounted reward
                       for the action performed in the environment
@@ -1376,7 +1435,7 @@ class PGCAgent(PGAgent, Continuous):
         """
         with tf.GradientTape() as tape:
             locs, scales, _ = self.amodel(states, training=True)
-            normal = tfp.distributions.Normal(locs, scales)
+            normal = tfp.distributions.MultivariateNormalDiag(locs, scales)
             probs = normal.prob(actions)
             log_probs = tf.math.log(probs + keras.backend.epsilon())
             loss = -tf.reduce_mean(drewards * log_probs)
@@ -1396,7 +1455,8 @@ class A2CCAgent(A2CAgent, Continuous):
     def __init__(self, amodel, cmodel, discounted_rate,
                  lambda_rate=0, create_memory=lambda shape, dtype: Memory()):
         """Initalizes the Policy Gradient Agent.
-        params:
+
+        Args:
             amodel: A keras model, which takes the state as input and outputs
                     actions (regularization losses are not applied,
                     and compiled loss are not used)
@@ -1418,7 +1478,8 @@ class A2CCAgent(A2CAgent, Continuous):
 
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state of the environment before the
                    action was performed
@@ -1442,7 +1503,8 @@ class A2CCAgent(A2CAgent, Continuous):
     def _train_step(self, states, drewards, advantages,
                     actions, entropy_coef):
         """Performs one gradient step with a batch of data.
-        params:
+
+        Args:
             states: A tensor that contains environment states
             drewards: A tensor that contains the discounted reward
                       for the action performed in the environment
@@ -1459,7 +1521,8 @@ class A2CCAgent(A2CAgent, Continuous):
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss = self.cmodel.compiled_loss._losses[0].fn(drewards, value_pred)
+            loss = self.cmodel.compiled_loss._losses[0].fn(drewards,
+                                                           value_pred)
             loss = loss + reg_loss
         grads = tape.gradient(loss, self.cmodel.trainable_variables)
         self.cmodel.optimizer.apply_gradients(
@@ -1469,7 +1532,7 @@ class A2CCAgent(A2CAgent, Continuous):
 
         with tf.GradientTape() as tape:
             locs, scales, _ = self.amodel(states, training=True)
-            normal = tfp.distributions.Normal(locs, scales)
+            normal = tfp.distributions.MultivariateNormalDiag(locs, scales)
             probs = normal.prob(actions)
             log_probs = tf.math.log(probs + keras.backend.epsilon())
             if self.lambda_rate == 0:

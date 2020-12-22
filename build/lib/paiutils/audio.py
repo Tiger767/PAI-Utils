@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_9_2020
+Version: 12_21_2020
 """
 
 
@@ -47,9 +47,12 @@ CHUNK = 1000
 
 def convert_width_to_atype(width):
     """Converts a number of bytes to an audio type.
-    params:
+
+    Args:
         width: An integer, which is the number of bytes wide
-    return: A string, which is the audio type
+
+    Returns:
+        A string, which is the audio type
     """
     if width == 1:
         atype = 'int8'
@@ -62,9 +65,12 @@ def convert_width_to_atype(width):
 
 def convert_atype_to_width(atype):
     """Converts an audio type to the number of bytes each value takes.
-    params:
+
+    Args:
         atype: A string, which is an audio type
-    return: An integer, which is the number of bytes wide
+
+    Returns:
+        An integer, which is the number of bytes wide
     """
     if atype == 'int8':
         return 1
@@ -75,12 +81,15 @@ def convert_atype_to_width(atype):
 
 def change_rate(audio, rate, new_rate, atype=None):
     """Changes the audio's sample rate.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
         new_rate: An integer, which is the rate to change the audio to
-    return: A tuple of the loaded audio, rate, and atype
+
+    Returns:
+        A tuple of the loaded audio, rate, and atype
     """
     if rate == new_rate:
         return audio, rate
@@ -97,7 +106,8 @@ def change_rate(audio, rate, new_rate, atype=None):
 
 def load(filename, rate=None, assert_mono=True):
     """Changes the audio's sample rate.
-    params:
+
+    Args:
         filename: A string, which is the directory or filename of the
                   file to load
         rate: An integer, which is the rate at which samples are taken
@@ -105,7 +115,9 @@ def load(filename, rate=None, assert_mono=True):
                      should be raise if there are more than one channel
                      in the audio or if it should be converted to one
                      channel
-    return: A tuple of the loaded audio, rate, and atype
+
+    Returns:
+        A tuple of the loaded audio, rate, and atype
     """
     if filename.split('.')[-1] == 'wav':
         file = wave.open(filename, 'r')
@@ -146,7 +158,8 @@ def load(filename, rate=None, assert_mono=True):
 
 def save(filename, audio, rate, atype=None):
     """Saves the audio to a file.
-    params:
+
+    Args:
         filename: A string, which is the directory or filename of the
                   file to load
         audio: A numpy ndarray, which has 1 dimension and values within
@@ -167,7 +180,8 @@ def save(filename, audio, rate, atype=None):
 def file_record(filename, seconds, rate, atype=None,
                 recording_device_name='Microphone'):
     """Records audio from the recording device to a file.
-    params:
+
+    Args:
         filename: A string, which is the directory or filename of the
                   file to load
         seconds: A float, which is the length of the recording
@@ -189,13 +203,16 @@ def file_record(filename, seconds, rate, atype=None,
 
 def record(seconds, rate, atype=None, recording_device_name='Microphone'):
     """Records audio from the recording device.
-    params:
+
+    Args:
         seconds: A float, which is the length of the recording
         rate: An integer, which is the rate at which samples are taken
         atype: A string, which is the audio type (default: int16)
         recording_device_name: A string, which is the name of the
                                recording device
-    return: A tuple of the loaded audio, rate, and atype
+
+    Returns:
+        A tuple of the loaded audio, rate, and atype
     """
     global CHUNK, USE_PYAUDIO
     if atype is None:
@@ -243,7 +260,8 @@ def record(seconds, rate, atype=None, recording_device_name='Microphone'):
 
 def file_play(filename):
     """Plays the audio file.
-    params:
+
+    Args:
         filename: A string, which is the directory or filename of the
                   file to load
     """
@@ -254,7 +272,8 @@ def file_play(filename):
 
 def play(audio, rate, atype=None):
     """Plays the audio.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
@@ -299,25 +318,31 @@ def play(audio, rate, atype=None):
 
 def calc_duration(audio, rate):
     """Calculates the length of the audio in seconds.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
-    return: A float
+
+    Returns:
+        A float
     """
     return audio.size / rate
 
 
 def set_length(audio, length, mode='R', pad_value=0):
     """Sets the length of audio.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         length: An integer, which is the length to set the audio to
         mode: A string ('L','R','B'), which determines where to pad or remove
         pad_values: A float within -1.0 to 1.0 (inclusive), which will be
                     the if the audio is padded
-    return: A numpy ndarray, which has 1 dimension and values within
+
+    Returns:
+        A numpy ndarray, which has 1 dimension and values within
             -1.0 to 1.0 (inclusive)
     """
     mode = mode.lower()
@@ -344,7 +369,8 @@ def set_length(audio, length, mode='R', pad_value=0):
 
 def set_duration(audio, rate, seconds, mode='R', pad_value=0):
     """Sets the duration of audio in seconds.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
@@ -352,7 +378,9 @@ def set_duration(audio, rate, seconds, mode='R', pad_value=0):
         mode: A string ('L','R','B'), which determines where to pad or remove
         pad_values: A float within -1.0 to 1.0 (inclusive), which will be
                     the value if the audio is padded
-    return: A numpy ndarray, which has 1 dimension and values within
+
+    Returns:
+        A numpy ndarray, which has 1 dimension and values within
             -1.0 to 1.0 (inclusive)
     """
     return set_length(audio, round(rate * seconds), mode, pad_value)
@@ -360,13 +388,16 @@ def set_duration(audio, rate, seconds, mode='R', pad_value=0):
 
 def for_each_frame(audio, rate, frame_duration, func):
     """Calls a function on each frame.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
         frame_duration: A float, which is the duration of each frame
         func: A function, which takes a frame and returns a value
-    return: A tuple of a numpy ndarray of results from func and integer
+
+    Returns:
+        A tuple of a numpy ndarray of results from func and integer
             (new rate)
     """
     frames = np.array_split(
@@ -378,14 +409,17 @@ def for_each_frame(audio, rate, frame_duration, func):
 
 def compute_spectrogram(audio, rate, frame_duration, real=True):
     """Computes a nonoverlapping spectrogram.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
         frame_duration: A float, which is the duration of each frame
         real: A boolean, which determines if one side hermitian ffts
               should be used or real ffts
-    return: A tuple of a numpy ndarray, which has 2 dimensions
+
+    Returns:
+        A tuple of a numpy ndarray, which has 2 dimensions
             (frame, frequency powers), and an integer (new rate)
     """
     if real:
@@ -400,12 +434,15 @@ def compute_spectrogram(audio, rate, frame_duration, real=True):
 
 def convert_spectrogram_to_audio(spectrogram, rate, real=True):
     """Converts a nonoverlapping spectrogram back to audio.
-    params:
+
+    Args:
         spectrogram: A numpy ndarray, which has 2 dimensions
         rate: An integer, which is the rate at which each frame is taken
         real: A boolean, which determines if one side hermitian ffts
               should be used or real ffts
-    return: A tuple of a numpy ndarray, which has 1 dimension,
+
+    Returns:
+        A tuple of a numpy ndarray, which has 1 dimension,
             and an integer (new rate)
     """
     if real:
@@ -427,7 +464,7 @@ def compute_fbank(signal, samplerate=16000, winlen=0.025, winstep=0.01,
     """Compute Mel-filterbank energy features from an audio signal.
     Code adapted from python_speech_features, written orginally by James Lyons.
 
-    params:
+    Args:
         signal: the audio signal from which to compute features.
                 Should be an N*1 array
         samplerate: the sample rate of the signal we are working with, in Hz.
@@ -447,7 +484,9 @@ def compute_fbank(signal, samplerate=16000, winlen=0.025, winstep=0.01,
         winfunc: the analysis window to apply to each frame. By default
                  no window is applied. You can use numpy window functions
                  here e.g. winfunc=numpy.hamming
-    return: 2 values. The first is a numpy array of size (NUMFRAMES by nfilt)
+
+    Returns:
+        2 values. The first is a numpy array of size (NUMFRAMES by nfilt)
             containing features. Each row holds 1 feature vector. The
             second return value is the energy in each frame
             (total energy, unwindowed)
@@ -499,7 +538,7 @@ def compute_mfcc(signal, samplerate=16000, winlen=0.025,
     """Computes MFCC features from an audio signal.
     Code adapted from python_speech_features, written orginally by James Lyons.
 
-    params:
+    Args:
         signal: the audio signal from which to compute features.
                 Should be an N*1 array
         samplerate: the sample rate of the signal we are working with, in Hz.
@@ -524,7 +563,9 @@ def compute_mfcc(signal, samplerate=16000, winlen=0.025,
         winfunc: the analysis window to apply to each frame. By default
                  no window is applied. You can use numpy window functions
                  here e.g. winfunc=numpy.hamming
-    return: A numpy array of size (NUMFRAMES by numcep) containing features.
+
+    Returns:
+        A numpy array of size (NUMFRAMES by numcep) containing features.
             Each row holds 1 feature vector.
     """
     if nfft is None:
@@ -546,21 +587,27 @@ def compute_mfcc(signal, samplerate=16000, winlen=0.025,
 
 def calc_rms(audio):
     """Calculates the Root Mean Square of the audio.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
-    return: A float, which is the rms of the audio
+
+    Returns:
+        A float, which is the rms of the audio
     """
     return np.sqrt(np.sum(np.square(audio)) / audio.size)
 
 
 def shift_pitch(audio, rate, steps):
     """Shifts the pitch of the audio.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
-    return: A numpy ndarray, which has 1 dimension
+
+    Returns:
+        A numpy ndarray, which has 1 dimension
     """
     y = np.fft.rfft(audio)
     y = np.roll(y, steps)
@@ -573,23 +620,29 @@ def shift_pitch(audio, rate, steps):
 
 def set_power(audio, power):
     """Sets the power of the audio.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         power: A float, which is the Root Mean Square to set the audio to
-    return: A numpy ndarray, which has 1 dimension
+
+    Returns:
+        A numpy ndarray, which has 1 dimension
     """
     return np.clip(power / calc_rms(audio) * audio, -1, 1)
 
 
 def adjust_speed(audio, rate, multiplier=1):
     """Adjusts the speed of the audio and keeps the RMS power the same.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
         multiplier: A float, which is the amount to adjust the relative speed
-    return: A numpy ndarray, which has 1 dimension
+
+    Returns:
+        A numpy ndarray, which has 1 dimension
     """
     power = calc_rms(audio)
     y = np.fft.rfft(audio)
@@ -599,13 +652,16 @@ def adjust_speed(audio, rate, multiplier=1):
 
 def set_speed(audio, rate, seconds):
     """Sets the speed of the audio and keeps the RMS power the same.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
         seconds: A float, which is the number of seconds the audio
                  should be set to
-    return: A numpy ndarray, which has 1 dimension
+
+    Returns:
+        A numpy ndarray, which has 1 dimension
     """
     power = calc_rms(audio)
     y = np.fft.rfft(audio)
@@ -615,18 +671,22 @@ def set_speed(audio, rate, seconds):
 
 def adjust_volume(audio, multiplier=1):
     """Adjusts the volume of the audio.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         multiplier: A float, which is the amount to adjust the relative volume
-    return: A numpy ndarray, which has 1 dimension
+
+    Returns:
+        A numpy ndarray, which has 1 dimension
     """
     return np.clip(audio * multiplier, -1, 1)
 
 
 def blend(audio1, audio2, audio1_weight=.5, audio2_weight=None):
     """Blends two audios together.
-    params:
+
+    Args:
         audio1: A numpy ndarray, which has 1 dimension and values within
                 -1.0 to 1.0 (inclusive)
         audio2: A numpy ndarray, which has 1 dimension and values within
@@ -635,7 +695,9 @@ def blend(audio1, audio2, audio1_weight=.5, audio2_weight=None):
                        and should be within 0.0 and 1.0 (exclusive)
         audio2_weight: A float, which is the weight of audio 2
                        and should be within 0.0 and 1.0 (exclusive)
-    return: A numpy ndarray, which has 1 dimension
+
+    Returns:
+        A numpy ndarray, which has 1 dimension
     """
     if audio2_weight is None:
         audio2_weight = 1 - audio1_weight
@@ -653,7 +715,8 @@ def blend(audio1, audio2, audio1_weight=.5, audio2_weight=None):
 
 def plot(audio, seconds=0):
     """Plots the audio on a graph.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         seconds: A float, which is the number of seconds to show the plot
@@ -670,7 +733,8 @@ def plot(audio, seconds=0):
 def convert_audio_to_db(audio, rate, frame_duration, ref_func=lambda x: 1,
                         min_threshold=1e-10, db_threshold=80.0):
     """Converts the audio to decibels.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
@@ -679,7 +743,9 @@ def convert_audio_to_db(audio, rate, frame_duration, ref_func=lambda x: 1,
         min_threshold: A float, which is the minimum magnitude
         db_threshold: A float, which is the threshold for the audio
                       in decibels
-    return: A tuple of a numpy ndarray, which has 1 dimension,
+
+    Returns:
+        A tuple of a numpy ndarray, which has 1 dimension,
             and an integer (new rate)
     """
     mag, new_rate = for_each_frame(audio, rate, frame_duration,
@@ -693,12 +759,15 @@ def convert_audio_to_db(audio, rate, frame_duration, ref_func=lambda x: 1,
 def convert_power_to_db(power, ref_func=lambda x: 1,
                         min_threshold=1e-10, db_threshold=80.0):
     """Converts power to decibels.
-    params:
+
+    Args:
         power: A numpy ndarray, which has 1 or 2 dimensions
         min_threshold: A float, which is the minimum magnitude
         db_threshold: A float, which is the threshold for the audio
                 in decibels
-    return: A numpy ndarray, which has 1 or 2 dimensions
+
+    Returns:
+        A numpy ndarray, which has 1 or 2 dimensions
     """
     mag = np.abs(power)
     y = 10.0 * np.log10(np.maximum(min_threshold, mag))
@@ -710,12 +779,15 @@ def convert_power_to_db(power, ref_func=lambda x: 1,
 def convert_amplitude_to_db(amplitude, ref_func=lambda x: 1,
                             min_threshold=1e-10, db_threshold=80.0):
     """Converts amplitude to decibels.
-    params:
+
+    Args:
         amplitude: A numpy ndarray, which has 1 or 2 dimensions
         min_threshold: A float, which is the minimum magnitude
         db_threshold: A float, which is the threshold for the audio
                 in decibels
-    return: A numpy ndarray, which has 1 or 2 dimensions
+
+    Returns:
+        A numpy ndarray, which has 1 or 2 dimensions
     """
     mag = np.abs(amplitude)
     y = 20.0 * np.log10(np.maximum(min_threshold, mag))
@@ -726,14 +798,17 @@ def convert_amplitude_to_db(amplitude, ref_func=lambda x: 1,
 
 def trim_all(audio, rate, frame_duration, ambient_power=1e-4):
     """Trims ambient silence in the audio anywhere.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
         frame_duration: A float, which is the duration of each frame
                         to check
         ambient_power: A float, which is the Root Mean Square of ambient noise
-    return: A numpy ndarray, which has 1 dimension and values within
+
+    Returns:
+        A numpy ndarray, which has 1 dimension and values within
             -1.0 to 1.0 (inclusive)
     """
     new_audio = []
@@ -747,14 +822,17 @@ def trim_all(audio, rate, frame_duration, ambient_power=1e-4):
 
 def trim_sides(audio, rate, frame_duration, ambient_power=1e-4):
     """Trims ambient silence in the audio only on the sides.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
         frame_duration: A float, which is the duration of each frame
                         to check
         ambient_power: A float, which is the Root Mean Square of ambient noise
-    return: A numpy ndarray, which has 1 dimension and values within
+
+    Returns:
+        A numpy ndarray, which has 1 dimension and values within
             -1.0 to 1.0 (inclusive)
     """
     powers, fr = for_each_frame(audio, rate, frame_duration, calc_rms)
@@ -780,7 +858,8 @@ def trim_sides(audio, rate, frame_duration, ambient_power=1e-4):
 
 def split(audio, rate, frame_duration, ambient_power=1e-4, min_gap=None):
     """Splits the audio into audio segments on ambient frames.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
@@ -789,7 +868,9 @@ def split(audio, rate, frame_duration, ambient_power=1e-4, min_gap=None):
         ambient_power: A float, which is the Root Mean Square of ambient noise
         min_gap: An integer, which is the number of frames to consider until
                  ambient frames are removed
-    return: A list of numpy ndarray, which are 1 dimension each and have
+
+    Returns:
+        A list of numpy ndarray, which are 1 dimension each and have
             values within -1.0 to 1.0 (inclusive)
     """
     if min_gap is None:
@@ -817,14 +898,17 @@ def split(audio, rate, frame_duration, ambient_power=1e-4, min_gap=None):
 
 def find_gaps(audio, rate, frame_duration, ambient_power=1e-4):
     """Finds the length of gaps in the audio.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
         frame_duration: A float, which is the duration of each frame
                         to check
         ambient_power: A float, which is the Root Mean Square of ambient noise
-    return: A list of tuples with the first value in the tuple being the start
+
+    Returns:
+        A list of tuples with the first value in the tuple being the start
             of a gap and the second value the end
     """
     powers, fr = for_each_frame(audio, rate, frame_duration, calc_rms)
@@ -846,7 +930,8 @@ def find_gaps(audio, rate, frame_duration, ambient_power=1e-4):
 
 def vad_trim_all(audio, rate, frame_duration, aggressiveness=1):
     """Trims anywhere in the audio that does not contain speech.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer (8000, 16000, 32000, 48000), which is the rate
@@ -855,7 +940,9 @@ def vad_trim_all(audio, rate, frame_duration, aggressiveness=1):
                         of each frame to check
         aggressiveness: A integer (0, 1, 2, 3), which is the level of
                         aggressiveness to trim non-speech
-    return: A numpy ndarray, which has 1 dimension and values within
+
+    Returns:
+        A numpy ndarray, which has 1 dimension and values within
             -1.0 to 1.0 (inclusive)
     """
     assert rate in (8000, 16000, 32000, 48000), (
@@ -886,7 +973,8 @@ def vad_trim_all(audio, rate, frame_duration, aggressiveness=1):
 
 def vad_trim_sides(audio, rate, frame_duration, aggressiveness=1):
     """Trims the sides in the audio that do not contain speech.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer (8000, 16000, 32000, 48000), which is the rate
@@ -895,7 +983,9 @@ def vad_trim_sides(audio, rate, frame_duration, aggressiveness=1):
                         of each frame to check
         aggressiveness: A integer (0, 1, 2, 3), which is the level of
                         aggressiveness to trim non-speech
-    return: A numpy ndarray, which has 1 dimension and values within
+
+    Returns:
+        A numpy ndarray, which has 1 dimension and values within
             -1.0 to 1.0 (inclusive)
     """
     assert rate in (8000, 16000, 32000, 48000), (
@@ -935,13 +1025,16 @@ def vad_trim_sides(audio, rate, frame_duration, aggressiveness=1):
 
 def vad_split(audio, rate, frame_duration, aggressiveness=1):
     """Splits the audio into audio segments on non-speech frames.
-    params:
+
+    Args:
         audio: A numpy ndarray, which has 1 dimension and values within
                -1.0 to 1.0 (inclusive)
         rate: An integer, which is the rate at which samples are taken
         frame_duration: A float, which is the duration of each frame
                         to check
-    return: A list of numpy ndarray, which are 1 dimension each and
+
+    Returns:
+        A list of numpy ndarray, which are 1 dimension each and
             have values within -1.0 to 1.0 (inclusive)
     """
     assert rate in (8000, 16000, 32000, 48000), (

@@ -305,3 +305,131 @@ def test_td3_agent():
     cmodel.compile(optimizer='adam', loss=keras.losses.MeanSquaredError())
     with pytest.raises(ValueError):
         agent = TD3Agent(policy, amodel, cmodel, .97)
+
+
+def test_pgc_agent():
+    inputs = keras.layers.Input((512,))
+    x = keras.layers.Dense(1024)(inputs)
+    mean = keras.layers.Dense(1, activation='tanh')(x)
+    mean = PGCAgent.scale(0, 1, name='scale_mean')(mean)
+    std = keras.layers.Dense(1, activation='tanh')(x)
+    std = PGCAgent.scale(1e-5, 1, name='scale_std')(std)
+    action = PGCAgent.sample(name='sample')([mean, std])
+    action = PGCAgent.clip(0, 1)(action)
+
+    amodel = keras.Model(inputs=inputs,
+                         outputs=[mean, std, action])
+    amodel.compile(optimizer=keras.optimizers.Adam(.001),
+                   loss='mse')
+
+    agent = PGCAgent(amodel, .97)
+
+    for _ in range(10):
+        assert 0 <= agent.select_action(np.random.random(512),
+                                        training=True)[0] <= 1
+    for _ in range(10):
+        assert 0 <= agent.select_action(np.random.random(512),
+                                        training=False)[0] <= 1
+
+    agent.set_playing_data()
+    assert isinstance(agent.playing_data, PlayingData)
+
+    for _ in range(10):
+        for _ in range(10):
+            agent.add_memory(np.random.random(512), np.random.random((1,)),
+                             np.random.random(512), np.random.random(), False)
+        agent.add_memory(np.random.random(512), np.random.random((1,)),
+                         np.random.random(512), np.random.random(), True)
+        agent.end_episode()
+
+    agent.learn(batch_size=2, epochs=5)
+    agent.learn(batch_size=2, epochs=5, entropy_coef=.01)
+    agent.learn(batch_size=2, epochs=2, repeat=2)
+
+    path = agent.save('')
+    note = agent.load(path)
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)
+
+
+def test_a2cc_agent():
+    inputs = keras.layers.Input((512,))
+    x = keras.layers.Dense(1024)(inputs)
+    mean = keras.layers.Dense(2, activation='tanh')(x)
+    mean = A2CCAgent.scale(0, 1, name='scale_mean')(mean)
+    std = keras.layers.Dense(2, activation='tanh')(x)
+    std = A2CCAgent.scale(1e-5, 1, name='scale_std')(std)
+    action = A2CCAgent.sample(name='sample')([mean, std])
+    action = A2CCAgent.clip(0, 1)(action)
+    amodel = keras.Model(inputs=inputs,
+                         outputs=[mean, std, action])
+    amodel.compile(optimizer='adam', loss='mse')
+
+    inputs = keras.layers.Input((512,))
+    x = keras.layers.Dense(1024)(inputs)
+    outputs = keras.layers.Dense(1)(x)
+    cmodel = keras.models.Model(inputs=[inputs], outputs=[outputs])
+    cmodel.compile(optimizer='adam', loss=keras.losses.MeanSquaredError())
+
+    agent = A2CCAgent(amodel, cmodel, .97)
+
+    for _ in range(10):
+        actions = agent.select_action(np.random.random(512),
+                                      training=True)
+        assert 0 <= actions[0] <= 1
+        assert 0 <= actions[1] <= 1
+    for _ in range(10):
+        actions = agent.select_action(np.random.random(512),
+                                      training=False)
+        assert 0 <= actions[0] <= 1
+        assert 0 <= actions[1] <= 1
+
+    agent.set_playing_data()
+    assert isinstance(agent.playing_data, PlayingData)
+
+    for _ in range(10):
+        for _ in range(10):
+            agent.add_memory(np.random.random(512), np.random.random(2),
+                             np.random.random(512), np.random.random(), False)
+        agent.add_memory(np.random.random(512), np.random.random(2),
+                         np.random.random(512), np.random.random(), True)
+        agent.end_episode()
+
+    agent.learn(batch_size=2, epochs=5)
+    agent.learn(batch_size=2, epochs=5, entropy_coef=.01)
+    agent.learn(batch_size=2, epochs=2, repeat=2)
+
+    agent = A2CCAgent(amodel, cmodel, .97, lambda_rate=.95)
+
+    for _ in range(10):
+        actions = agent.select_action(np.random.random(512),
+                                      training=True)
+        assert 0 <= actions[0] <= 1
+        assert 0 <= actions[1] <= 1
+    for _ in range(10):
+        actions = agent.select_action(np.random.random(512),
+                                      training=False)
+        assert 0 <= actions[0] <= 1
+        assert 0 <= actions[1] <= 1
+
+    agent.set_playing_data()
+    assert isinstance(agent.playing_data, PlayingData)
+
+    for _ in range(10):
+        for _ in range(10):
+            agent.add_memory(np.random.random(512), np.random.random(2),
+                             np.random.random(512), np.random.random(), False)
+        agent.add_memory(np.random.random(512), np.random.random(2),
+                         np.random.random(512), np.random.random(), True)
+        agent.end_episode()
+
+    agent.learn(batch_size=2, epochs=5)
+    agent.learn(batch_size=2, epochs=5, entropy_coef=.01)
+    agent.learn(batch_size=2, epochs=2, repeat=2)
+
+    path = agent.save('')
+    note = agent.load(path)
+    for filename in os.listdir(path):
+        os.remove(os.path.join(path, filename))
+    os.rmdir(path)

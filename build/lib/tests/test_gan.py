@@ -264,6 +264,7 @@ def test_gani_trainer():
         GANITrainer(gen_model, dis_model,
                     {'train_x': x_data, 'train_a': y_data})
 
+
 def test_gani_predictor():
     x_data = np.random.random((10, 12, 12, 1))
     y_data = np.random.random((10, 12, 12, 1))
@@ -353,7 +354,7 @@ def test_cycle_gan_trainer():
     val_dataset = tf.data.Dataset.from_tensor_slices(
         ((np.zeros((10, 12, 12, 1), dtype=np.float32),
           np.zeros((10, 12, 12, 1), dtype=np.float32)),
-         (np.ones(10, dtype=np.float32), 
+         (np.ones(10, dtype=np.float32),
           np.ones(10, dtype=np.float32)))
     ).batch(10)
     trainer = CycleGANTrainer(gen_model, dis_model,
@@ -416,7 +417,6 @@ def test_cycle_gan_predictor():
     predictor = CycleGANPredictor(path, uses_generator=False)
     assert predictor.predict(x_data[0]).shape == (1,)
     assert predictor.predict_all(x_data).shape == (10, 1)
-
 
     predictor = CycleGANPredictor(path, uses_x_model=False)
     assert predictor.predict(np.random.random(

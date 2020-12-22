@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_8_2020
+Version: 12_21_2020
 """
 
 
@@ -12,74 +12,98 @@ from threading import Thread, Event, Lock
 
 def rgb2bgr(image):
     """Converts a RGB image to a BGR image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 3 dimensions
-    return: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
     """
     return cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
 
 def bgr2rgb(image):
     """Converts a BGR image to a RGB image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 3 dimensions
-    return: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
     """
     return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
 
 def bgr2hsv(image):
     """Converts a BGR image to a HSV image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 3 dimensions
-    return: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
     """
     return cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
 
 def hsv2bgr(image):
     """Converts a HSV image to a BGR image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 3 dimensions
-    return: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
     """
     return cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
 
 
 def bgr2hls(image):
     """Converts a BGR image to a HLS image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 3 dimensions
-    return: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
     """
     return cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
 
 
 def hls2bgr(image):
     """Converts a HLS image to a BGR image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 3 dimensions
-    return: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
     """
     return cv2.cvtColor(image, cv2.COLOR_HLS2BGR)
 
 
 def gray(image):
     """Converts a BGR image to a grayscale image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 3 dimensions
-    return: A numpy ndarray, which has 2 dimensions
+
+    Returns:
+        A numpy ndarray, which has 2 dimensions
     """
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 
 def resize(image, target_shape, interpolation=None):
     """Resizes an image to a targeted shape.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         target_shape: A tuple with the vertical size then horizontal size
         interpolation: A cv2 interpolation
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     if interpolation is not None:
         return cv2.resize(image, target_shape, interpolation=interpolation)
@@ -90,25 +114,32 @@ def resize(image, target_shape, interpolation=None):
 
 def normalize(image):
     """Normalizes an image between -1 and 1.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     return (image.astype(np.float) - 127.5) / 127.5
 
 
 def denormalize(image):
     """Denormalizes an image that is between -1 and 1 to 0 and 255.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions and is normalized
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     return np.clip(image * 127.5 + 127.5, 0, 255).astype(np.uint8)
 
 
 def pyr(image, level):
     """Resize image using pyramids.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         level: An integer, which if positive enlarges and if negative reduces
     returns: A numpy ndarray, which has the same number of dimensions
@@ -125,13 +156,16 @@ def pyr(image, level):
 
 def load(filename, target_shape=None, color=True):
     """Loads an image from a file.
-    params:
+
+    Args:
         filename: A string, which is the directory or filename of the
                   file to load
         target_shape: A tuple with the vertical size then horizontal size
         color: A boolean, which determines if the image should be
                converted to gray scale
-    return: A numpy ndarray, which has 2 or 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 2 or 3 dimensions
     """
     image = cv2.imread(filename)
     if image is None:
@@ -145,7 +179,8 @@ def load(filename, target_shape=None, color=True):
 
 def save(filename, image, target_shape=None, color=True):
     """Saves an image to a file.
-    params:
+
+    Args:
         filename: A string, which is the directory or filename to save image to
         image: A numpy ndarray, which has 2 or 3 dimensions
         target_shape: A tuple with the vertical size then horizontal size
@@ -161,12 +196,15 @@ def save(filename, image, target_shape=None, color=True):
 
 def increase_brightness(image, percentage, relative=False):
     """Increases the brightness of image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         percentage: An integer, which is how much to increase
         relative: A boolean, which determines if the percentage is
                   is in terms of max brightness or current brightness
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     v = hsv[:, :, 2]
@@ -181,12 +219,15 @@ def increase_brightness(image, percentage, relative=False):
 
 def set_brightness(image, percentage, relative=False):
     """Sets the brightness of image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         percentage: An integer, which is how much to increase
         relative: A boolean, which determines if the percentage is
                   is in terms of max brightness or current brightness
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     v = hsv[:, :, 2]
@@ -202,10 +243,13 @@ def set_brightness(image, percentage, relative=False):
 
 def set_gamma(image, gamma=1.0):
     """Set gamma levels of the image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         gamma: A float, which is the amount to change the images gamma
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     image = (image / 255.0)**(1.0 / gamma) * 255
     return image.round().astype(np.uint8)
@@ -213,12 +257,15 @@ def set_gamma(image, gamma=1.0):
 
 def apply_clahe(image, clip_limit=40.0, tile_grid_size=(8, 8)):
     """Applys CLAHE (Contrast Limited Adaptive Histogram Equalization).
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions (preferably 2)
         clip_limit: A float, which is the threshold for contrasting
         tile_grid_size: A tuple of 2 natural numbers, which is the number
                         of rows and columns, respectively
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     clahe = cv2.createCLAHE(clip_limit, tile_grid_size)
     if image.ndim == 2:
@@ -232,9 +279,12 @@ def apply_clahe(image, clip_limit=40.0, tile_grid_size=(8, 8)):
 
 def equalize(image):
     """Equalizes the image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     if image.ndim == 2:
         return cv2.equalizeHist(image)
@@ -247,10 +297,13 @@ def equalize(image):
 
 def rotate(image, angle):
     """Rotates the image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         angle: A float, which is in terms of degress
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     center = tuple(np.array(image.shape[1::-1]) / 2)
     rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
@@ -261,31 +314,40 @@ def rotate(image, angle):
 
 def hflip(image):
     """Horizontally flips the image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     return cv2.flip(image, 1)
 
 
 def vflip(image):
     """Vertically flips the image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     return cv2.flip(image, 0)
 
 
 def translate(image, vertical=0, horizontal=0):
     """Translates the image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         vertical: An integer (possibly a float), which is the amount to
                   shift the image vertically
         horizontal: An integer (possibly a float), which is the amount to
                   shift the image horizontally
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     return cv2.warpAffine(image,
                           np.float32([[1, 0, horizontal], [0, 1, vertical]]),
@@ -294,7 +356,8 @@ def translate(image, vertical=0, horizontal=0):
 
 def crop_rect(image, vertical, horizontal, width, height):
     """Crops a rectangle out of the image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         vertical: An integer, which is the vertical coord for the top left
                   of the rectangle
@@ -302,14 +365,17 @@ def crop_rect(image, vertical, horizontal, width, height):
                   of the rectangle
         width: An integer, which is the width of the rectangle
         height: An integer, which is the height of the rectangle
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     return image[vertical:vertical + height, horizontal:horizontal + width]
 
 
 def crop_rect_coords(image, vertical1, horizontal1, vertical2, horizontal2):
     """Crops a rectangle out of the image through two coords.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         vertical1: An integer, which is the vertical coord for the top left
                    of the rectangle
@@ -319,14 +385,17 @@ def crop_rect_coords(image, vertical1, horizontal1, vertical2, horizontal2):
                    of the rectangle
         horizontal2: An integer, which is the horizontal coord for the bottom
                      right of the rectangle
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     return image[vertical1:vertical2, horizontal1:horizontal2]
 
 
 def shrink_sides(image, ts=0, bs=0, ls=0, rs=0):
     """Shrinks/crops the image through shrinking each side of the image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         ts: An integer, which is the amount to shrink the top side
             of the image
@@ -336,21 +405,26 @@ def shrink_sides(image, ts=0, bs=0, ls=0, rs=0):
             of the image
         rs: An integer, which is the amount to shrink the right side
             of the image
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     return image[ts:image.shape[0] - bs, ls:image.shape[1] - rs]
 
 
 def crop(image, shape, horizontal_center=0, vertical_center=0):
     """Crops the image with a given center coord and the shape of a rectangle.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         shape: A tuple of 2 integers, which is the shape of the rectangle
         horizontal_center: An integer, which is the offset from the
                            image's horizontal center
         vertical_center: An integer, which is the  offset from the
                          image's vertical center
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     ds = (image.shape[0] - shape[0]) // 2, (image.shape[1] - shape[1]) // 2
     return shrink_sides(image, ds[0] + vertical_center,
@@ -361,7 +435,8 @@ def crop(image, shape, horizontal_center=0, vertical_center=0):
 
 def pad(image, ts=0, bs=0, ls=0, rs=0, color=(0, 0, 0)):
     """Pads the image through adding pixels to each side of the image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         ts: An integer, which is the amount to pad the top side
             of the image
@@ -373,7 +448,9 @@ def pad(image, ts=0, bs=0, ls=0, rs=0, color=(0, 0, 0)):
             of the image
         color: A tuple of 3 integers or an integer with a range of
                0-255 (inclusive), which is the color of the padding
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     return cv2.copyMakeBorder(image, ts, bs, ls, rs, cv2.BORDER_CONSTANT,
                               value=color)
@@ -381,14 +458,17 @@ def pad(image, ts=0, bs=0, ls=0, rs=0, color=(0, 0, 0)):
 
 def blend(image1, image2, image1_weight=.5, image2_weight=None):
     """Blends two images together.
-    params:
+
+    Args:
         image1: A numpy ndarray, which has 2 or 3 dimensions
         image2: A numpy ndarray, which has same dimensions as image1
         image1_weight: A float, which is the intensity of image1
                        to preserve
         image2_weight: A float, which is the intensity of image2
                        to preserve
-    return: A numpy ndarray, which has the same number of dimensions as image1
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image1
     """
     if image2_weight is None:
         image2_weight = 1 - image1_weight
@@ -396,15 +476,18 @@ def blend(image1, image2, image1_weight=.5, image2_weight=None):
 
 
 def zoom(image, shape, horizontal_center=0, vertical_center=0):
-    """Zooms the image to shape on a given center coord
-    params:
+    """Zooms the image to shape on a given center coord.
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         shape: A tuple of 2 integers, which is the shape of the zoomed image
         horizontal_center: An integer, which is the horizontal offset from
                            the image's center
         vertical_center: An integer, which is the vertical offset from
                          the image's center
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     old_shape = image.shape[1::-1]
     if old_shape[0] < shape[0] and old_shape[1] < shape[1]:
@@ -422,11 +505,14 @@ def zoom(image, shape, horizontal_center=0, vertical_center=0):
 
 def transform_perspective(image, pts, shape):
     """Transforms the perspective of an image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         pts: A list of list with 2 integers (possibly floats)
         shape: A tuple of 2 integers
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     pts1 = np.float32(pts)
     pts2 = np.float32([[0, 0], [shape[0], 0], [0, shape[1]], shape])
@@ -437,7 +523,8 @@ def transform_perspective(image, pts, shape):
 def unsharp_mask(image, kernel_shape=(5, 5), sigma=1.0,
                  amount=1.0, threshold=0):
     """Sharpens the image through the unsharp masking technique.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions
         kernel_shape: A tuple of 2 integers, which is the shape of the
                       blurring kernel
@@ -446,7 +533,9 @@ def unsharp_mask(image, kernel_shape=(5, 5), sigma=1.0,
                 image from the image
         threshold: An integer within 0-255 (inclusive), which is the low
                    contrast threshold to copy the image to the sharpened image
-    return: A numpy ndarray, which has the same number of dimensions as image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
     """
     blurred = cv2.GaussianBlur(image, kernel_shape, sigma)
     sharpened = float(amount + 1) * image - float(amount) * blurred
@@ -461,11 +550,14 @@ def unsharp_mask(image, kernel_shape=(5, 5), sigma=1.0,
 
 def create_mask_of_colors_in_range(image, lower_bounds, upper_bounds):
     """Creates a mask of the colors in within the lower and upper bounds.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
         lower_bounds: A tuple of 3 integers (HSV), which is the lower bound
         upper_bounds: A tuple of 3 integers (HSV), which is the upper bound
-    return: A numpy ndarray, which has 2 dimensions
+
+    Returns:
+        A numpy ndarray, which has 2 dimensions
     """
     if isinstance(lower_bounds[0], int):
         lower_bounds = [lower_bounds]
@@ -483,13 +575,16 @@ def compute_color_ranges(images, percentage_captured=50,
                          num_bounds=1, use_evolution_algo=False):
     """Computes the color ranges that captures a percentage of the image.
     This algorithm is not well designed and is mainly for testing purposes.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
         percentage_captured: An integer within 0-100 (inclusive), which acts
                              as the threshold for the bounds
         num_bounds: An integer, which does nothing
         use_evolution_algo: A boolean, which does nothing
-    return: A tuple of 2 list with the former containing lower
+
+    Returns:
+        A tuple of 2 list with the former containing lower
             bounds and the latter upper bounds
     """
     if use_evolution_algo:
@@ -505,10 +600,13 @@ def compute_color_ranges(images, percentage_captured=50,
 
 
 def create_magnitude_spectrum(image):
-    """Creates a magnitude spectrum from image
-    params:
+    """Creates a magnitude spectrum from image.
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
-    return: A numpy ndarray, which has 2 dimensions
+
+    Returns:
+        A numpy ndarray, which has 2 dimensions
     """
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     dft = cv2.dft(np.float32(image), flags=cv2.DFT_COMPLEX_OUTPUT)
@@ -520,9 +618,12 @@ def create_magnitude_spectrum(image):
 
 def freq_filter_image(image, high=True):
     """Filters frequencies in the image.
-    params:
+
+    Args:
         image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
-    return: A numpy ndarray, which has 2 dimensions
+
+    Returns:
+        A numpy ndarray, which has 2 dimensions
     """
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     dft = cv2.dft(np.float32(image), flags=cv2.DFT_COMPLEX_OUTPUT)
@@ -543,8 +644,9 @@ def freq_filter_image(image, high=True):
 
 def create_histograms(images, hsv_images=False, channels=None,
                       vrange=None, num_bins=None):
-    """
-    params:
+    """Create histograms.
+
+    Args:
         image: A list of numpy ndarray, which each ndarray is 2 or
                3 dimensions (must all have same dimensions)
         hsv_images: A boolean, which determines if the image is HSV
@@ -554,7 +656,9 @@ def create_histograms(images, hsv_images=False, channels=None,
                 integers containing the lower and upper+1 value of a channel
         num_bins: An integer, which is the number of bins to have for
                   the histograms
-    return: A numpy ndarray, which is a list of the histograms
+
+    Returns:
+        A numpy ndarray, which is a list of the histograms
     """
     if not isinstance(images, list):
         images = [images]
@@ -591,11 +695,12 @@ def create_histograms(images, hsv_images=False, channels=None,
 
 
 class HistogramBackProjector:
-    """This Class is used to find objects of interest in an image"""
+    """This Class is used to find objects of interest in an image."""
 
     def __init__(self, object_image):
         """Initializes the HBP by computing the object image's histogram.
-        params:
+
+        Args:
             object_image: A numpy ndarray, which has 3 dimensions (BGR)
         """
         hsv = cv2.cvtColor(object_image, cv2.COLOR_BGR2HSV)
@@ -605,8 +710,9 @@ class HistogramBackProjector:
         self.hist = hist
 
     def backproject(self, image, raw=False, threshold=50, disc_kernel=(5, 5)):
-        """Back projects the image to the object image
-        params:
+        """Back projects the image to the object image.
+
+        Args:
             image: A numpy ndarray, which has 3 dimensions
             raw: A boolean, which determines if the output image
                  is thresholded
@@ -614,7 +720,9 @@ class HistogramBackProjector:
                        projected image
             disc_kernel: A tuple of 2 integers, which is the size of the
                          kernel for filtering
-        return: A numpy ndarray, which has 3 dimensions
+
+        Returns:
+            A numpy ndarray, which has 3 dimensions
         """
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         dst = cv2.calcBackProject([hsv], [0, 1], self.hist,
@@ -636,7 +744,8 @@ class TemplateMatcher:
 
     def __init__(self, template, mask=None):
         """Initializes the TemplateMatcher by converting and setting the template.
-        params:
+
+        Args:
             template: A numpy ndarray, which has 2 or 3 dimensions (BGR)
             mask: A numpy ndarray, which acts as a binary mask or weights
         """
@@ -647,7 +756,8 @@ class TemplateMatcher:
     def match_coords(self, image, method=cv2.TM_CCOEFF_NORMED):
         """Finds the top left point and dimensions (width, height)
            of a subimage that most matches the template.
-        params:
+
+        Args:
             image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
             method: A cv2 constant or integer, which determines the
                     method of finding a match
@@ -669,7 +779,8 @@ class TemplateMatcher:
         """Finds the top left point and dimensions (width, height)
            of a subimage that most matches the template and then
            draws a rectange with those coords.
-        params:
+
+        Args:
             image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
             color: A tuple of 1 or 3 integers, which represents the
                    color of the drawn rectangle
@@ -689,7 +800,8 @@ class TemplateMatcher:
         """Finds the top left point and dimensions (width, height)
            of all subimages that match the template and then
            draws a rectange with those coords.
-        params:
+
+        Args:
             image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
             threshold: A float, which is the threshold for being a match
                        (higher more of a match)
@@ -723,7 +835,8 @@ class Camera:
 
     def __init__(self, fps=30, camera_device=0):
         """Initializes the camera and checks if it worked.
-        params:
+
+        Args:
             fps: An integer, which is the number of frames per second
             camera_device: An integer, which determines the device to use
         """
@@ -760,14 +873,17 @@ class Camera:
 
     def capture(self, filename=None, target_shape=None, color=True):
         """Uses the camera object to capture an iamge.
-        params:
+
+        Args:
             filename: A string, which is the directory or filename to
                       save image to
             target_shape: A tuple with the vertical size then horizontal
                           size
             color: A boolean, which determines if the image should be
                    converted to gray scale
-        return: None or a numpy ndarray, which has 2 or 3 dimensions
+
+        Returns:
+            None or a numpy ndarray, which has 2 or 3 dimensions
         """
         grabbed, frame = self.camera.read()
         if not grabbed:
@@ -785,7 +901,8 @@ class Camera:
     def record(self, num_frames=None, filename=None,
                target_shape=None, color=True):
         """Uses the camera object to capture many iamges in a row.
-        params:
+
+        Args:
             num_frmaes: An integer, which is the number of frames to capture
             filename: A string, which is the directory or filename to
                       save image to
@@ -793,7 +910,9 @@ class Camera:
                           size
             color: A boolean, which determines if the image should be
                    converted to gray scale
-        return: None or a list of numpy ndarrays, which have 2 or 3 dimensions
+
+        Returns:
+            None or a list of numpy ndarrays, which have 2 or 3 dimensions
         """
         frames = []
         for _ in range(num_frames):
@@ -819,7 +938,8 @@ class LockDict:
 
     def __init__(self, dict_=None):
         """Initializes the LockDict.
-        params:
+
+        Args:
             dict_: A dictionary
         """
         self.dict = dict_ if dict_ else {}
@@ -827,9 +947,12 @@ class LockDict:
 
     def __getitem__(self, key):
         """Gets an item from a key.
-        params:
+
+        Args:
             key: A hashable value
-        return: A value
+
+        Returns:
+            A value
         """
         self.lock.acquire()
         if key not in self.dict.keys():
@@ -840,7 +963,8 @@ class LockDict:
 
     def __setitem__(self, key, value):
         """Sets a key to a value.
-        params:
+
+        Args:
             key: A hashable value
             value: A value
         """
@@ -850,7 +974,8 @@ class LockDict:
 
     def __contains__(self, key):
         """Checks if key is in the dictionary.
-        params:
+
+        Args:
             key: A hashable value
         """
         self.lock.acquire()
@@ -860,7 +985,8 @@ class LockDict:
 
     def __delitem__(self, key):
         """Deletes a key and value.
-        params:
+
+        Args:
             key: A hashable value
         """
         self.lock.acquire()
@@ -869,7 +995,9 @@ class LockDict:
 
     def keys(self):
         """Returns a set of all the keys.
-        return: A set
+
+        Returns:
+            A set
         """
         self.lock.acquire()
         x = set(self.dict.keys())
@@ -878,7 +1006,9 @@ class LockDict:
 
     def values(self):
         """Returns a list of all the values.
-        return: A list
+
+        Returns:
+            A list
         """
         self.lock.acquire()
         x = list(self.dict.values())
@@ -887,7 +1017,9 @@ class LockDict:
 
     def items(self):
         """Returns a list of all the keys and values.
-        return: A list of tuples with key then value
+
+        Returns:
+            A list of tuples with key then value
         """
         self.lock.acquire()
         x = list(self.dict.items())
@@ -902,7 +1034,8 @@ class Windows:
     def __init__(self, update_delay=1):
         """Initializes the Dictionaries for holding the windows.
            (Can only have one instance per process)
-        params:
+
+        Args:
             update_delay: An integer, which is the number of ms
                           to delay each update (must be > 0)
         """
@@ -925,7 +1058,7 @@ class Windows:
         self.stop_event.clear()
 
     def stop(self):
-        """Stops the thread from updating the windows and removes
+        """Stops the thread from updating the windows and removes.
            all windows.
         """
         if self.thread is not None:
@@ -966,11 +1099,14 @@ class Windows:
 
     def add(self, name='Image', image=None, mouse_callback=None):
         """Adds an image to the update dictionary.
-        params:
+
+        Args:
             name: A string, which is the unguaranteed name of the window.
             image: A numpy ndarray, which has 2 or 3 dimensions
             mouse_callback: A function, which can be called on window events
-        return: A string, which is the name for the window
+
+        Returns:
+            A string, which is the name for the window
         """
         ndx = 1
         temp_name = name
@@ -988,7 +1124,8 @@ class Windows:
 
     def set(self, name, image):
         """Sets the window to image.
-        params:
+
+        Args:
             name: A string, which is the unguaranteed name of the window.
             image: A numpy ndarray, which has 2 or 3 dimensions
         """
@@ -996,7 +1133,8 @@ class Windows:
 
     def remove(self, name):
         """Removes a window from the update dictionary.
-        params:
+
+        Args:
             name: A string, which is the unguaranteed name of the window.
         """
         del self.windows[name]
@@ -1006,7 +1144,8 @@ class Windows:
     @staticmethod
     def mouse_callback_logger(event, x, y, flags, param):
         """Logs all the events of a window.
-        params:
+
+        Args:
             event: A cv2 constant or an integer
             x: An integer, which is the horizontal position of the event
             y: An integer, which is the vertical position of the event

@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_10_2020
+Version: 12_21_2020
 """
 
 
@@ -19,12 +19,15 @@ def load_directory_datasets(path, file_loader):
          dogs       cats
          //           \\
     data files     data files
-    params:
+
+    Args:
         path: A string, which is a path to the datasets
         file_loader: A function for loading each file, or
                      a dictionary of postfix identifiers as keys
                      and file loader functions for values
-    return: A dictionary, which contains the datasets
+
+    Returns:
+        A dictionary, which contains the datasets
     """
 
     def load(path, fl):
@@ -71,7 +74,8 @@ def save_directory_datasets(path, datasets, file_saver):
          dogs       cats
          //           \\
     data files     data files
-    params:
+
+    Args:
         path: A string, which is a path to the datasets
         datasets: A dictionary, which contains the datasets
         file_saver: A function for saving each file, or a
@@ -112,11 +116,14 @@ def load_directory_database(path, file_loaders):
      dogs  cats    dogs  cats
       ||    ||      ||    ||
     files  files  files  files <- Groups should share file names
-    params:
+
+    Args:
         path: A string, which is a path to the datasets
         file_loaders: A dictionary of postfix identifiers as keys
                       and file loader functions for values
-    return: A dictionary, which contains the dataset groups
+
+    Returns:
+        A dictionary, which contains the dataset groups
     """
     folders = [folder for folder in os.listdir(path)
                if os.path.isdir(os.path.join(path, folder))]
@@ -143,12 +150,15 @@ def save_directory_database(path, database, file_savers):
      dogs  cats    dogs  cats
       ||    ||      ||    ||
     files  files  files  files <- Groups should share order
-    params:
+
+    Args:
         path: A string, which is a path to the datasets
         database: A dictionary, which contains the groups of datasets
         file_loaders: A dictionary of postfix identifiers as keys
                       and file loader functions for values
-    return: A dictionary, which contains the dataset groups
+
+    Returns:
+        A dictionary, which contains the dataset groups
     """
     _create_folder(path)
     for name, datasets in database.items():
@@ -162,9 +172,12 @@ def save_directory_database(path, database, file_savers):
 
 def load_file_datasets(path):
     """Loads datasets from a file.
-    params:
+
+    Args:
         path: A string, which is a path to the datasets
-    return: A dictionary, which contains the datasets
+
+    Returns:
+        A dictionary, which contains the datasets
     """
     datasets = {}
     with h5py.File(path, 'r') as hf:
@@ -175,7 +188,8 @@ def load_file_datasets(path):
 
 def save_file_datasets(path, datasets):
     """Saves datasets to a file.
-    params:
+
+    Args:
         path: A string, which is a path to the datasets
         datasets: A dictionary, which contains the datasets
     """
@@ -207,7 +221,8 @@ def save_datasets(path, datasets, file_saver):
 
 def write(mappings, path, **kwargs):
     """Creates or appends a mappings csv file.
-    params:
+
+    Args:
         mappings: A dictionary
         path: A string for the path to save the csv file to
     """
@@ -224,9 +239,12 @@ def write(mappings, path, **kwargs):
 
 def read(path, **kwargs):
     """Loads a mapping file.
-    params:
+
+    Args:
         path: A string from which to load the mappings.csv file
-    return: A list of dictionaries
+
+    Returns:
+        A list of dictionaries
     """
     mappings = []
     with open(os.path.join(path, 'mappings.csv'), newline='') as csvfile:

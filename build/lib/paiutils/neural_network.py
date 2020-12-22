@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_19_2020
+Version: 12_21_2020
 """
 
 from types import GeneratorType
@@ -21,7 +21,8 @@ class Trainer:
 
     def __init__(self, model, data):
         """Initializes the model and the train/validation/test data.
-        params:
+
+        Args:
             model: A compiled keras model
             data: A dictionary containg train data
                   and optionally validation and test data.
@@ -39,7 +40,8 @@ class Trainer:
 
     def set_data(self, data):
         """Sets train, validation, and test data from data.
-        params:
+
+        Args:
             data: A dictionary containg train data
                   and optionally validation and test data.
                   If the train/validation/test key is present without
@@ -94,7 +96,8 @@ class Trainer:
 
     def train(self, epochs, batch_size=None, verbose=True, **kwargs):
         """Trains the keras model.
-        params:
+
+        Args:
             epochs: An integer, which is the number of complete
                     iterations to train
             batch_size: An integer, which is the number of samples
@@ -118,7 +121,8 @@ class Trainer:
     def eval(self, train_data=True, validation_data=True,
              test_data=True, batch_size=None, verbose=True, **kwargs):
         """Evaluates the model with the train/validation/test data.
-        params:
+
+        Args:
             train_data: A boolean, which determines if
                         train_data should be evaluated
             validation_data: A boolean, which determines if
@@ -128,7 +132,9 @@ class Trainer:
             batch_size: An integer, which is the number of samples
                         per graident update
             verbose: A boolean, which determines the verbositiy level
-        return: A dictionary of the results
+
+        Returns:
+            A dictionary of the results
         """
         verbose = 1 if verbose else 0
 
@@ -161,12 +167,15 @@ class Trainer:
     def load(self, path, custom_objects=None):
         """Loads models and weights from a folder.
            (overrides the inital provided model)
-        params:
+
+        Args:
             path: A string, which is the path to a folder
                   containing model.json, model_weights.h5, note.txt, etc.
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         for name in self.model_names:
             optimizer = self.__dict__[name].optimizer
@@ -188,11 +197,14 @@ class Trainer:
 
     def save(self, path, note=None):
         """Saves the models and weights to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to create a folder in
                   containing model.json, model_weights.h5, note.txt, etc.
             note: A string, which is a note to save in the folder
-        return: A string, which is the given path + created folder
+
+        Returns:
+            A string, which is the given path + created folder
         """
         time = datetime.datetime.now()
         path = os.path.join(path, time.strftime(r'%Y%m%d_%H%M%S_%f'))
@@ -224,7 +236,8 @@ class Predictor:
     def __init__(self, path, weights_name='model_weights.h5',
                  model_name='model.json', custom_objects=None):
         """Initializes the model and weights.
-        params:
+
+        Args:
             path: A string, which is the path to a folder containing
                   model.json, weights.h5, and maybe note.txt
             weights_name: A string, which is the name of the weights to load
@@ -244,9 +257,12 @@ class Predictor:
 
     def predict(self, x):
         """Predicts on a single sample.
-        params:
+
+        Args:
             x: A ndarray or list/tuple/dict of ndarrays
-        return: A result from the model output
+
+        Returns:
+            A result from the model output
         """
         if isinstance(x, (list, tuple)):
             x = [np.expand_dims(y, axis=0) for y in x]
@@ -258,9 +274,12 @@ class Predictor:
 
     def predict_all(self, x, batch_size=None):
         """Predicts on many samples.
-        params:
+
+        Args:
             x: A ndarray of model inputs
-        return: A result from the model output
+
+        Returns:
+            A result from the model output
         """
         return self.model.predict(x, batch_size=batch_size)
 
@@ -268,7 +287,8 @@ class Predictor:
 def dense(units, activation='relu', l1=0, l2=0, batch_norm=True,
           momentum=0.99, epsilon=1e-5, name=None):
     """Creates a dense layer function.
-    params:
+
+    Args:
         units: An integer, which is the dimensionality of the output space
         activation: A string or keras/TF activation function
         l1: A float, which is the amount of L1 regularization
@@ -279,7 +299,9 @@ def dense(units, activation='relu', l1=0, l2=0, batch_norm=True,
                   mean and variance
         epsilon: A float, which adds variance to avoid dividing by zero
         name: A string, which is the name of the dense layer
-    return: A function, which takes a layer as input and returns a dense(layer)
+
+    Returns:
+        A function, which takes a layer as input and returns a dense(layer)
     """
     if activation == 'relu':
         kernel_initializer = 'he_normal'
@@ -300,9 +322,12 @@ def dense(units, activation='relu', l1=0, l2=0, batch_norm=True,
 
     def layer(x):
         """Applies dense layer to input layer.
-        params:
+
+        Args:
             x: A Tensor
-        return: A Tensor
+
+        Returns:
+            A Tensor
         """
         x = dl(x)
         if batch_norm:
@@ -316,7 +341,8 @@ def conv1d(filters, kernel_size, strides=1, activation='relu',
            upsampling_size=None, l1=0, l2=0, batch_norm=True,
            momentum=0.99, epsilon=1e-5, transpose=False, name=None):
     """Creates a 1D convolution layer function.
-    params:
+
+    Args:
         filters: An integer, which is the dimensionality of the output space
         kernel_size: An integer or tuple of 1 integers, which is the size of
                      the convoluition kernel
@@ -337,7 +363,9 @@ def conv1d(filters, kernel_size, strides=1, activation='relu',
         transpose: A boolean, which determines if the convolution layer
                    should be a deconvolution layer
         name: A string, which is the name of the dense layer
-    return: A function, which takes a layer as input and returns
+
+    Returns:
+        A function, which takes a layer as input and returns
             a conv1d(layer)
     """
     if activation == 'relu':
@@ -378,9 +406,12 @@ def conv1d(filters, kernel_size, strides=1, activation='relu',
 
     def layer(x):
         """Applies 1D convolution layer to layer x.
-        params:
+
+        Args:
             x: A Tensor
-        return: A Tensor
+
+        Returns:
+            A Tensor
         """
         x = cl(x)
         if batch_norm:
@@ -398,7 +429,8 @@ def conv2d(filters, kernel_size=3, strides=1, activation='relu',
            l1=0, l2=0, batch_norm=True, momentum=0.99, epsilon=1e-5,
            upsampling_size=None, transpose=False, name=None):
     """Creates a 2D convolution layer function.
-    params:
+
+    Args:
         filters: An integer, which is the dimensionality of the output space
         kernel_size: An integer or tuple of 2 integers, which is the size of
                      the convoluition kernel
@@ -421,7 +453,9 @@ def conv2d(filters, kernel_size=3, strides=1, activation='relu',
         transpose: A boolean, which determines if the convolution layer
                    should be a deconvolution layer
         name: A string, which is the name of the dense layer
-    return: A function, which takes a layer as input and returns
+
+    Returns:
+        A function, which takes a layer as input and returns
             a conv2d(layer)
     """
     if activation == 'relu':
@@ -462,9 +496,12 @@ def conv2d(filters, kernel_size=3, strides=1, activation='relu',
 
     def layer(x):
         """Applies 2D convolution layer to layer x.
-        params:
+
+        Args:
             x: A Tensor
-        return: A Tensor
+
+        Returns:
+            A Tensor
         """
         x = cl(x)
         if batch_norm:
@@ -479,15 +516,21 @@ def conv2d(filters, kernel_size=3, strides=1, activation='relu',
 
 def inception(inceptions):
     """Creates an inception network.
-    params:
+
+    Args:
         inceptions: A list of functions that apply layers or Tensors
-    return: A function, which takes a layer and returns inception(layer)
+
+    Returns:
+        A function, which takes a layer and returns inception(layer)
     """
     def layer(x):
         """Builds and applies an inception architecture.
-        params:
+
+        Args:
             x: A Tensor
-        return: A Tensor
+
+        Returns:
+            A Tensor
         """
         branches = []
         for branch in inceptions:

@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_20_2020
+Version: 12_21_2020
 """
 
 
@@ -23,7 +23,8 @@ class Environment:
 
     def __init__(self, state_shape, action_size):
         """Initalizes state and action shapes and sets the state.
-        params:
+
+        Args:
             state_shape: A tuple of integers, which is the
                          expected state shape for the agent,
                          or an integer of the discrete state
@@ -41,7 +42,9 @@ class Environment:
 
     def reset(self):
         """Resets the environment to its initialized state.
-        return: A numpy ndarray, which is the state
+
+        Returns:
+            A numpy ndarray, which is the state
         """
         self.state = None
         return self.state
@@ -49,9 +52,12 @@ class Environment:
     def step(self, action):
         """Moves the current state one step forward
            with regard to the action.
-        params:
+
+        Args:
             action: An integer or value that determines an action
-        return: A tuple of a ndarray (state), a float/integer (reward),
+
+        Returns:
+            A tuple of a ndarray (state), a float/integer (reward),
                 and a boolean (terminal state)
         """
         self.state = None
@@ -61,7 +67,8 @@ class Environment:
                      random=False, random_bounds=None,
                      render=False, verbose=True):
         """Plays a single complete episode with the agent.
-        params:
+
+        Args:
             agent: An instance of Agent, which will be used to
                    interact in the environment
             max_steps: An integer, which is the max steps an episode
@@ -74,7 +81,9 @@ class Environment:
                     be rendered each step
             verbose: A boolean, which determines if information should be
                      printed to the screen
-        return: A tuple of an integer (last step) and a float (total reward)
+
+        Returns:
+            A tuple of an integer (last step) and a float (total reward)
         """
         if not isinstance(agent, Agent):
             raise TypeError('The instance agent is not a child of Agent.')
@@ -129,7 +138,8 @@ class Environment:
                       episode_verbose=None,
                       end_episode_callback=None):
         """Plays atleast 1 complete episode with the agent.
-        params:
+
+        Args:
             agent: An instance of Agent, which will be used to
                    interact in the environment
             num_episodes: An integer, which is the number of episodes to play
@@ -150,7 +160,9 @@ class Environment:
                                   from the most recent episode. If True
                                   is returned, play_episodes will stop
                                   early.
-        return: A float, which is the average total reward of all episodes
+
+        Returns:
+            A float, which is the average total reward of all episodes
         """
         if episode_verbose is None:
             episode_verbose = verbose
@@ -201,7 +213,8 @@ class GymWrapper(Environment):
 
     def __init__(self, genv):
         """Initalizes state and action shapes and sets the state.
-        params:
+
+        Args:
             genv: An OpenAI Gym
         """
         self.genv = genv
@@ -230,7 +243,9 @@ class GymWrapper(Environment):
 
     def reset(self):
         """Resets the environment to its initialized state.
-        return: A numpy ndarray, which is the state
+
+        Returns:
+            A numpy ndarray, which is the state
         """
         self.state = self.genv.reset()
         if self.discrete_state_space is None:
@@ -241,9 +256,12 @@ class GymWrapper(Environment):
     def step(self, action):
         """Moves the current state one step forward
            with regard to the action.
-        params:
+
+        Args:
             action: An integer or value that determines an action
-        return: A tuple of a ndarray (state), a float/integer (reward),
+
+        Returns:
+            A tuple of a ndarray (state), a float/integer (reward),
                 and a boolean (terminal state)
         """
         self.state, reward, terminal, _ = self.genv.step(action)
@@ -270,7 +288,8 @@ class MultiSeqAgentEnvironment(Environment):
 
     def __init__(self, state_shape, action_size):
         """Initalizes state and action shapes and sets the state.
-        params:
+
+        Args:
             state_shape: A tuple of integers, which is the
                          expected state shape for the agent
             action_size: An integer which is the discrete size
@@ -286,9 +305,12 @@ class MultiSeqAgentEnvironment(Environment):
 
     def reset(self, num_agents):
         """Resets the environment to its initialized state.
-        params:
+
+        Args:
             num_agents: An integer, which is the number of states needed
-        return: A numpy ndarray, which is the state
+
+        Returns:
+            A numpy ndarray, which is the state
         """
         self.state = None
         return [self.state] * num_agents
@@ -296,11 +318,14 @@ class MultiSeqAgentEnvironment(Environment):
     def step(self, agent_ndx, action):
         """Moves the current state one step forward
            with regard to the agent's action.
-        params:
+
+        Args:
             agent_ndx: An integer, which is the index of the
                        agent taking a step
             action: An integer or value that determines an action
-        return: A tuple of a ndarray (state), a float/integer (reward),
+
+        Returns:
+            A tuple of a ndarray (state), a float/integer (reward),
                 and a boolean (terminal state)
         """
         self.state = None
@@ -310,7 +335,8 @@ class MultiSeqAgentEnvironment(Environment):
                      random=False, random_bounds=None,
                      render=False, verbose=True):
         """Plays a single complete episode with the agents.
-        params:
+
+        Args:
             agents: A list of Agent instances, which will be used to
                     interact in the environment
             max_steps: An integer, which is the max steps an episode
@@ -325,7 +351,9 @@ class MultiSeqAgentEnvironment(Environment):
                     be rendered each step
             verbose: A boolean, which determines if information should be
                      printed to the screen
-        return: A tuple of a list of integers (last steps)
+
+        Returns:
+            A tuple of a list of integers (last steps)
                 and a list of floats (total rewards)
         """
         num_agents = len(agents)
@@ -394,7 +422,8 @@ class MultiSeqAgentEnvironment(Environment):
                       verbose=True, episode_verbose=None,
                       end_episode_callback=None):
         """Plays at least 1 complete episode with the agents.
-        params:
+
+        Args:
             agents: A list of Agent instances, which will be used to
                     interact in the environment
             num_episodes: An integer, which is the number of episodes to play
@@ -417,7 +446,9 @@ class MultiSeqAgentEnvironment(Environment):
                                   from the most recent episode. If True
                                   is returned, play_episodes will stop
                                   early.
-        return: A list of floats, which are the average total reward of all
+
+        Returns:
+            A list of floats, which are the average total reward of all
                 episodes for each agent
         """
         if episode_verbose is None:
@@ -464,7 +495,8 @@ class Policy:
 
     def select_action(self, action_func, training):
         """Returns the action the Agent should take.
-        params:
+
+        Args:
             action_func: A function that returns a value
             training: A boolean, which determines if the
                       Agent is in a training states
@@ -490,7 +522,8 @@ class GreedyPolicy(Policy):
 
     def select_action(self, action_func, training):
         """Returns the action the Agent should take.
-        params:
+
+        Args:
             action_func: A function that returns a list of values
             training: A boolean, which determines if the
                       Agent is in a training states
@@ -510,7 +543,8 @@ class AsceticPolicy(Policy):
 
     def select_action(self, action_func, training):
         """Returns the action the Agent should take.
-        params:
+
+        Args:
             action_func: A function that returns a list of values
             training: A boolean, which determines if the
                       Agent is in a training states
@@ -523,7 +557,8 @@ class StochasticPolicy(Policy):
     def __init__(self, policy, stochasticity_decay_training,
                  stochasticity_testing, action_size):
         """Initalizes the Policy's states.
-        params:
+
+        Args:
             policy: A policy instance
             stochasticity_decay_training: A decay instance which decays
                                           the stochasticity of the policy
@@ -540,7 +575,8 @@ class StochasticPolicy(Policy):
 
     def select_action(self, action_func, training):
         """Returns the action the Agent should take.
-        params:
+
+        Args:
             action_func: A function that returns a list of values
             training: A boolean, which determines if the
                       Agent is in a training states
@@ -569,7 +605,8 @@ class NoisePolicy(Policy):
     def __init__(self, noise_scale_decay_training,
                  noise_scale_testing, action_bounds):
         """Initalizes the Noise Policy.
-        params:
+
+        Args:
             noise_scale_decay_training: A decay instance, which decays
                                         the noise scale (a fraction of
                                         action range) for the policy
@@ -586,7 +623,8 @@ class NoisePolicy(Policy):
 
     def select_action(self, action_func, training):
         """Returns the action the Agent should take.
-        params:
+
+        Args:
             action_func: A function that returns a value
             training: A boolean, which determines if the
                       Agent is in a training states
@@ -614,7 +652,8 @@ class UniformNoisePolicy(NoisePolicy):
     def __init__(self, noise_scale_decay_training,
                  noise_scale_testing, action_bounds, additive=False):
         """Initalizes the Uniform Noise Policy.
-        params:
+
+        Args:
             noise_scale_decay_training: A decay instance, which decays
                                         the noise scale (a fraction of
                                         action range) for the policy
@@ -633,7 +672,8 @@ class UniformNoisePolicy(NoisePolicy):
 
     def select_action(self, action_func, training):
         """Returns the action the Agent should take.
-        params:
+
+        Args:
             action_func: A function that returns a value
             training: A boolean, which determines if the
                       Agent is in a training states
@@ -661,7 +701,8 @@ class TemporalNoisePolicy(NoisePolicy):
                  noise_scale_testing, action_bounds,
                  sigma=.3, theta=.15, dt=.01, init_noise=None):
         """Initalizes the Temporal Noise Policy.
-        params:
+
+        Args:
             noise_scale_decay_training: A decay instance, which decays
                                         the noise scale (a fraction of
                                         action range) for the policy
@@ -686,7 +727,8 @@ class TemporalNoisePolicy(NoisePolicy):
 
     def select_action(self, action_func, training):
         """Returns the action the Agent should take.
-        params:
+
+        Args:
             action_func: A function that returns a value
             training: A boolean, which determines if the
                       Agent is in a training states
@@ -724,7 +766,8 @@ class Decay:
     def __init__(self, initial_value, constant,
                  min_value=0, step_every_call=True):
         """Initalizes the state of the decay object.
-        params:
+
+        Args:
             initial_value: A float, which is the starting value to decay
             constant: A float, which is the slope/rate that the decay occurs
             min_value: A float, which is the minimum value the decay can reach
@@ -741,16 +784,18 @@ class Decay:
         self.steps = 0
 
     def reset(self):
-        """Resets the steps"""
+        """Resets the steps."""
         self.steps = 0
 
     def step(self):
-        """Steps the decay forward"""
+        """Steps the decay forward."""
         self.steps += 1
 
     def __call__(self):
         """Returns the current value with regard to the state of decay.
-        return: A float
+
+        Returns:
+            A float
         """
         value = self.initial_value - self.constant * self.steps
         if self.step_ever_call:
@@ -767,7 +812,8 @@ class ExponentialDecay(Decay):
     def __init__(self, initial_value, rate, min_value=0,
                  step_every_call=True):
         """Initalizes the state of the decay object.
-        params:
+
+        Args:
             initial_value: A float, which is the starting value to decay
             rate: A float, which is the slope/rate that the decay occurs
             min_value: A float, which is the minimum value the decay can reach
@@ -785,7 +831,9 @@ class ExponentialDecay(Decay):
 
     def __call__(self):
         """Returns the current value with regard to the state of decay.
-        return: A float
+
+        Returns:
+            A float
         """
         value = self.initial_value * (1 - self.rate)**self.steps
         if self.step_ever_call:
@@ -803,7 +851,8 @@ class LinearDecay(Decay):
     def __init__(self, initial_value, total_steps,
                  min_value=0, step_every_call=True):
         """Initalizes the state of the decay object.
-        params:
+
+        Args:
             initial_value: A float, which is the starting value to decay
             total_steps: An integer, which is the number of steps until
                          min_value would be reach
@@ -827,7 +876,9 @@ class LinearDecay(Decay):
 
     def __call__(self):
         """Returns the current value with regard to the state of decay.
-        return: A float
+
+        Returns:
+            A float
         """
         value = self.a * self.steps + self.initial_value
         if self.step_ever_call:
@@ -842,7 +893,8 @@ class Memory:
 
     def __init__(self, max_len=None):
         """Initalizes the memory.
-        params:
+
+        Args:
             max_len: An integer, which is the max length of memory
                      (if reached, the oldest memory will be removed)
         """
@@ -851,13 +903,16 @@ class Memory:
 
     def __len__(self):
         """Returns the number of entries in the memory.
-        return: An integer
+
+        Returns:
+            An integer
         """
         return len(self.buffer)
 
     def add(self, x):
         """Adds a entry to memory.
-        params:
+
+        Args:
             x: A entry similar to other entries
         """
         self.buffer.append(x)
@@ -867,14 +922,16 @@ class Memory:
 
     def __getitem__(self, key):
         """Returns an item given a key.
-        params:
+
+        Args:
             key: A valid key or index for a memory entry
         """
         return self.buffer[key]
 
     def __setitem__(self, key, value):
         """Sets a entry to a given key.
-        params:
+
+        Args:
             key: A valid key or index for a memory entry
             value: A entry similar to other entries
         """
@@ -882,7 +939,9 @@ class Memory:
 
     def array(self):
         """Returns a copy of the memory.
-        return: A numpy ndarray
+
+        Returns:
+            A numpy ndarray
         """
         return np.array(self.buffer)
 
@@ -897,16 +956,18 @@ class Memory:
         pass
 
     def save(self, file, name):
-        """Creates a h5py dataset with the memory data
-        params:
+        """Creates a h5py dataset with the memory data.
+
+        Args:
             file: A h5py open file for writing
             name: A string, which is the dataset name
         """
         file.create_dataset(name, data=self.array())
 
     def load(self, file, name):
-        """Loads a h5py dataset with the saved memory data
-        params:
+        """Loads a h5py dataset with the saved memory data.
+
+        Args:
             file: A h5py open file for reading
             name: A string, which is the dataset name
         """
@@ -916,12 +977,15 @@ class Memory:
     @staticmethod
     def create_shuffled_subset(memories, subset_size, weights=None):
         """Creates a list of numpy arrays of a shuffled subset of memories.
-        params:
+
+        Args:
             memories: A list of Memeory Objects
             subset_size: A integer, which is the size of the
                          outer dimension of each ndarray
             weights: A list of probabilities that add up to 1
-        return: arrays and shuffled indexes
+
+        Returns:
+            arrays and shuffled indexes
         """
         length = len(memories[0])
         if subset_size > length:
@@ -953,7 +1017,8 @@ class ETDMemory(Memory):
 
     def __init__(self, num_time_steps, void_state, max_len=None):
         """Initalizes the memory.
-        params:
+
+        Args:
             num_time_steps: An integer, which is the number of
                             states that make up a complete state
             void_state: A ndarray, which is used when there is not
@@ -971,13 +1036,16 @@ class ETDMemory(Memory):
 
     def __len__(self):
         """Returns the number of entries in the memory.
-        return: An integer
+
+        Returns:
+            An integer
         """
         return len(self.ndxs)
 
     def add(self, x):
         """Adds a entry to memory.
-        params:
+
+        Args:
             x: A entry similar to other entries
         """
         self.step_ndxs = np.roll(self.step_ndxs, -1)
@@ -987,14 +1055,16 @@ class ETDMemory(Memory):
 
     def __getitem__(self, key):
         """Returns an item given a key.
-        params:
+
+        Args:
             key: A valid key or index for a memory entry
         """
         return self.buffer[key + 1 if key >= 0 else key]
 
     def __setitem__(self, key, value):
         """Sets a entry to a given key.
-        params:
+
+        Args:
             key: A valid key or index for a memory entry
             value: A entry similar to other entries
         """
@@ -1002,7 +1072,9 @@ class ETDMemory(Memory):
 
     def array(self):
         """Returns a copy of the memory.
-        return: A numpy ndarray
+
+        Returns:
+            A numpy ndarray
         """
         return np.array(self.buffer)[np.array(self.ndxs)]
 
@@ -1021,8 +1093,9 @@ class ETDMemory(Memory):
         self.step_ndxs = np.zeros(self.num_time_steps, dtype=np.int)
 
     def save(self, file, name):
-        """Creates a h5py dataset with the memory data
-        params:
+        """Creates a h5py dataset with the memory data.
+
+        Args:
             file: A h5py open file for writing
             name: A string, which is the dataset name
         """
@@ -1030,8 +1103,9 @@ class ETDMemory(Memory):
         file.create_dataset(f'{name}_ndxs', data=np.array(self.ndxs))
 
     def load(self, file, name):
-        """Loads a h5py dataset with the saved memory data
-        params:
+        """Loads a h5py dataset with the saved memory data.
+
+        Args:
             file: A h5py open file for reading
             name: A string, which is the dataset name
         """
@@ -1047,12 +1121,15 @@ class ETDMemory(Memory):
     @staticmethod
     def create_shuffled_subset(memories, subset_size, weights=None):
         """Creates a list of numpy arrays of a shuffled subset of memories.
-        params:
+
+        Args:
             memories: A list of Memeory Objects (not asserted but assumed)
             subset_size: A integer, which is the size of the
                          outer dimension of each ndarray
             weights: A list of probabilities that add up to 1
-        return: arrays and shuffled indexes
+
+        Returns:
+            arrays and shuffled indexes
         """
         length = len(memories[0])
         if subset_size > length:
@@ -1090,7 +1167,8 @@ class ETDMemory(Memory):
 class RingMemory(Memory):
     def __init__(self, max_len):
         """Initalizes the memory.
-        params:
+
+        Args:
             max_len: An integer, which is the max length of memory
                      (if reached, the oldest memory will be removed)
         """
@@ -1105,7 +1183,8 @@ class PlayingData:
     def __init__(self, training, memorizing, epochs,
                  learns_in_episode, learning_params):
         """Initalizes the data.
-        params:
+
+        Args:
             training: A boolean, which determines if the agent
                       should be treated as in a training mode
             memorizing: A boolean, which determines if the agent
@@ -1115,7 +1194,7 @@ class PlayingData:
                     in one training instance
             learns_in_episode: A boolean, which determines if the agent
                                learns during a episode or at the end
-            learning_params: A dictionary of parameters for the agent's
+            learning_Args: A dictionary of parameters for the agent's
                              learn method
         """
         if not (training is True or training is False):
@@ -1146,7 +1225,8 @@ class Agent:
 
     def __init__(self, action_size, policy):
         """Initalizes the agent.
-        params:
+
+        Args:
             action_size: An integer which is the discrete size
                          of the action space
             policy: A policy instance
@@ -1162,12 +1242,15 @@ class Agent:
     def select_action(self, state, training=False):
         """Returns the action the Agent "believes" to be
            suited for the given state.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state to get the action for
             training: A boolean, which determines if the
                       agent is training
-        return: A value, which is the selected action
+
+        Returns:
+            A value, which is the selected action
         """
         def _select_action():
             return np.random.random(self.action_size)
@@ -1181,7 +1264,8 @@ class Agent:
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
            (For this agent all memory is discarded)
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state of the environment before the
                    action was performed
@@ -1207,7 +1291,8 @@ class Agent:
     def learn(self, verbose=True):
         """Trains the agent on a batch of its experiences.
            (For this agent no learning is needed)
-        params:
+
+        Args:
             verbose: A boolean, which determines if information
                      should be printed to the screen
         """
@@ -1215,9 +1300,12 @@ class Agent:
 
     def load(self, path):
         """Loads a save from a folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to load
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         with open(os.path.join(path, 'note.txt'), 'r') as file:
             note = file.read()
@@ -1225,10 +1313,13 @@ class Agent:
 
     def save(self, path, note):
         """Saves a note to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             note: A string, which is the note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         time = datetime.now()
         path = os.path.join(path, time.strftime(r'%Y%m%d_%H%M%S_%f'))
@@ -1246,7 +1337,8 @@ class QAgent(Agent):
     def __init__(self, discrete_state_space, action_size,
                  policy, discounted_rate):
         """Initalizes the Q-learning agent.
-        params:
+
+        Args:
             discrete_state_space: An integer, which is the size of
                                   the state space
             action_size: An integers, which is the
@@ -1270,12 +1362,15 @@ class QAgent(Agent):
     def select_action(self, state, training=False):
         """Returns the action the Agent "believes" to be
            suited for the given state.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state to look up the action for in the table
             training: A boolean, which determines if the
                       agent is training
-        return: A value, which is the selected action
+
+        Returns:
+            A value, which is the selected action
         """
         def _select_action():
             nonlocal state
@@ -1288,7 +1383,8 @@ class QAgent(Agent):
     def set_playing_data(self, training=False, learning_rate=None,
                          verbose=False):
         """Sets the playing data.
-        params:
+
+        Args:
             training: A boolean, which determines if the agent
                       should be treated as in a training mode
             learning_rate: A float, which is the rate that the table
@@ -1303,7 +1399,8 @@ class QAgent(Agent):
 
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state of the environment before the
                    action was performed
@@ -1336,7 +1433,8 @@ class QAgent(Agent):
 
     def learn(self, learning_rate, verbose=True):
         """Trains the agent on its last experience.
-        params:
+
+        Args:
             learning_rate: A float, which is the rate that the table
                            is updated with the currect Q reward
             verbose: A boolean, which determines if information
@@ -1357,9 +1455,12 @@ class QAgent(Agent):
 
     def load(self, path):
         """Loads a save from a folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to load
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         note = Agent.load(self, path)
         self.qtable = np.load(os.path.join(path, 'qtable.npy'))
@@ -1367,10 +1468,13 @@ class QAgent(Agent):
 
     def save(self, path, note='QAgent Save'):
         """Saves a note and qtable to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             note: A string, which is the note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         path = Agent.save(self, path, note)
         np.save(os.path.join(path, 'qtable.npy'), self.qtable)
@@ -1385,7 +1489,8 @@ class PQAgent(QAgent):
     def __init__(self, discrete_state_space, action_size,
                  policy, discounted_rates, learning_rates):
         """Initalizes the Q-learning agent.
-        params:
+
+        Args:
             discrete_state_space: An integer, which
             action_size: An integers, which is the
                          action size of the environment
@@ -1416,12 +1521,15 @@ class PQAgent(QAgent):
     def select_action(self, state, training=False):
         """Returns the action the Agent "believes" to be
            suited for the given state.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state to look up the action for in the table
             training: A boolean, which determines if the
                       agent is training
-        return: A value, which is the selected action
+
+        Returns:
+            A value, which is the selected action
         """
         def _select_action():
             nonlocal state
@@ -1434,7 +1542,8 @@ class PQAgent(QAgent):
     def set_playing_data(self, training=False, learning_rate_ndx=None,
                          discounted_rate_ndx=None, verbose=False):
         """Sets the playing data.
-        params:
+
+        Args:
             training: A boolean, which determines if the agent
                       should be treated as in a training mode
             learning_rate_ndx: An integer, which is a ndx for
@@ -1461,7 +1570,8 @@ class PQAgent(QAgent):
     def learn(self, learning_rate_ndx=None,
               discounted_rate_ndx=None, verbose=True):
         """Trains the agent on its last experience.
-        params:
+
+        Args:
             learning_rate_ndx: An integer, which is a ndx for
                                the learning rates
             discounted_rate_ndx: An integer, which is a ndx for
@@ -1531,10 +1641,13 @@ class PQAgent(QAgent):
 
     def load(self, path):
         """Loads a save from a folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to load
                   from
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         note = Agent.load(self, path)
         self.qtables = np.load(os.path.join(path, 'qtables.npy'))
@@ -1542,10 +1655,13 @@ class PQAgent(QAgent):
 
     def save(self, path, note='PQAgent Save'):
         """Saves a note and qtables to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             note: A string, which is the note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         path = Agent.save(self, path, note)
         np.save(os.path.join(path, 'qtables.npy'), self.qtables)
@@ -1558,7 +1674,8 @@ class MemoryAgent(Agent):
 
     def __init__(self, action_size, policy):
         """Initalizes the agent.
-        params:
+
+        Args:
             action_size: An integer which is the discrete size
                          of the action space
             policy: A policy instance
@@ -1587,11 +1704,14 @@ class MemoryAgent(Agent):
 
     def load(self, path, load_data=True):
         """Loads a save from a folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to load
             load_data: A boolean, which determines if the memory
                        from a folder should be loaded
-            return: A string of note.txt
+
+            Returns:
+                A string of note.txt
         """
         note = Agent.load(self, path)
         if load_data:
@@ -1602,12 +1722,15 @@ class MemoryAgent(Agent):
 
     def save(self, path, save_data=True, note='MemoryAgent'):
         """Saves a note and memory to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             save_data: A boolean, which determines if the memory
                        should be saved
             note: A string, which is a note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         path = Agent.save(self, path, note)
         if save_data:
@@ -1653,7 +1776,8 @@ class DQNAgent(MemoryAgent):
                  enable_target=True, enable_double=False,
                  enable_per=False):
         """Initalizes the Deep Q Network Agent.
-        params:
+
+        Args:
             policy: A policy instance
             qmodel: A keras model, which takes the state as input and outputs
                     Q Values
@@ -1735,12 +1859,15 @@ class DQNAgent(MemoryAgent):
     def select_action(self, state, training=False):
         """Returns the action the Agent "believes" to be
            suited for the given state.
-        params:
+
+        Args:
             state: A value, which is the state to predict
                    the Q values for
             training: A boolean, which determines if the
                       agent is training
-        return: A value, which is the selected action
+
+        Returns:
+            A value, which is the selected action
         """
         if (self.time_distributed_states is not None
                 and state.shape == self.qmodel.input_shape[2:]):
@@ -1762,7 +1889,8 @@ class DQNAgent(MemoryAgent):
                          mini_batch=0, epochs=1, repeat=1,
                          target_update_interval=1, tau=1.0, verbose=True):
         """Sets the playing data.
-        params:
+
+        Args:
             training: A boolean, which determines if the agent
                       should be treated as in a training mode
             memorizing: A boolean, which determines if the agent
@@ -1801,7 +1929,8 @@ class DQNAgent(MemoryAgent):
 
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state of the environment before the
                    action was performed
@@ -1824,7 +1953,8 @@ class DQNAgent(MemoryAgent):
 
     def update_target(self, tau):
         """Updates the target Q Model weights.
-        params:
+
+        Args:
             tau: A float, which is the strength of the copy from the
                  qmodel to the target qmodel (1.0 is a hard copy and
                  less is softer)
@@ -1840,7 +1970,8 @@ class DQNAgent(MemoryAgent):
     def _train_step(self, states, next_states,
                     actions, terminals, rewards):
         """Performs one gradient step with a batch of data.
-        params:
+
+        Args:
             states: A tensor that contains environment states
             next_states: A tensor that contains the states of
                          the environment after an action was performed
@@ -1850,7 +1981,9 @@ class DQNAgent(MemoryAgent):
                        states and zeros for terminal states
             rewards: A tensor that contains the reward for the action
                      performed in the environment
-        return: A loss for this batch of data
+
+        Returns:
+            A loss for this batch of data
         """
         if self.enable_double:
             qvalues = self.qmodel(next_states, training=False)
@@ -1887,7 +2020,8 @@ class DQNAgent(MemoryAgent):
     def _train(self, states, next_states, actions, terminals,
                rewards, epochs, batch_size, verbose=True):
         """Performs multiple gradient steps of all the data.
-        params:
+
+        Args:
             states: A numpy array that contains environment states
             next_states: A numpy array that contains the states of
                          the environment after an action was performed
@@ -1903,7 +2037,9 @@ class DQNAgent(MemoryAgent):
                         each partial gradient step
             verbose: A boolean, which determines if information should
                      be printed to the screen
-        return: A list of floats, which are the absolute losses for all
+
+        Returns:
+            A list of floats, which are the absolute losses for all
                 the data
         """
         length = states.shape[0]
@@ -1940,7 +2076,8 @@ class DQNAgent(MemoryAgent):
               epochs=1, repeat=1,
               target_update_interval=1, tau=1.0, verbose=True):
         """Trains the agent on a sample of its experiences.
-        params:
+
+        Args:
             batch_size: An integer, which is the size of each batch
                         within the mini-batch during one training instance
             mini_batch: An integer, which is the entire batch size for
@@ -1998,14 +2135,17 @@ class DQNAgent(MemoryAgent):
 
     def load(self, path, load_model=True, load_data=True):
         """Loads a save from a folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to load
             load_model: A boolean, which determines if the model
                         architecture and weights
                         should be loaded
             load_data: A boolean, which determines if the memory
                        from a folder should be loaded
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         note = MemoryAgent.load(self, path, load_data=load_data)
         if load_model:
@@ -2022,7 +2162,8 @@ class DQNAgent(MemoryAgent):
     def save(self, path, save_model=True,
              save_data=True, note='DQNAgent Save'):
         """Saves a note, model weights, and memory to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             save_model: A boolean, which determines if the model
                         architecture and weights
@@ -2030,7 +2171,9 @@ class DQNAgent(MemoryAgent):
             save_data: A boolean, which determines if the memory
                        should be saved
             note: A string, which is a note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         path = MemoryAgent.save(self, path, save_data=save_data, note=note)
         if save_model:
@@ -2049,7 +2192,8 @@ class PGAgent(MemoryAgent):
     def __init__(self, amodel, discounted_rate,
                  create_memory=lambda shape, dtype: Memory()):
         """Initalizes the Policy Gradient Agent.
-        params:
+
+        Args:
             amodel: A keras model, which takes the state as input and outputs
                     actions (regularization losses are not applied,
                     and compiled loss are not used)
@@ -2097,12 +2241,15 @@ class PGAgent(MemoryAgent):
     def select_action(self, state, training=False):
         """Returns the action the Agent "believes" to be
            suited for the given state.
-        params:
+
+        Args:
             state: A value, which is the state to predict
                    the action for
             training: A boolean, which determines if the
                       agent is training (does nothing)
-        return: A value, which is the selected action
+
+        Returns:
+            A value, which is the selected action
         """
         if (self.time_distributed_states is not None
                 and state.shape == self.amodel.input_shape[2:]):
@@ -2123,7 +2270,8 @@ class PGAgent(MemoryAgent):
                          batch_size=None, mini_batch=0, epochs=1,
                          repeat=1, entropy_coef=0, verbose=True):
         """Sets the playing data.
-        params:
+
+        Args:
             training: A boolean, which determines if the agent
                       should be treated as in a training mode
             memorizing: A boolean, which determines if the agent
@@ -2154,7 +2302,8 @@ class PGAgent(MemoryAgent):
 
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state of the environment before the
                    action was performed
@@ -2191,7 +2340,8 @@ class PGAgent(MemoryAgent):
 
     def _train_step(self, states, drewards, actions, entropy_coef):
         """Performs one gradient step with a batch of data.
-        params:
+
+        Args:
             states: A tensor that contains environment states
             drewards: A tensor that contains the discounted reward
                       for the action performed in the environment
@@ -2221,7 +2371,8 @@ class PGAgent(MemoryAgent):
     def _train(self, states, drewards, actions,
                epochs, batch_size, entropy_coef, verbose=True):
         """Performs multiple gradient steps of all the data.
-        params:
+
+        Args:
             states: A numpy array that contains environment states
             drewards: A numpy array that contains the discounted reward
                       for the action performed in the environment
@@ -2235,7 +2386,9 @@ class PGAgent(MemoryAgent):
                           to the actor loss
             verbose: A boolean, which determines if information should
                      be printed to the screen
-        return: A float, which is the mean loss of batches (not exactly a loss)
+
+        Returns:
+            A float, which is the mean loss of batches (not exactly a loss)
         """
         length = states.shape[0]
         float_type = keras.backend.floatx()
@@ -2265,7 +2418,8 @@ class PGAgent(MemoryAgent):
     def learn(self, batch_size=None, mini_batch=0,
               epochs=1, repeat=1, entropy_coef=0, verbose=True):
         """Trains the agent on a sample of its experiences.
-        params:
+
+        Args:
             batch_size: An integer, which is the size of each batch
                         within the mini_batch during one training instance
             mini_batch: An integer, which is the entire batch size for
@@ -2303,14 +2457,17 @@ class PGAgent(MemoryAgent):
 
     def load(self, path, load_model=True, load_data=True):
         """Loads a save from a folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to load
             load_model: A boolean, which determines if the model
                         architecture and weights
                         should be loaded
             load_data: A boolean, which determines if the memory
                        from a folder should be loaded
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         note = MemoryAgent.load(self, path, load_data=load_data)
         if load_model:
@@ -2321,7 +2478,8 @@ class PGAgent(MemoryAgent):
 
     def save(self, path, save_model=True, save_data=True, note='PGAgent Save'):
         """Saves a note, model weights, and memory to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             save_model: A boolean, which determines if the model
                         architecture and weights
@@ -2329,7 +2487,9 @@ class PGAgent(MemoryAgent):
             save_data: A boolean, which determines if the memory
                        should be saved
             note: A string, which is a note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         path = MemoryAgent.save(self, path, save_data=save_data, note=note)
         if save_model:
@@ -2350,7 +2510,8 @@ class DDPGAgent(MemoryAgent):
                  create_memory=lambda shape, dtype: Memory(),
                  enable_target=False):
         """Initalizes the DDPG Agent.
-        params:
+
+        Args:
             policy: A NoisePolicy instance
             amodel: A keras model, which takes the state as input and outputs
                     actions (regularization losses are not applied,
@@ -2374,7 +2535,7 @@ class DDPGAgent(MemoryAgent):
             self.cmodel.compiled_loss.build(
                 tf.zeros(self.cmodel.output_shape[0][1:])
             )
-        else: 
+        else:
             self.cmodel.compiled_loss.build(
                 tf.zeros(self.cmodel.output_shape[1:])
             )
@@ -2431,12 +2592,15 @@ class DDPGAgent(MemoryAgent):
     def select_action(self, state, training=False):
         """Returns the action the Agent "believes" to be
            suited for the given state.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state to predict the actions for
             training: A boolean, which determines if the
                       agent is training
-        return: A value or list of values, which is the
+
+        Returns:
+            A value or list of values, which is the
                 selected action
         """
         if (self.time_distributed_states is not None
@@ -2460,7 +2624,8 @@ class DDPGAgent(MemoryAgent):
                          mini_batch=0, epochs=1, repeat=1,
                          target_update_interval=1, tau=1.0, verbose=True):
         """Sets the playing data.
-        params:
+
+        Args:
             training: A boolean, which determines if the agent
                       should be treated as in a training mode
             memorizing: A boolean, which determines if the agent
@@ -2499,7 +2664,8 @@ class DDPGAgent(MemoryAgent):
 
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state of the environment before the
                    action was performed
@@ -2521,7 +2687,8 @@ class DDPGAgent(MemoryAgent):
 
     def update_target(self, tau):
         """Updates the target Actor and Critic Model weights.
-        params:
+
+        Args:
             tau: A float, which is the strength of the copy from the
                  Actor or Critic model to the target models
                  (1.0 is a hard copy and less is softer)
@@ -2541,7 +2708,8 @@ class DDPGAgent(MemoryAgent):
 
     def _train_step(self, states, next_states, actions, terminals, rewards):
         """Performs one gradient step with a batch of data.
-        params:
+
+        Args:
             states: A tensor that contains environment states
             next_states: A tensor that contains the states of
                          the environment after an action was performed
@@ -2592,7 +2760,8 @@ class DDPGAgent(MemoryAgent):
     def _train(self, states, next_states, actions, terminals, rewards,
                epochs, batch_size, verbose=True):
         """Performs multiple gradient steps of all the data.
-        params:
+
+        Args:
             states: A numpy array that contains environment states
             next_states: A numpy array that contains the states of
                          the environment after an action was performed
@@ -2607,7 +2776,9 @@ class DDPGAgent(MemoryAgent):
                         each partial gradient step
             verbose: A boolean, which determines if information should
                      be printed to the screen
-        return: A float, which is the mean critic loss of the batches
+
+        Returns:
+            A float, which is the mean critic loss of the batches
         """
         length = states.shape[0]
         float_type = keras.backend.floatx()
@@ -2641,7 +2812,8 @@ class DDPGAgent(MemoryAgent):
               epochs=1, repeat=1,
               target_update_interval=1, tau=1.0, verbose=True):
         """Trains the agent on a sample of its experiences.
-        params:
+
+        Args:
             batch_size: An integer, which is the size of each batch
                         within the mini_batch during one training instance
             mini_batch: An integer, which is the entire batch size for
@@ -2687,14 +2859,17 @@ class DDPGAgent(MemoryAgent):
 
     def load(self, path, load_model=True, load_data=True):
         """Loads a save from a folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to load
             load_model: A boolean, which determines if the model
                         architectures and weights
                         should be loaded
             load_data: A boolean, which determines if the memory
                        from a folder should be loaded
-        return: A string of note.txt
+
+        Returns:
+            A string of note.txt
         """
         note = MemoryAgent.load(self, path, load_data=load_data)
         if load_model:
@@ -2709,7 +2884,8 @@ class DDPGAgent(MemoryAgent):
     def save(self, path, save_model=True, save_data=True,
              note='DDPGAgent Save'):
         """Saves a note, weights of the models, and memory to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             save_model: A boolean, which determines if the model
                         architectures and weights
@@ -2717,7 +2893,9 @@ class DDPGAgent(MemoryAgent):
             save_data: A boolean, which determines if the memory
                        should be saved
             note: A string, which is a note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         path = MemoryAgent.save(self, path, save_data=save_data, note=note)
         if save_model:

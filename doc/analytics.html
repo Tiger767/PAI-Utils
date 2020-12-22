@@ -1,0 +1,1554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>paiutils.analytics API documentation</title>
+<meta name="description" content="Author: Travis Hammond
+Version: 12_21_2020" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>paiutils.analytics</code></h1>
+</header>
+<section id="section-intro">
+<p>Author: Travis Hammond
+Version: 12_21_2020</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Author: Travis Hammond
+Version: 12_21_2020
+&#34;&#34;&#34;
+
+
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D  # noqa
+import matplotlib.pyplot as plt
+from sklearn.manifold import (
+    TSNE, Isomap, LocallyLinearEmbedding, MDS
+)
+
+
+class Analyzer:
+    &#34;&#34;&#34;Analyzer is a class used for manipulating and viewing
+       classification datasets for analytical purposes. It can
+       also be used for unclassified data by passing in the same
+       value for y_data and the same label for all x_data.
+    &#34;&#34;&#34;
+
+    def __init__(self, x_data, y_data, labels, label_colors=None):
+        &#34;&#34;&#34;Initializes the Analyzer with the dataset.
+
+        Args:
+            x_data: A numpy ndarray
+            y_data: A numpy ndarray, which is a onehot encoding or ndx
+                    that corresponds to the label in labels
+            labels: A list of strings, which are labels for the y_data
+            label_colors: A list of list that contain 3 integers, which
+                          represent a color of a label for plotting
+        &#34;&#34;&#34;
+        assert len(x_data) == len(y_data)
+        self.x_data = np.array(x_data)
+        self.y_data = np.array(y_data)
+        self.labels = labels
+        if self.y_data.ndim == 1:
+            y_data_label_ndx = y_data
+        elif self.y_data.ndim == 2:
+            y_data_label_ndx = self.y_data.argmax(axis=1)
+        else:
+            raise NotImplementedError(
+                &#39;Cannot handle y_data that has more than 2 dimensions&#39;
+            )
+
+        self.y_labels = np.array(labels)[y_data_label_ndx]
+        if label_colors is None:
+            self.colors = np.random.random(
+                (len(self.labels), 3)
+            )
+        else:
+            self.colors = label_colors
+        self.y_colors = self.colors[y_data_label_ndx]
+
+    def calculate_distribution_of_labels(self):
+        &#34;&#34;&#34;Calculates the number of samples in each label.
+
+        Returns:
+            A dictionary with strings (labels) as
+            keys and integers (number of samples) as values
+        &#34;&#34;&#34;
+        groups = {label: 0 for label in self.labels}
+        for ndx in range(len(self.y_labels)):
+            groups[self.y_labels[ndx]] += 1
+        return groups
+
+    def create_label_ndx_groups(self):
+        &#34;&#34;&#34;Creates a dictionary with ndx of each group in each label.
+
+        Returns:
+            A dictionary with strings (labels) as keys
+            and list of integers (indexes of x_data) as values
+        &#34;&#34;&#34;
+        groups = {label: [] for label in self.labels}
+        for ndx in range(len(self.y_labels)):
+            groups[self.y_labels[ndx]].append(ndx)
+        return groups
+
+    def shrink_data(self, size_per_label, ndx_groups=None):
+        &#34;&#34;&#34;Creates an Analyzer with a dataset that has been shrunk
+           by randomly choosing data from each group to get to the
+           desired size of each group.
+
+        Args:
+            size_per_label: A dictionary with labels as keys and sizes
+                            as values, or an integer, which is the size
+                            for all labels
+            ndx_groups: A dictionary returned from create_label_ndx_groups
+
+        Returns:
+            An Analyzer
+        &#34;&#34;&#34;
+        if ndx_groups is None:
+            ndx_groups = self.create_label_ndx_groups()
+        ndxs = []
+        if isinstance(size_per_label, dict):
+            for label, group in ndx_groups.items():
+                if label in size_per_label:
+                    size = size_per_label[label]
+                    if size &gt; 0:
+                        ndxs.append(np.random.choice(
+                            group, size, replace=False
+                        ))
+                else:
+                    ndxs.append(group)
+        else:
+            for group in ndx_groups.values():
+                ndxs.append(np.random.choice(
+                    group, size_per_label, replace=False
+                ))
+        ndxs = np.hstack(ndxs)
+        return Analyzer(self.x_data[ndxs], self.y_data[ndxs],
+                        self.labels, label_colors=self.colors)
+
+    def expand_data(self, size_per_label, ndx_groups=None):
+        &#34;&#34;&#34;Creates an Analyzer with a dataset that has been expanded
+           by randomly choosing data from each group to get to the
+           desired size of each group.
+
+        Args:
+            size_per_label: A dictionary with labels as keys and sizes
+                            as values, or an integer, which is the size
+                            for all labels
+            ndx_groups: A dictionary returned from create_label_ndx_groups
+
+        Returns:
+            An Analyzer
+        &#34;&#34;&#34;
+        if ndx_groups is None:
+            ndx_groups = self.create_label_ndx_groups()
+        ndxs = []
+        if isinstance(size_per_label, dict):
+            for label, group in ndx_groups.items():
+                if label in size_per_label:
+                    size = size_per_label[label] - len(group)
+                    if size &gt; 0:
+                        replace = size &gt; len(group)
+                        group = np.append(
+                            group,
+                            np.random.choice(group, size, replace=replace)
+                        )
+                ndxs.append(group)
+        else:
+            for group in ndx_groups.values():
+                size = size_per_label - len(group)
+                if size &gt; 0:
+                    replace = size &gt; len(group)
+                    group = np.append(
+                        group,
+                        np.random.choice(group, size, replace=replace)
+                    )
+                ndxs.append(group)
+        ndxs = np.hstack(ndxs)
+        return Analyzer(self.x_data[ndxs], self.y_data[ndxs],
+                        self.labels, label_colors=self.colors)
+
+    def plot(self, x, figsize=(8, 8)):
+        &#34;&#34;&#34;Plots x on a graph.
+
+        Args:
+            x: A numpy ndarray of positonal points for x_data
+            figsize: A tuple of 2 integers/floats, which are
+                     width and height, respectively
+
+        Returns:
+            unmodified x
+        &#34;&#34;&#34;
+        fig = plt.figure(figsize=figsize)
+        dims = x.shape[1]
+        if dims == 1:
+            nx = np.squeeze(x)
+            ax = fig.add_subplot(111)
+            ax.scatter(nx, nx, c=self.y_colors)
+            for ndx in range(len(self.labels)):
+                ax.plot([], &#39;o&#39;, c=[self.colors[ndx]],
+                        label=self.labels[ndx])
+        elif dims == 2:
+            ax = fig.add_subplot(111)
+            ax.scatter(x[:, 0], x[:, 1], c=self.y_colors)
+            for ndx in range(len(self.labels)):
+                ax.plot([], &#39;o&#39;, c=self.colors[ndx],
+                        label=self.labels[ndx])
+        elif dims == 3:
+            ax = fig.add_subplot(111, projection=&#39;3d&#39;)
+            ax.scatter(x[:, 0], x[:, 1], x[:, 2], c=self.y_colors)
+            for ndx in range(len(self.labels)):
+                ax.plot([[]], &#39;o&#39;, c=self.colors[ndx],
+                        label=self.labels[ndx])
+        fig.legend()
+        plt.show()
+        return x
+
+    def boxplot(self, x, figsize=(8, 8), ndx_groups=None):
+        &#34;&#34;&#34;Creates a boxplot for each group of x.
+
+        Args:
+            x: A numpy ndarray of  1D positonal points for x_data
+            figsize: A tuple of 2 integers/floats, which are
+                     width and height, respectively
+            ndx_groups: A dictionary returned from create_label_ndx_groups
+
+        Returns:
+            unmodified x
+        &#34;&#34;&#34;
+        x = np.squeeze(x)
+        if ndx_groups is None:
+            ndx_groups = self.create_label_ndx_groups()
+        labels = []
+        data = []
+        for label, ndxs in ndx_groups.items():
+            labels.append(label)
+            data.append(x[ndxs])
+
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(111)
+        bp = ax.boxplot(data, patch_artist=True, labels=labels)
+        for label in labels:
+            ndx = self.labels.index(label)
+            ax.plot([], &#39;s&#39;, c=self.colors[ndx],
+                    label=self.labels[ndx])
+            bp[&#39;boxes&#39;][ndx].set_facecolor(self.colors[ndx])
+        fig.legend()
+        plt.show()
+        return x
+
+    def isomap(self, n_neighbors=5, n_components=3, eigen_solver=&#39;auto&#39;,
+               tol=0, max_iter=None, path_method=&#39;auto&#39;,
+               neighbors_algorithm=&#39;auto&#39;, n_jobs=None):
+        &#34;&#34;&#34;Creates an Isomap and fits x_data.
+
+        Args:
+            n_neighbors: An integer, which is the number of neighbors
+                         considered for each point
+            n_components: An integer, which is the number of coordinates
+                          for the manifold
+            eigen_solver: A string (&#39;auto&#39;, &#39;arpack&#39;, &#39;dense&#39;),
+                          which is solver for the problem
+            tol: A float, which is the convergence tolerance for
+                 eigen solvers (arpack, lobpcg)
+            max_iter: An integer, which is the max number of iteration
+                      for the arpack solver
+            path_method: A string (&#39;auto&#39;, &#39;FW&#39;, &#39;D&#39;), which is the
+                         algorthim used to find the shortest path
+            neighbors_algorithm: A string (&#39;auto&#39;, &#39;brute&#39;,
+                                 &#39;kd_tree&#39;, &#39;ball_tree&#39;), which is the
+                                 algorithm for nearest neighbors search
+            n_jobs: An integer (-1 all), which is the number of parallel
+                    jobs to run
+
+        Returns:
+            A numpy ndarray, which has a shape like
+            (length of x_data, n_components)
+        &#34;&#34;&#34;
+        isomap = Isomap(n_neighbors=n_neighbors, n_components=n_components,
+                        eigen_solver=eigen_solver, tol=tol, max_iter=max_iter,
+                        path_method=path_method,
+                        neighbors_algorithm=neighbors_algorithm, n_jobs=n_jobs)
+        x_data = self.x_data.reshape(
+            (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
+        )
+        return isomap.fit_transform(x_data)
+
+    def locally_linear_embedding(self, n_neighbors=5, n_components=3, reg=1e-3,
+                                 eigen_solver=&#39;auto&#39;, tol=1e-6, max_iter=100,
+                                 method=&#39;standard&#39;, hessian_tol=1E-4,
+                                 modified_tol=1E-12,
+                                 neighbors_algorithm=&#39;auto&#39;,
+                                 random_state=None,
+                                 n_jobs=None):
+        &#34;&#34;&#34;Computes the locally linear embedding of x_data.
+
+        Args:
+            n_neighbors: An integer, which is the number of neighbors
+                         considered for each point
+            n_components: An integer, which is the number of coordinates
+                          for the manifold
+            reg: A float, which is the regularization constant
+            eigen_solver: A string (&#39;auto&#39;, &#39;arpack&#39;, &#39;dense&#39;),
+                          which is solver for the problem
+            tol: A float, which is the convergence tolerance for
+                 eigen solvers (arpack)
+            max_iter: An integer, which is the max number of iteration
+                      for the arpack solver
+            method: A string (&#39;standard&#39;, &#39;hessian&#39;, &#39;modified&#39;, &#39;ltsa&#39;),
+                    which is the embedding algorithm
+            hessian_tol: A float, which is the tolerance for Hessian method
+            modified_tol: A float, which is the tolerance for LLE method
+            neighbors_algorithm: A string (&#39;auto&#39;, &#39;brute&#39;,
+                                 &#39;kd_tree&#39;, &#39;ball_tree&#39;), which is the
+                                 algorithm for nearest neighbors search
+            random_state: An integer, which is a seed for random number
+                          generator
+            n_jobs: An integer (-1 all), which is the number of parallel
+                    jobs to run
+
+        Returns:
+            A numpy ndarray, which has a shape like
+            (length of x_data, n_components)
+        &#34;&#34;&#34;
+        x_data = self.x_data.reshape(
+            (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
+        )
+        lle = LocallyLinearEmbedding(n_neighbors=n_neighbors,
+                                     n_components=n_components, reg=reg,
+                                     eigen_solver=eigen_solver, tol=tol,
+                                     max_iter=max_iter, method=method,
+                                     hessian_tol=hessian_tol,
+                                     modified_tol=modified_tol,
+                                     neighbors_algorithm=neighbors_algorithm,
+                                     random_state=random_state,
+                                     n_jobs=n_jobs)
+        return lle.fit_transform(x_data)
+
+    def mds(self, n_components=3, metric=True, n_init=4, max_iter=300,
+            verbose=0, eps=1e-3, random_state=None,
+            dissimilarity=&#39;euclidean&#39;, n_jobs=None):
+        &#34;&#34;&#34;Creates a Multidimensional scaling and fits x_data.
+
+        Args:
+            n_components: An integer, which is the number of dimensions
+                          in which to immerse the dissimilarities
+            metric: A boolean, which determines if metric MDS is performed
+            n_init: An integer, which is the number of times the SMACOF
+                    algortithm will be run with different initializations
+            max_iter: An integer, which is the max number of iterations
+                      of the SMACOF algorithm for a single run
+            verbose: An integer, which determines the level of verbositity
+            eps: A float, which is the relative tolerance with regard to stress
+                 (determines when convergence is reached)
+            random_state: An integer, which is a seed for random number
+                          generator
+            dissimilarity: A string (&#39;euclidean&#39;, &#39;precomputed&#39;), which
+                           determines the measure to use
+            n_jobs: An integer (-1 all), which is the number of parallel
+                    jobs to run
+
+        Returns:
+            A numpy ndarray, which has a shape like
+            (length of x_data, n_components)
+        &#34;&#34;&#34;
+        x_data = self.x_data.reshape(
+            (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
+        )
+        mds = MDS(n_components=n_components, metric=metric, n_init=n_init,
+                  max_iter=max_iter, verbose=verbose, eps=eps, n_jobs=n_jobs,
+                  random_state=random_state, dissimilarity=dissimilarity)
+        return mds.fit_transform(x_data)
+
+    def tsne(self, n_components=3, perplexity=30.0, early_exaggeration=12.0,
+             learning_rate=200.0, n_iter=1000, n_iter_without_progress=300,
+             min_grad_norm=1e-7, metric=&#39;euclidean&#39;, init=&#39;random&#39;, verbose=0,
+             random_state=None, method=&#39;barnes_hut&#39;, angle=0.5, n_jobs=None):
+        &#34;&#34;&#34;Creates a t-distributed Stochastic Neighbor Embedding and fits x_data.
+
+        Args:
+            n_components: An integer, which is the dimension of
+                          embedded space
+            perplexity: A float, which is related to the number of
+                        nearest neigbors that are used in manifold learning
+            early_exaggeration: A float, which controls how tight natural
+                                clusters are embedded
+            learning_rate: A float within 10.0-1000.0 (inclusive), which
+                           higher makes data more like a &#39;ball&#39;, and lower
+                           makes data cloudy with fewer outliers
+            n_iter: An integer, which is the max number of iterations
+                    for optimization
+            n_iter_without_progress: An integer, which is the max number
+                                     of iterations to continue without
+                                     progress
+            min_grad_norm: A float, which is the threshold for optimization
+                           to continue
+            metric: A string (&#39;euclidean&#39;), which determines the metric to use
+                    for calculating distance between features arrays
+            init: A string (&#39;random&#39;, &#39;pca&#39;), which determines how to
+                  initalize the embedding
+            verbose: An integer, which determines the level of verbositity
+            random_state: An integer, which is a seed for random number
+                          generator
+            method: A string (&#39;barnes_hut&#39;, &#39;exact&#39;), which is the gradient
+                    calculation algorithm
+            angle: A float for barnes_hut, which is the determines the trade
+                   off between speed and accuracy
+            n_jobs: An integer (-1 all), which is the number of parallel
+                    jobs to run
+
+        Returns:
+            A numpy ndarray, which has a shape like
+            (length of x_data, n_components)
+        &#34;&#34;&#34;
+        tsne = TSNE(n_components=n_components, perplexity=perplexity,
+                    early_exaggeration=early_exaggeration,
+                    learning_rate=learning_rate, n_iter=n_iter,
+                    n_iter_without_progress=n_iter_without_progress,
+                    min_grad_norm=min_grad_norm, metric=metric,
+                    init=init, verbose=verbose, random_state=random_state,
+                    method=method, angle=angle, n_jobs=n_jobs)
+        x_data = self.x_data.reshape(
+            (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
+        )
+        return tsne.fit_transform(x_data)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="paiutils.analytics.Analyzer"><code class="flex name class">
+<span>class <span class="ident">Analyzer</span></span>
+<span>(</span><span>x_data, y_data, labels, label_colors=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Analyzer is a class used for manipulating and viewing
+classification datasets for analytical purposes. It can
+also be used for unclassified data by passing in the same
+value for y_data and the same label for all x_data.</p>
+<p>Initializes the Analyzer with the dataset.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>x_data</code></strong></dt>
+<dd>A numpy ndarray</dd>
+<dt><strong><code>y_data</code></strong></dt>
+<dd>A numpy ndarray, which is a onehot encoding or ndx
+that corresponds to the label in labels</dd>
+<dt><strong><code>labels</code></strong></dt>
+<dd>A list of strings, which are labels for the y_data</dd>
+<dt><strong><code>label_colors</code></strong></dt>
+<dd>A list of list that contain 3 integers, which
+represent a color of a label for plotting</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Analyzer:
+    &#34;&#34;&#34;Analyzer is a class used for manipulating and viewing
+       classification datasets for analytical purposes. It can
+       also be used for unclassified data by passing in the same
+       value for y_data and the same label for all x_data.
+    &#34;&#34;&#34;
+
+    def __init__(self, x_data, y_data, labels, label_colors=None):
+        &#34;&#34;&#34;Initializes the Analyzer with the dataset.
+
+        Args:
+            x_data: A numpy ndarray
+            y_data: A numpy ndarray, which is a onehot encoding or ndx
+                    that corresponds to the label in labels
+            labels: A list of strings, which are labels for the y_data
+            label_colors: A list of list that contain 3 integers, which
+                          represent a color of a label for plotting
+        &#34;&#34;&#34;
+        assert len(x_data) == len(y_data)
+        self.x_data = np.array(x_data)
+        self.y_data = np.array(y_data)
+        self.labels = labels
+        if self.y_data.ndim == 1:
+            y_data_label_ndx = y_data
+        elif self.y_data.ndim == 2:
+            y_data_label_ndx = self.y_data.argmax(axis=1)
+        else:
+            raise NotImplementedError(
+                &#39;Cannot handle y_data that has more than 2 dimensions&#39;
+            )
+
+        self.y_labels = np.array(labels)[y_data_label_ndx]
+        if label_colors is None:
+            self.colors = np.random.random(
+                (len(self.labels), 3)
+            )
+        else:
+            self.colors = label_colors
+        self.y_colors = self.colors[y_data_label_ndx]
+
+    def calculate_distribution_of_labels(self):
+        &#34;&#34;&#34;Calculates the number of samples in each label.
+
+        Returns:
+            A dictionary with strings (labels) as
+            keys and integers (number of samples) as values
+        &#34;&#34;&#34;
+        groups = {label: 0 for label in self.labels}
+        for ndx in range(len(self.y_labels)):
+            groups[self.y_labels[ndx]] += 1
+        return groups
+
+    def create_label_ndx_groups(self):
+        &#34;&#34;&#34;Creates a dictionary with ndx of each group in each label.
+
+        Returns:
+            A dictionary with strings (labels) as keys
+            and list of integers (indexes of x_data) as values
+        &#34;&#34;&#34;
+        groups = {label: [] for label in self.labels}
+        for ndx in range(len(self.y_labels)):
+            groups[self.y_labels[ndx]].append(ndx)
+        return groups
+
+    def shrink_data(self, size_per_label, ndx_groups=None):
+        &#34;&#34;&#34;Creates an Analyzer with a dataset that has been shrunk
+           by randomly choosing data from each group to get to the
+           desired size of each group.
+
+        Args:
+            size_per_label: A dictionary with labels as keys and sizes
+                            as values, or an integer, which is the size
+                            for all labels
+            ndx_groups: A dictionary returned from create_label_ndx_groups
+
+        Returns:
+            An Analyzer
+        &#34;&#34;&#34;
+        if ndx_groups is None:
+            ndx_groups = self.create_label_ndx_groups()
+        ndxs = []
+        if isinstance(size_per_label, dict):
+            for label, group in ndx_groups.items():
+                if label in size_per_label:
+                    size = size_per_label[label]
+                    if size &gt; 0:
+                        ndxs.append(np.random.choice(
+                            group, size, replace=False
+                        ))
+                else:
+                    ndxs.append(group)
+        else:
+            for group in ndx_groups.values():
+                ndxs.append(np.random.choice(
+                    group, size_per_label, replace=False
+                ))
+        ndxs = np.hstack(ndxs)
+        return Analyzer(self.x_data[ndxs], self.y_data[ndxs],
+                        self.labels, label_colors=self.colors)
+
+    def expand_data(self, size_per_label, ndx_groups=None):
+        &#34;&#34;&#34;Creates an Analyzer with a dataset that has been expanded
+           by randomly choosing data from each group to get to the
+           desired size of each group.
+
+        Args:
+            size_per_label: A dictionary with labels as keys and sizes
+                            as values, or an integer, which is the size
+                            for all labels
+            ndx_groups: A dictionary returned from create_label_ndx_groups
+
+        Returns:
+            An Analyzer
+        &#34;&#34;&#34;
+        if ndx_groups is None:
+            ndx_groups = self.create_label_ndx_groups()
+        ndxs = []
+        if isinstance(size_per_label, dict):
+            for label, group in ndx_groups.items():
+                if label in size_per_label:
+                    size = size_per_label[label] - len(group)
+                    if size &gt; 0:
+                        replace = size &gt; len(group)
+                        group = np.append(
+                            group,
+                            np.random.choice(group, size, replace=replace)
+                        )
+                ndxs.append(group)
+        else:
+            for group in ndx_groups.values():
+                size = size_per_label - len(group)
+                if size &gt; 0:
+                    replace = size &gt; len(group)
+                    group = np.append(
+                        group,
+                        np.random.choice(group, size, replace=replace)
+                    )
+                ndxs.append(group)
+        ndxs = np.hstack(ndxs)
+        return Analyzer(self.x_data[ndxs], self.y_data[ndxs],
+                        self.labels, label_colors=self.colors)
+
+    def plot(self, x, figsize=(8, 8)):
+        &#34;&#34;&#34;Plots x on a graph.
+
+        Args:
+            x: A numpy ndarray of positonal points for x_data
+            figsize: A tuple of 2 integers/floats, which are
+                     width and height, respectively
+
+        Returns:
+            unmodified x
+        &#34;&#34;&#34;
+        fig = plt.figure(figsize=figsize)
+        dims = x.shape[1]
+        if dims == 1:
+            nx = np.squeeze(x)
+            ax = fig.add_subplot(111)
+            ax.scatter(nx, nx, c=self.y_colors)
+            for ndx in range(len(self.labels)):
+                ax.plot([], &#39;o&#39;, c=[self.colors[ndx]],
+                        label=self.labels[ndx])
+        elif dims == 2:
+            ax = fig.add_subplot(111)
+            ax.scatter(x[:, 0], x[:, 1], c=self.y_colors)
+            for ndx in range(len(self.labels)):
+                ax.plot([], &#39;o&#39;, c=self.colors[ndx],
+                        label=self.labels[ndx])
+        elif dims == 3:
+            ax = fig.add_subplot(111, projection=&#39;3d&#39;)
+            ax.scatter(x[:, 0], x[:, 1], x[:, 2], c=self.y_colors)
+            for ndx in range(len(self.labels)):
+                ax.plot([[]], &#39;o&#39;, c=self.colors[ndx],
+                        label=self.labels[ndx])
+        fig.legend()
+        plt.show()
+        return x
+
+    def boxplot(self, x, figsize=(8, 8), ndx_groups=None):
+        &#34;&#34;&#34;Creates a boxplot for each group of x.
+
+        Args:
+            x: A numpy ndarray of  1D positonal points for x_data
+            figsize: A tuple of 2 integers/floats, which are
+                     width and height, respectively
+            ndx_groups: A dictionary returned from create_label_ndx_groups
+
+        Returns:
+            unmodified x
+        &#34;&#34;&#34;
+        x = np.squeeze(x)
+        if ndx_groups is None:
+            ndx_groups = self.create_label_ndx_groups()
+        labels = []
+        data = []
+        for label, ndxs in ndx_groups.items():
+            labels.append(label)
+            data.append(x[ndxs])
+
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(111)
+        bp = ax.boxplot(data, patch_artist=True, labels=labels)
+        for label in labels:
+            ndx = self.labels.index(label)
+            ax.plot([], &#39;s&#39;, c=self.colors[ndx],
+                    label=self.labels[ndx])
+            bp[&#39;boxes&#39;][ndx].set_facecolor(self.colors[ndx])
+        fig.legend()
+        plt.show()
+        return x
+
+    def isomap(self, n_neighbors=5, n_components=3, eigen_solver=&#39;auto&#39;,
+               tol=0, max_iter=None, path_method=&#39;auto&#39;,
+               neighbors_algorithm=&#39;auto&#39;, n_jobs=None):
+        &#34;&#34;&#34;Creates an Isomap and fits x_data.
+
+        Args:
+            n_neighbors: An integer, which is the number of neighbors
+                         considered for each point
+            n_components: An integer, which is the number of coordinates
+                          for the manifold
+            eigen_solver: A string (&#39;auto&#39;, &#39;arpack&#39;, &#39;dense&#39;),
+                          which is solver for the problem
+            tol: A float, which is the convergence tolerance for
+                 eigen solvers (arpack, lobpcg)
+            max_iter: An integer, which is the max number of iteration
+                      for the arpack solver
+            path_method: A string (&#39;auto&#39;, &#39;FW&#39;, &#39;D&#39;), which is the
+                         algorthim used to find the shortest path
+            neighbors_algorithm: A string (&#39;auto&#39;, &#39;brute&#39;,
+                                 &#39;kd_tree&#39;, &#39;ball_tree&#39;), which is the
+                                 algorithm for nearest neighbors search
+            n_jobs: An integer (-1 all), which is the number of parallel
+                    jobs to run
+
+        Returns:
+            A numpy ndarray, which has a shape like
+            (length of x_data, n_components)
+        &#34;&#34;&#34;
+        isomap = Isomap(n_neighbors=n_neighbors, n_components=n_components,
+                        eigen_solver=eigen_solver, tol=tol, max_iter=max_iter,
+                        path_method=path_method,
+                        neighbors_algorithm=neighbors_algorithm, n_jobs=n_jobs)
+        x_data = self.x_data.reshape(
+            (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
+        )
+        return isomap.fit_transform(x_data)
+
+    def locally_linear_embedding(self, n_neighbors=5, n_components=3, reg=1e-3,
+                                 eigen_solver=&#39;auto&#39;, tol=1e-6, max_iter=100,
+                                 method=&#39;standard&#39;, hessian_tol=1E-4,
+                                 modified_tol=1E-12,
+                                 neighbors_algorithm=&#39;auto&#39;,
+                                 random_state=None,
+                                 n_jobs=None):
+        &#34;&#34;&#34;Computes the locally linear embedding of x_data.
+
+        Args:
+            n_neighbors: An integer, which is the number of neighbors
+                         considered for each point
+            n_components: An integer, which is the number of coordinates
+                          for the manifold
+            reg: A float, which is the regularization constant
+            eigen_solver: A string (&#39;auto&#39;, &#39;arpack&#39;, &#39;dense&#39;),
+                          which is solver for the problem
+            tol: A float, which is the convergence tolerance for
+                 eigen solvers (arpack)
+            max_iter: An integer, which is the max number of iteration
+                      for the arpack solver
+            method: A string (&#39;standard&#39;, &#39;hessian&#39;, &#39;modified&#39;, &#39;ltsa&#39;),
+                    which is the embedding algorithm
+            hessian_tol: A float, which is the tolerance for Hessian method
+            modified_tol: A float, which is the tolerance for LLE method
+            neighbors_algorithm: A string (&#39;auto&#39;, &#39;brute&#39;,
+                                 &#39;kd_tree&#39;, &#39;ball_tree&#39;), which is the
+                                 algorithm for nearest neighbors search
+            random_state: An integer, which is a seed for random number
+                          generator
+            n_jobs: An integer (-1 all), which is the number of parallel
+                    jobs to run
+
+        Returns:
+            A numpy ndarray, which has a shape like
+            (length of x_data, n_components)
+        &#34;&#34;&#34;
+        x_data = self.x_data.reshape(
+            (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
+        )
+        lle = LocallyLinearEmbedding(n_neighbors=n_neighbors,
+                                     n_components=n_components, reg=reg,
+                                     eigen_solver=eigen_solver, tol=tol,
+                                     max_iter=max_iter, method=method,
+                                     hessian_tol=hessian_tol,
+                                     modified_tol=modified_tol,
+                                     neighbors_algorithm=neighbors_algorithm,
+                                     random_state=random_state,
+                                     n_jobs=n_jobs)
+        return lle.fit_transform(x_data)
+
+    def mds(self, n_components=3, metric=True, n_init=4, max_iter=300,
+            verbose=0, eps=1e-3, random_state=None,
+            dissimilarity=&#39;euclidean&#39;, n_jobs=None):
+        &#34;&#34;&#34;Creates a Multidimensional scaling and fits x_data.
+
+        Args:
+            n_components: An integer, which is the number of dimensions
+                          in which to immerse the dissimilarities
+            metric: A boolean, which determines if metric MDS is performed
+            n_init: An integer, which is the number of times the SMACOF
+                    algortithm will be run with different initializations
+            max_iter: An integer, which is the max number of iterations
+                      of the SMACOF algorithm for a single run
+            verbose: An integer, which determines the level of verbositity
+            eps: A float, which is the relative tolerance with regard to stress
+                 (determines when convergence is reached)
+            random_state: An integer, which is a seed for random number
+                          generator
+            dissimilarity: A string (&#39;euclidean&#39;, &#39;precomputed&#39;), which
+                           determines the measure to use
+            n_jobs: An integer (-1 all), which is the number of parallel
+                    jobs to run
+
+        Returns:
+            A numpy ndarray, which has a shape like
+            (length of x_data, n_components)
+        &#34;&#34;&#34;
+        x_data = self.x_data.reshape(
+            (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
+        )
+        mds = MDS(n_components=n_components, metric=metric, n_init=n_init,
+                  max_iter=max_iter, verbose=verbose, eps=eps, n_jobs=n_jobs,
+                  random_state=random_state, dissimilarity=dissimilarity)
+        return mds.fit_transform(x_data)
+
+    def tsne(self, n_components=3, perplexity=30.0, early_exaggeration=12.0,
+             learning_rate=200.0, n_iter=1000, n_iter_without_progress=300,
+             min_grad_norm=1e-7, metric=&#39;euclidean&#39;, init=&#39;random&#39;, verbose=0,
+             random_state=None, method=&#39;barnes_hut&#39;, angle=0.5, n_jobs=None):
+        &#34;&#34;&#34;Creates a t-distributed Stochastic Neighbor Embedding and fits x_data.
+
+        Args:
+            n_components: An integer, which is the dimension of
+                          embedded space
+            perplexity: A float, which is related to the number of
+                        nearest neigbors that are used in manifold learning
+            early_exaggeration: A float, which controls how tight natural
+                                clusters are embedded
+            learning_rate: A float within 10.0-1000.0 (inclusive), which
+                           higher makes data more like a &#39;ball&#39;, and lower
+                           makes data cloudy with fewer outliers
+            n_iter: An integer, which is the max number of iterations
+                    for optimization
+            n_iter_without_progress: An integer, which is the max number
+                                     of iterations to continue without
+                                     progress
+            min_grad_norm: A float, which is the threshold for optimization
+                           to continue
+            metric: A string (&#39;euclidean&#39;), which determines the metric to use
+                    for calculating distance between features arrays
+            init: A string (&#39;random&#39;, &#39;pca&#39;), which determines how to
+                  initalize the embedding
+            verbose: An integer, which determines the level of verbositity
+            random_state: An integer, which is a seed for random number
+                          generator
+            method: A string (&#39;barnes_hut&#39;, &#39;exact&#39;), which is the gradient
+                    calculation algorithm
+            angle: A float for barnes_hut, which is the determines the trade
+                   off between speed and accuracy
+            n_jobs: An integer (-1 all), which is the number of parallel
+                    jobs to run
+
+        Returns:
+            A numpy ndarray, which has a shape like
+            (length of x_data, n_components)
+        &#34;&#34;&#34;
+        tsne = TSNE(n_components=n_components, perplexity=perplexity,
+                    early_exaggeration=early_exaggeration,
+                    learning_rate=learning_rate, n_iter=n_iter,
+                    n_iter_without_progress=n_iter_without_progress,
+                    min_grad_norm=min_grad_norm, metric=metric,
+                    init=init, verbose=verbose, random_state=random_state,
+                    method=method, angle=angle, n_jobs=n_jobs)
+        x_data = self.x_data.reshape(
+            (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
+        )
+        return tsne.fit_transform(x_data)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="paiutils.analytics.Analyzer.boxplot"><code class="name flex">
+<span>def <span class="ident">boxplot</span></span>(<span>self, x, figsize=(8, 8), ndx_groups=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a boxplot for each group of x.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>x</code></strong></dt>
+<dd>A numpy ndarray of
+1D positonal points for x_data</dd>
+<dt><strong><code>figsize</code></strong></dt>
+<dd>A tuple of 2 integers/floats, which are
+width and height, respectively</dd>
+<dt><strong><code>ndx_groups</code></strong></dt>
+<dd>A dictionary returned from create_label_ndx_groups</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>unmodified x</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def boxplot(self, x, figsize=(8, 8), ndx_groups=None):
+    &#34;&#34;&#34;Creates a boxplot for each group of x.
+
+    Args:
+        x: A numpy ndarray of  1D positonal points for x_data
+        figsize: A tuple of 2 integers/floats, which are
+                 width and height, respectively
+        ndx_groups: A dictionary returned from create_label_ndx_groups
+
+    Returns:
+        unmodified x
+    &#34;&#34;&#34;
+    x = np.squeeze(x)
+    if ndx_groups is None:
+        ndx_groups = self.create_label_ndx_groups()
+    labels = []
+    data = []
+    for label, ndxs in ndx_groups.items():
+        labels.append(label)
+        data.append(x[ndxs])
+
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(111)
+    bp = ax.boxplot(data, patch_artist=True, labels=labels)
+    for label in labels:
+        ndx = self.labels.index(label)
+        ax.plot([], &#39;s&#39;, c=self.colors[ndx],
+                label=self.labels[ndx])
+        bp[&#39;boxes&#39;][ndx].set_facecolor(self.colors[ndx])
+    fig.legend()
+    plt.show()
+    return x</code></pre>
+</details>
+</dd>
+<dt id="paiutils.analytics.Analyzer.calculate_distribution_of_labels"><code class="name flex">
+<span>def <span class="ident">calculate_distribution_of_labels</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculates the number of samples in each label.</p>
+<h2 id="returns">Returns</h2>
+<p>A dictionary with strings (labels) as
+keys and integers (number of samples) as values</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_distribution_of_labels(self):
+    &#34;&#34;&#34;Calculates the number of samples in each label.
+
+    Returns:
+        A dictionary with strings (labels) as
+        keys and integers (number of samples) as values
+    &#34;&#34;&#34;
+    groups = {label: 0 for label in self.labels}
+    for ndx in range(len(self.y_labels)):
+        groups[self.y_labels[ndx]] += 1
+    return groups</code></pre>
+</details>
+</dd>
+<dt id="paiutils.analytics.Analyzer.create_label_ndx_groups"><code class="name flex">
+<span>def <span class="ident">create_label_ndx_groups</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a dictionary with ndx of each group in each label.</p>
+<h2 id="returns">Returns</h2>
+<p>A dictionary with strings (labels) as keys
+and list of integers (indexes of x_data) as values</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_label_ndx_groups(self):
+    &#34;&#34;&#34;Creates a dictionary with ndx of each group in each label.
+
+    Returns:
+        A dictionary with strings (labels) as keys
+        and list of integers (indexes of x_data) as values
+    &#34;&#34;&#34;
+    groups = {label: [] for label in self.labels}
+    for ndx in range(len(self.y_labels)):
+        groups[self.y_labels[ndx]].append(ndx)
+    return groups</code></pre>
+</details>
+</dd>
+<dt id="paiutils.analytics.Analyzer.expand_data"><code class="name flex">
+<span>def <span class="ident">expand_data</span></span>(<span>self, size_per_label, ndx_groups=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates an Analyzer with a dataset that has been expanded
+by randomly choosing data from each group to get to the
+desired size of each group.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>size_per_label</code></strong></dt>
+<dd>A dictionary with labels as keys and sizes
+as values, or an integer, which is the size
+for all labels</dd>
+<dt><strong><code>ndx_groups</code></strong></dt>
+<dd>A dictionary returned from create_label_ndx_groups</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>An Analyzer</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def expand_data(self, size_per_label, ndx_groups=None):
+    &#34;&#34;&#34;Creates an Analyzer with a dataset that has been expanded
+       by randomly choosing data from each group to get to the
+       desired size of each group.
+
+    Args:
+        size_per_label: A dictionary with labels as keys and sizes
+                        as values, or an integer, which is the size
+                        for all labels
+        ndx_groups: A dictionary returned from create_label_ndx_groups
+
+    Returns:
+        An Analyzer
+    &#34;&#34;&#34;
+    if ndx_groups is None:
+        ndx_groups = self.create_label_ndx_groups()
+    ndxs = []
+    if isinstance(size_per_label, dict):
+        for label, group in ndx_groups.items():
+            if label in size_per_label:
+                size = size_per_label[label] - len(group)
+                if size &gt; 0:
+                    replace = size &gt; len(group)
+                    group = np.append(
+                        group,
+                        np.random.choice(group, size, replace=replace)
+                    )
+            ndxs.append(group)
+    else:
+        for group in ndx_groups.values():
+            size = size_per_label - len(group)
+            if size &gt; 0:
+                replace = size &gt; len(group)
+                group = np.append(
+                    group,
+                    np.random.choice(group, size, replace=replace)
+                )
+            ndxs.append(group)
+    ndxs = np.hstack(ndxs)
+    return Analyzer(self.x_data[ndxs], self.y_data[ndxs],
+                    self.labels, label_colors=self.colors)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.analytics.Analyzer.isomap"><code class="name flex">
+<span>def <span class="ident">isomap</span></span>(<span>self, n_neighbors=5, n_components=3, eigen_solver='auto', tol=0, max_iter=None, path_method='auto', neighbors_algorithm='auto', n_jobs=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates an Isomap and fits x_data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>n_neighbors</code></strong></dt>
+<dd>An integer, which is the number of neighbors
+considered for each point</dd>
+<dt><strong><code>n_components</code></strong></dt>
+<dd>An integer, which is the number of coordinates
+for the manifold</dd>
+<dt><strong><code>eigen_solver</code></strong></dt>
+<dd>A string ('auto', 'arpack', 'dense'),
+which is solver for the problem</dd>
+<dt><strong><code>tol</code></strong></dt>
+<dd>A float, which is the convergence tolerance for
+eigen solvers (arpack, lobpcg)</dd>
+<dt><strong><code>max_iter</code></strong></dt>
+<dd>An integer, which is the max number of iteration
+for the arpack solver</dd>
+<dt><strong><code>path_method</code></strong></dt>
+<dd>A string ('auto', 'FW', 'D'), which is the
+algorthim used to find the shortest path</dd>
+<dt><strong><code>neighbors_algorithm</code></strong></dt>
+<dd>A string ('auto', 'brute',
+'kd_tree', 'ball_tree'), which is the
+algorithm for nearest neighbors search</dd>
+<dt><strong><code>n_jobs</code></strong></dt>
+<dd>An integer (-1 all), which is the number of parallel
+jobs to run</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has a shape like
+(length of x_data, n_components)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def isomap(self, n_neighbors=5, n_components=3, eigen_solver=&#39;auto&#39;,
+           tol=0, max_iter=None, path_method=&#39;auto&#39;,
+           neighbors_algorithm=&#39;auto&#39;, n_jobs=None):
+    &#34;&#34;&#34;Creates an Isomap and fits x_data.
+
+    Args:
+        n_neighbors: An integer, which is the number of neighbors
+                     considered for each point
+        n_components: An integer, which is the number of coordinates
+                      for the manifold
+        eigen_solver: A string (&#39;auto&#39;, &#39;arpack&#39;, &#39;dense&#39;),
+                      which is solver for the problem
+        tol: A float, which is the convergence tolerance for
+             eigen solvers (arpack, lobpcg)
+        max_iter: An integer, which is the max number of iteration
+                  for the arpack solver
+        path_method: A string (&#39;auto&#39;, &#39;FW&#39;, &#39;D&#39;), which is the
+                     algorthim used to find the shortest path
+        neighbors_algorithm: A string (&#39;auto&#39;, &#39;brute&#39;,
+                             &#39;kd_tree&#39;, &#39;ball_tree&#39;), which is the
+                             algorithm for nearest neighbors search
+        n_jobs: An integer (-1 all), which is the number of parallel
+                jobs to run
+
+    Returns:
+        A numpy ndarray, which has a shape like
+        (length of x_data, n_components)
+    &#34;&#34;&#34;
+    isomap = Isomap(n_neighbors=n_neighbors, n_components=n_components,
+                    eigen_solver=eigen_solver, tol=tol, max_iter=max_iter,
+                    path_method=path_method,
+                    neighbors_algorithm=neighbors_algorithm, n_jobs=n_jobs)
+    x_data = self.x_data.reshape(
+        (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
+    )
+    return isomap.fit_transform(x_data)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.analytics.Analyzer.locally_linear_embedding"><code class="name flex">
+<span>def <span class="ident">locally_linear_embedding</span></span>(<span>self, n_neighbors=5, n_components=3, reg=0.001, eigen_solver='auto', tol=1e-06, max_iter=100, method='standard', hessian_tol=0.0001, modified_tol=1e-12, neighbors_algorithm='auto', random_state=None, n_jobs=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the locally linear embedding of x_data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>n_neighbors</code></strong></dt>
+<dd>An integer, which is the number of neighbors
+considered for each point</dd>
+<dt><strong><code>n_components</code></strong></dt>
+<dd>An integer, which is the number of coordinates
+for the manifold</dd>
+<dt><strong><code>reg</code></strong></dt>
+<dd>A float, which is the regularization constant</dd>
+<dt><strong><code>eigen_solver</code></strong></dt>
+<dd>A string ('auto', 'arpack', 'dense'),
+which is solver for the problem</dd>
+<dt><strong><code>tol</code></strong></dt>
+<dd>A float, which is the convergence tolerance for
+eigen solvers (arpack)</dd>
+<dt><strong><code>max_iter</code></strong></dt>
+<dd>An integer, which is the max number of iteration
+for the arpack solver</dd>
+<dt><strong><code>method</code></strong></dt>
+<dd>A string ('standard', 'hessian', 'modified', 'ltsa'),
+which is the embedding algorithm</dd>
+<dt><strong><code>hessian_tol</code></strong></dt>
+<dd>A float, which is the tolerance for Hessian method</dd>
+<dt><strong><code>modified_tol</code></strong></dt>
+<dd>A float, which is the tolerance for LLE method</dd>
+<dt><strong><code>neighbors_algorithm</code></strong></dt>
+<dd>A string ('auto', 'brute',
+'kd_tree', 'ball_tree'), which is the
+algorithm for nearest neighbors search</dd>
+<dt><strong><code>random_state</code></strong></dt>
+<dd>An integer, which is a seed for random number
+generator</dd>
+<dt><strong><code>n_jobs</code></strong></dt>
+<dd>An integer (-1 all), which is the number of parallel
+jobs to run</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has a shape like
+(length of x_data, n_components)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def locally_linear_embedding(self, n_neighbors=5, n_components=3, reg=1e-3,
+                             eigen_solver=&#39;auto&#39;, tol=1e-6, max_iter=100,
+                             method=&#39;standard&#39;, hessian_tol=1E-4,
+                             modified_tol=1E-12,
+                             neighbors_algorithm=&#39;auto&#39;,
+                             random_state=None,
+                             n_jobs=None):
+    &#34;&#34;&#34;Computes the locally linear embedding of x_data.
+
+    Args:
+        n_neighbors: An integer, which is the number of neighbors
+                     considered for each point
+        n_components: An integer, which is the number of coordinates
+                      for the manifold
+        reg: A float, which is the regularization constant
+        eigen_solver: A string (&#39;auto&#39;, &#39;arpack&#39;, &#39;dense&#39;),
+                      which is solver for the problem
+        tol: A float, which is the convergence tolerance for
+             eigen solvers (arpack)
+        max_iter: An integer, which is the max number of iteration
+                  for the arpack solver
+        method: A string (&#39;standard&#39;, &#39;hessian&#39;, &#39;modified&#39;, &#39;ltsa&#39;),
+                which is the embedding algorithm
+        hessian_tol: A float, which is the tolerance for Hessian method
+        modified_tol: A float, which is the tolerance for LLE method
+        neighbors_algorithm: A string (&#39;auto&#39;, &#39;brute&#39;,
+                             &#39;kd_tree&#39;, &#39;ball_tree&#39;), which is the
+                             algorithm for nearest neighbors search
+        random_state: An integer, which is a seed for random number
+                      generator
+        n_jobs: An integer (-1 all), which is the number of parallel
+                jobs to run
+
+    Returns:
+        A numpy ndarray, which has a shape like
+        (length of x_data, n_components)
+    &#34;&#34;&#34;
+    x_data = self.x_data.reshape(
+        (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
+    )
+    lle = LocallyLinearEmbedding(n_neighbors=n_neighbors,
+                                 n_components=n_components, reg=reg,
+                                 eigen_solver=eigen_solver, tol=tol,
+                                 max_iter=max_iter, method=method,
+                                 hessian_tol=hessian_tol,
+                                 modified_tol=modified_tol,
+                                 neighbors_algorithm=neighbors_algorithm,
+                                 random_state=random_state,
+                                 n_jobs=n_jobs)
+    return lle.fit_transform(x_data)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.analytics.Analyzer.mds"><code class="name flex">
+<span>def <span class="ident">mds</span></span>(<span>self, n_components=3, metric=True, n_init=4, max_iter=300, verbose=0, eps=0.001, random_state=None, dissimilarity='euclidean', n_jobs=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a Multidimensional scaling and fits x_data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>n_components</code></strong></dt>
+<dd>An integer, which is the number of dimensions
+in which to immerse the dissimilarities</dd>
+<dt><strong><code>metric</code></strong></dt>
+<dd>A boolean, which determines if metric MDS is performed</dd>
+<dt><strong><code>n_init</code></strong></dt>
+<dd>An integer, which is the number of times the SMACOF
+algortithm will be run with different initializations</dd>
+<dt><strong><code>max_iter</code></strong></dt>
+<dd>An integer, which is the max number of iterations
+of the SMACOF algorithm for a single run</dd>
+<dt><strong><code>verbose</code></strong></dt>
+<dd>An integer, which determines the level of verbositity</dd>
+<dt><strong><code>eps</code></strong></dt>
+<dd>A float, which is the relative tolerance with regard to stress
+(determines when convergence is reached)</dd>
+<dt><strong><code>random_state</code></strong></dt>
+<dd>An integer, which is a seed for random number
+generator</dd>
+<dt><strong><code>dissimilarity</code></strong></dt>
+<dd>A string ('euclidean', 'precomputed'), which
+determines the measure to use</dd>
+<dt><strong><code>n_jobs</code></strong></dt>
+<dd>An integer (-1 all), which is the number of parallel
+jobs to run</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has a shape like
+(length of x_data, n_components)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mds(self, n_components=3, metric=True, n_init=4, max_iter=300,
+        verbose=0, eps=1e-3, random_state=None,
+        dissimilarity=&#39;euclidean&#39;, n_jobs=None):
+    &#34;&#34;&#34;Creates a Multidimensional scaling and fits x_data.
+
+    Args:
+        n_components: An integer, which is the number of dimensions
+                      in which to immerse the dissimilarities
+        metric: A boolean, which determines if metric MDS is performed
+        n_init: An integer, which is the number of times the SMACOF
+                algortithm will be run with different initializations
+        max_iter: An integer, which is the max number of iterations
+                  of the SMACOF algorithm for a single run
+        verbose: An integer, which determines the level of verbositity
+        eps: A float, which is the relative tolerance with regard to stress
+             (determines when convergence is reached)
+        random_state: An integer, which is a seed for random number
+                      generator
+        dissimilarity: A string (&#39;euclidean&#39;, &#39;precomputed&#39;), which
+                       determines the measure to use
+        n_jobs: An integer (-1 all), which is the number of parallel
+                jobs to run
+
+    Returns:
+        A numpy ndarray, which has a shape like
+        (length of x_data, n_components)
+    &#34;&#34;&#34;
+    x_data = self.x_data.reshape(
+        (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
+    )
+    mds = MDS(n_components=n_components, metric=metric, n_init=n_init,
+              max_iter=max_iter, verbose=verbose, eps=eps, n_jobs=n_jobs,
+              random_state=random_state, dissimilarity=dissimilarity)
+    return mds.fit_transform(x_data)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.analytics.Analyzer.plot"><code class="name flex">
+<span>def <span class="ident">plot</span></span>(<span>self, x, figsize=(8, 8))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plots x on a graph.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>x</code></strong></dt>
+<dd>A numpy ndarray of positonal points for x_data</dd>
+<dt><strong><code>figsize</code></strong></dt>
+<dd>A tuple of 2 integers/floats, which are
+width and height, respectively</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>unmodified x</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot(self, x, figsize=(8, 8)):
+    &#34;&#34;&#34;Plots x on a graph.
+
+    Args:
+        x: A numpy ndarray of positonal points for x_data
+        figsize: A tuple of 2 integers/floats, which are
+                 width and height, respectively
+
+    Returns:
+        unmodified x
+    &#34;&#34;&#34;
+    fig = plt.figure(figsize=figsize)
+    dims = x.shape[1]
+    if dims == 1:
+        nx = np.squeeze(x)
+        ax = fig.add_subplot(111)
+        ax.scatter(nx, nx, c=self.y_colors)
+        for ndx in range(len(self.labels)):
+            ax.plot([], &#39;o&#39;, c=[self.colors[ndx]],
+                    label=self.labels[ndx])
+    elif dims == 2:
+        ax = fig.add_subplot(111)
+        ax.scatter(x[:, 0], x[:, 1], c=self.y_colors)
+        for ndx in range(len(self.labels)):
+            ax.plot([], &#39;o&#39;, c=self.colors[ndx],
+                    label=self.labels[ndx])
+    elif dims == 3:
+        ax = fig.add_subplot(111, projection=&#39;3d&#39;)
+        ax.scatter(x[:, 0], x[:, 1], x[:, 2], c=self.y_colors)
+        for ndx in range(len(self.labels)):
+            ax.plot([[]], &#39;o&#39;, c=self.colors[ndx],
+                    label=self.labels[ndx])
+    fig.legend()
+    plt.show()
+    return x</code></pre>
+</details>
+</dd>
+<dt id="paiutils.analytics.Analyzer.shrink_data"><code class="name flex">
+<span>def <span class="ident">shrink_data</span></span>(<span>self, size_per_label, ndx_groups=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates an Analyzer with a dataset that has been shrunk
+by randomly choosing data from each group to get to the
+desired size of each group.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>size_per_label</code></strong></dt>
+<dd>A dictionary with labels as keys and sizes
+as values, or an integer, which is the size
+for all labels</dd>
+<dt><strong><code>ndx_groups</code></strong></dt>
+<dd>A dictionary returned from create_label_ndx_groups</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>An Analyzer</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def shrink_data(self, size_per_label, ndx_groups=None):
+    &#34;&#34;&#34;Creates an Analyzer with a dataset that has been shrunk
+       by randomly choosing data from each group to get to the
+       desired size of each group.
+
+    Args:
+        size_per_label: A dictionary with labels as keys and sizes
+                        as values, or an integer, which is the size
+                        for all labels
+        ndx_groups: A dictionary returned from create_label_ndx_groups
+
+    Returns:
+        An Analyzer
+    &#34;&#34;&#34;
+    if ndx_groups is None:
+        ndx_groups = self.create_label_ndx_groups()
+    ndxs = []
+    if isinstance(size_per_label, dict):
+        for label, group in ndx_groups.items():
+            if label in size_per_label:
+                size = size_per_label[label]
+                if size &gt; 0:
+                    ndxs.append(np.random.choice(
+                        group, size, replace=False
+                    ))
+            else:
+                ndxs.append(group)
+    else:
+        for group in ndx_groups.values():
+            ndxs.append(np.random.choice(
+                group, size_per_label, replace=False
+            ))
+    ndxs = np.hstack(ndxs)
+    return Analyzer(self.x_data[ndxs], self.y_data[ndxs],
+                    self.labels, label_colors=self.colors)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.analytics.Analyzer.tsne"><code class="name flex">
+<span>def <span class="ident">tsne</span></span>(<span>self, n_components=3, perplexity=30.0, early_exaggeration=12.0, learning_rate=200.0, n_iter=1000, n_iter_without_progress=300, min_grad_norm=1e-07, metric='euclidean', init='random', verbose=0, random_state=None, method='barnes_hut', angle=0.5, n_jobs=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a t-distributed Stochastic Neighbor Embedding and fits x_data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>n_components</code></strong></dt>
+<dd>An integer, which is the dimension of
+embedded space</dd>
+<dt><strong><code>perplexity</code></strong></dt>
+<dd>A float, which is related to the number of
+nearest neigbors that are used in manifold learning</dd>
+<dt><strong><code>early_exaggeration</code></strong></dt>
+<dd>A float, which controls how tight natural
+clusters are embedded</dd>
+<dt><strong><code>learning_rate</code></strong></dt>
+<dd>A float within 10.0-1000.0 (inclusive), which
+higher makes data more like a 'ball', and lower
+makes data cloudy with fewer outliers</dd>
+<dt><strong><code>n_iter</code></strong></dt>
+<dd>An integer, which is the max number of iterations
+for optimization</dd>
+<dt><strong><code>n_iter_without_progress</code></strong></dt>
+<dd>An integer, which is the max number
+of iterations to continue without
+progress</dd>
+<dt><strong><code>min_grad_norm</code></strong></dt>
+<dd>A float, which is the threshold for optimization
+to continue</dd>
+<dt><strong><code>metric</code></strong></dt>
+<dd>A string ('euclidean'), which determines the metric to use
+for calculating distance between features arrays</dd>
+<dt><strong><code>init</code></strong></dt>
+<dd>A string ('random', 'pca'), which determines how to
+initalize the embedding</dd>
+<dt><strong><code>verbose</code></strong></dt>
+<dd>An integer, which determines the level of verbositity</dd>
+<dt><strong><code>random_state</code></strong></dt>
+<dd>An integer, which is a seed for random number
+generator</dd>
+<dt><strong><code>method</code></strong></dt>
+<dd>A string ('barnes_hut', 'exact'), which is the gradient
+calculation algorithm</dd>
+<dt><strong><code>angle</code></strong></dt>
+<dd>A float for barnes_hut, which is the determines the trade
+off between speed and accuracy</dd>
+<dt><strong><code>n_jobs</code></strong></dt>
+<dd>An integer (-1 all), which is the number of parallel
+jobs to run</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has a shape like
+(length of x_data, n_components)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tsne(self, n_components=3, perplexity=30.0, early_exaggeration=12.0,
+         learning_rate=200.0, n_iter=1000, n_iter_without_progress=300,
+         min_grad_norm=1e-7, metric=&#39;euclidean&#39;, init=&#39;random&#39;, verbose=0,
+         random_state=None, method=&#39;barnes_hut&#39;, angle=0.5, n_jobs=None):
+    &#34;&#34;&#34;Creates a t-distributed Stochastic Neighbor Embedding and fits x_data.
+
+    Args:
+        n_components: An integer, which is the dimension of
+                      embedded space
+        perplexity: A float, which is related to the number of
+                    nearest neigbors that are used in manifold learning
+        early_exaggeration: A float, which controls how tight natural
+                            clusters are embedded
+        learning_rate: A float within 10.0-1000.0 (inclusive), which
+                       higher makes data more like a &#39;ball&#39;, and lower
+                       makes data cloudy with fewer outliers
+        n_iter: An integer, which is the max number of iterations
+                for optimization
+        n_iter_without_progress: An integer, which is the max number
+                                 of iterations to continue without
+                                 progress
+        min_grad_norm: A float, which is the threshold for optimization
+                       to continue
+        metric: A string (&#39;euclidean&#39;), which determines the metric to use
+                for calculating distance between features arrays
+        init: A string (&#39;random&#39;, &#39;pca&#39;), which determines how to
+              initalize the embedding
+        verbose: An integer, which determines the level of verbositity
+        random_state: An integer, which is a seed for random number
+                      generator
+        method: A string (&#39;barnes_hut&#39;, &#39;exact&#39;), which is the gradient
+                calculation algorithm
+        angle: A float for barnes_hut, which is the determines the trade
+               off between speed and accuracy
+        n_jobs: An integer (-1 all), which is the number of parallel
+                jobs to run
+
+    Returns:
+        A numpy ndarray, which has a shape like
+        (length of x_data, n_components)
+    &#34;&#34;&#34;
+    tsne = TSNE(n_components=n_components, perplexity=perplexity,
+                early_exaggeration=early_exaggeration,
+                learning_rate=learning_rate, n_iter=n_iter,
+                n_iter_without_progress=n_iter_without_progress,
+                min_grad_norm=min_grad_norm, metric=metric,
+                init=init, verbose=verbose, random_state=random_state,
+                method=method, angle=angle, n_jobs=n_jobs)
+    x_data = self.x_data.reshape(
+        (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
+    )
+    return tsne.fit_transform(x_data)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="paiutils" href="index.html">paiutils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="paiutils.analytics.Analyzer" href="#paiutils.analytics.Analyzer">Analyzer</a></code></h4>
+<ul class="">
+<li><code><a title="paiutils.analytics.Analyzer.boxplot" href="#paiutils.analytics.Analyzer.boxplot">boxplot</a></code></li>
+<li><code><a title="paiutils.analytics.Analyzer.calculate_distribution_of_labels" href="#paiutils.analytics.Analyzer.calculate_distribution_of_labels">calculate_distribution_of_labels</a></code></li>
+<li><code><a title="paiutils.analytics.Analyzer.create_label_ndx_groups" href="#paiutils.analytics.Analyzer.create_label_ndx_groups">create_label_ndx_groups</a></code></li>
+<li><code><a title="paiutils.analytics.Analyzer.expand_data" href="#paiutils.analytics.Analyzer.expand_data">expand_data</a></code></li>
+<li><code><a title="paiutils.analytics.Analyzer.isomap" href="#paiutils.analytics.Analyzer.isomap">isomap</a></code></li>
+<li><code><a title="paiutils.analytics.Analyzer.locally_linear_embedding" href="#paiutils.analytics.Analyzer.locally_linear_embedding">locally_linear_embedding</a></code></li>
+<li><code><a title="paiutils.analytics.Analyzer.mds" href="#paiutils.analytics.Analyzer.mds">mds</a></code></li>
+<li><code><a title="paiutils.analytics.Analyzer.plot" href="#paiutils.analytics.Analyzer.plot">plot</a></code></li>
+<li><code><a title="paiutils.analytics.Analyzer.shrink_data" href="#paiutils.analytics.Analyzer.shrink_data">shrink_data</a></code></li>
+<li><code><a title="paiutils.analytics.Analyzer.tsne" href="#paiutils.analytics.Analyzer.tsne">tsne</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>
