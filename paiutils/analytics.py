@@ -1,11 +1,11 @@
 """
 Author: Travis Hammond
-Version: 12_19_2019
+Version: 12_21_2020
 """
 
 
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D  # noqa
 import matplotlib.pyplot as plt
 from sklearn.manifold import (
     TSNE, Isomap, LocallyLinearEmbedding, MDS
@@ -13,13 +13,16 @@ from sklearn.manifold import (
 
 
 class Analyzer:
-    """Analyzer is a class used for manipulating classifier datasets
-       for analytical purposes.
+    """Analyzer is a class used for manipulating and viewing
+       classification datasets for analytical purposes. It can
+       also be used for unclassified data by passing in the same
+       value for y_data and the same label for all x_data.
     """
 
     def __init__(self, x_data, y_data, labels, label_colors=None):
         """Initializes the Analyzer with the dataset.
-        params:
+
+        Args:
             x_data: A numpy ndarray
             y_data: A numpy ndarray, which is a onehot encoding or ndx
                     that corresponds to the label in labels
@@ -50,9 +53,11 @@ class Analyzer:
         self.y_colors = self.colors[y_data_label_ndx]
 
     def calculate_distribution_of_labels(self):
-        """Calculates the number of samples in each label
-        return: A dictionary with strings (labels) as
-                keys and integers (number of samples) as values
+        """Calculates the number of samples in each label.
+
+        Returns:
+            A dictionary with strings (labels) as
+            keys and integers (number of samples) as values
         """
         groups = {label: 0 for label in self.labels}
         for ndx in range(len(self.y_labels)):
@@ -61,8 +66,10 @@ class Analyzer:
 
     def create_label_ndx_groups(self):
         """Creates a dictionary with ndx of each group in each label.
-        return: A dictionary with strings (labels) as keys
-                and list of integers (indexes of x_data) as values
+
+        Returns:
+            A dictionary with strings (labels) as keys
+            and list of integers (indexes of x_data) as values
         """
         groups = {label: [] for label in self.labels}
         for ndx in range(len(self.y_labels)):
@@ -70,40 +77,93 @@ class Analyzer:
         return groups
 
     def shrink_data(self, size_per_label, ndx_groups=None):
-        """Shrinks dataset by randomly choosing a given size from each group.
-        params:
+        """Creates an Analyzer with a dataset that has been shrunk
+           by randomly choosing data from each group to get to the
+           desired size of each group.
+
+        Args:
             size_per_label: A dictionary with labels as keys and sizes
                             as values, or an integer, which is the size
                             for all labels
+            ndx_groups: A dictionary returned from create_label_ndx_groups
+
+        Returns:
+            An Analyzer
         """
         if ndx_groups is None:
             ndx_groups = self.create_label_ndx_groups()
         ndxs = []
         if isinstance(size_per_label, dict):
-            for label, size in size_per_label.items():
-                if size > 0:
-                    ndxs.append(
-                        np.random.choice(ndx_groups[label], size,
-                                         replace=False)
-                    )
+            for label, group in ndx_groups.items():
+                if label in size_per_label:
+                    size = size_per_label[label]
+                    if size > 0:
+                        ndxs.append(np.random.choice(
+                            group, size, replace=False
+                        ))
+                else:
+                    ndxs.append(group)
         else:
-            for value_list in ndx_groups.values():
-                ndxs.append(
-                    np.random.choice(value_list, size_per_label, replace=False)
-                )
-        ndxs = np.ravel(ndxs)
-        self.x_data = self.x_data[ndxs]
-        self.y_data = self.y_data[ndxs]
-        self.y_labels = self.y_labels[ndxs]
-        self.y_colors = self.y_colors[ndxs]
+            for group in ndx_groups.values():
+                ndxs.append(np.random.choice(
+                    group, size_per_label, replace=False
+                ))
+        ndxs = np.hstack(ndxs)
+        return Analyzer(self.x_data[ndxs], self.y_data[ndxs],
+                        self.labels, label_colors=self.colors)
+
+    def expand_data(self, size_per_label, ndx_groups=None):
+        """Creates an Analyzer with a dataset that has been expanded
+           by randomly choosing data from each group to get to the
+           desired size of each group.
+
+        Args:
+            size_per_label: A dictionary with labels as keys and sizes
+                            as values, or an integer, which is the size
+                            for all labels
+            ndx_groups: A dictionary returned from create_label_ndx_groups
+
+        Returns:
+            An Analyzer
+        """
+        if ndx_groups is None:
+            ndx_groups = self.create_label_ndx_groups()
+        ndxs = []
+        if isinstance(size_per_label, dict):
+            for label, group in ndx_groups.items():
+                if label in size_per_label:
+                    size = size_per_label[label] - len(group)
+                    if size > 0:
+                        replace = size > len(group)
+                        group = np.append(
+                            group,
+                            np.random.choice(group, size, replace=replace)
+                        )
+                ndxs.append(group)
+        else:
+            for group in ndx_groups.values():
+                size = size_per_label - len(group)
+                if size > 0:
+                    replace = size > len(group)
+                    group = np.append(
+                        group,
+                        np.random.choice(group, size, replace=replace)
+                    )
+                ndxs.append(group)
+        ndxs = np.hstack(ndxs)
+        return Analyzer(self.x_data[ndxs], self.y_data[ndxs],
+                        self.labels, label_colors=self.colors)
 
     def plot(self, x, figsize=(8, 8)):
         """Plots x on a graph.
-        params:
+
+        Args:
             x: A numpy ndarray of positonal points for x_data
             figsize: A tuple of 2 integers/floats, which are
-                     width and height espectively
-        return: unmodified x
+                     width and height, respectively
+
+        Returns:
+            unmodified x
         """
         fig = plt.figure(figsize=figsize)
         dims = x.shape[1]
@@ -111,30 +171,54 @@ class Analyzer:
             nx = np.squeeze(x)
             ax = fig.add_subplot(111)
             ax.scatter(nx, nx, c=self.y_colors)
-            m = x.mean()
             for ndx in range(len(self.labels)):
-                ax.scatter(m, m, c=[self.colors[ndx]],
-                           label=self.labels[ndx])
-            ax.scatter(m, m, c=[[0, 0, 0]],
-                       label='AVERAGE')
+                ax.plot([], 'o', c=[self.colors[ndx]],
+                        label=self.labels[ndx])
         elif dims == 2:
             ax = fig.add_subplot(111)
             ax.scatter(x[:, 0], x[:, 1], c=self.y_colors)
-            m = x.mean(axis=-1)
             for ndx in range(len(self.labels)):
-                ax.scatter(m[0], m[1], c=[self.colors[ndx]],
-                           label=self.labels[ndx])
-            ax.scatter(m[0], m[1], c=[[0, 0, 0]],
-                       label='AVERAGE')
+                ax.plot([], 'o', c=self.colors[ndx],
+                        label=self.labels[ndx])
         elif dims == 3:
             ax = fig.add_subplot(111, projection='3d')
             ax.scatter(x[:, 0], x[:, 1], x[:, 2], c=self.y_colors)
-            m = x.mean(axis=0)
             for ndx in range(len(self.labels)):
-                ax.scatter(m[0], m[1], m[2], c=[self.colors[ndx]],
-                           label=self.labels[ndx])
-            ax.scatter(m[0], m[1], m[2], c=[[0, 0, 0]],
-                       label='AVERAGE')
+                ax.plot([[]], 'o', c=self.colors[ndx],
+                        label=self.labels[ndx])
+        fig.legend()
+        plt.show()
+        return x
+
+    def boxplot(self, x, figsize=(8, 8), ndx_groups=None):
+        """Creates a boxplot for each group of x.
+
+        Args:
+            x: A numpy ndarray of  1D positonal points for x_data
+            figsize: A tuple of 2 integers/floats, which are
+                     width and height, respectively
+            ndx_groups: A dictionary returned from create_label_ndx_groups
+
+        Returns:
+            unmodified x
+        """
+        x = np.squeeze(x)
+        if ndx_groups is None:
+            ndx_groups = self.create_label_ndx_groups()
+        labels = []
+        data = []
+        for label, ndxs in ndx_groups.items():
+            labels.append(label)
+            data.append(x[ndxs])
+
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(111)
+        bp = ax.boxplot(data, patch_artist=True, labels=labels)
+        for label in labels:
+            ndx = self.labels.index(label)
+            ax.plot([], 's', c=self.colors[ndx],
+                    label=self.labels[ndx])
+            bp['boxes'][ndx].set_facecolor(self.colors[ndx])
         fig.legend()
         plt.show()
         return x
@@ -143,7 +227,8 @@ class Analyzer:
                tol=0, max_iter=None, path_method='auto',
                neighbors_algorithm='auto', n_jobs=None):
         """Creates an Isomap and fits x_data.
-        params:
+
+        Args:
             n_neighbors: An integer, which is the number of neighbors
                          considered for each point
             n_components: An integer, which is the number of coordinates
@@ -161,8 +246,10 @@ class Analyzer:
                                  algorithm for nearest neighbors search
             n_jobs: An integer (-1 all), which is the number of parallel
                     jobs to run
-        return: A numpy ndarray, which has a shape like
-                (length of x_data, n_components)
+
+        Returns:
+            A numpy ndarray, which has a shape like
+            (length of x_data, n_components)
         """
         isomap = Isomap(n_neighbors=n_neighbors, n_components=n_components,
                         eigen_solver=eigen_solver, tol=tol, max_iter=max_iter,
@@ -181,7 +268,8 @@ class Analyzer:
                                  random_state=None,
                                  n_jobs=None):
         """Computes the locally linear embedding of x_data.
-        params:
+
+        Args:
             n_neighbors: An integer, which is the number of neighbors
                          considered for each point
             n_components: An integer, which is the number of coordinates
@@ -204,14 +292,16 @@ class Analyzer:
                           generator
             n_jobs: An integer (-1 all), which is the number of parallel
                     jobs to run
-        return: A numpy ndarray, which has a shape like
-                (length of x_data, n_components)
+
+        Returns:
+            A numpy ndarray, which has a shape like
+            (length of x_data, n_components)
         """
         x_data = self.x_data.reshape(
             (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
         )
-        lle = LocallyLinearEmbedding(n_neighbors,
-                                     n_components, reg=reg,
+        lle = LocallyLinearEmbedding(n_neighbors=n_neighbors,
+                                     n_components=n_components, reg=reg,
                                      eigen_solver=eigen_solver, tol=tol,
                                      max_iter=max_iter, method=method,
                                      hessian_tol=hessian_tol,
@@ -225,7 +315,8 @@ class Analyzer:
             verbose=0, eps=1e-3, random_state=None,
             dissimilarity='euclidean', n_jobs=None):
         """Creates a Multidimensional scaling and fits x_data.
-        params:
+
+        Args:
             n_components: An integer, which is the number of dimensions
                           in which to immerse the dissimilarities
             metric: A boolean, which determines if metric MDS is performed
@@ -242,8 +333,10 @@ class Analyzer:
                            determines the measure to use
             n_jobs: An integer (-1 all), which is the number of parallel
                     jobs to run
-        return: A numpy ndarray, which has a shape like
-                (length of x_data, n_components)
+
+        Returns:
+            A numpy ndarray, which has a shape like
+            (length of x_data, n_components)
         """
         x_data = self.x_data.reshape(
             (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
@@ -258,7 +351,8 @@ class Analyzer:
              min_grad_norm=1e-7, metric='euclidean', init='random', verbose=0,
              random_state=None, method='barnes_hut', angle=0.5, n_jobs=None):
         """Creates a t-distributed Stochastic Neighbor Embedding and fits x_data.
-        params:
+
+        Args:
             n_components: An integer, which is the dimension of
                           embedded space
             perplexity: A float, which is related to the number of
@@ -288,8 +382,10 @@ class Analyzer:
                    off between speed and accuracy
             n_jobs: An integer (-1 all), which is the number of parallel
                     jobs to run
-        return: A numpy ndarray, which has a shape like
-                (length of x_data, n_components)
+
+        Returns:
+            A numpy ndarray, which has a shape like
+            (length of x_data, n_components)
         """
         tsne = TSNE(n_components=n_components, perplexity=perplexity,
                     early_exaggeration=early_exaggeration,
@@ -302,33 +398,3 @@ class Analyzer:
             (self.x_data.shape[0], np.prod(self.x_data.shape[1:]))
         )
         return tsne.fit_transform(x_data)
-
-
-if __name__ == '__main__':
-    from tensorflow import keras
-    td, vd = keras.datasets.fashion_mnist.load_data()
-    labels = ['T-shirt', 'Trouser', 'Pullover', 'Dress',
-              'Coat', 'Sandal', 'Shirt', 'Sneaker',
-              'Bag', 'Ankle boot']
-    a = Analyzer(vd[0], vd[1], labels)
-    print('\ncreate label ndx groups:')
-    print(a.create_label_ndx_groups())
-    print('\ndistribtuin of labels:')
-    print(a.calculate_distribution_of_labels())
-    print('\nshrink data:')
-    a.shrink_data(500)
-    print(a.calculate_distribution_of_labels())
-    print('\nIsomap:')
-    print(a.plot(a.isomap(max_iter=5, n_jobs=-1)))
-    print('\nlocally linear embedding:')
-    print(a.plot(a.locally_linear_embedding(max_iter=100, n_jobs=-1)))
-    print('\nmds:')
-    print(a.plot(a.mds(max_iter=10, n_jobs=-1)))
-    print('\nTSNE:')
-    print(a.plot(a.tsne(n_iter=250, n_jobs=-1)))
-    print('\nremove data:')
-    size_per_label = {'T-shirt': 500, 'Shirt': 500}
-    a.shrink_data(size_per_label)
-    print(a.calculate_distribution_of_labels())
-    print('\nTSNE:')
-    print(a.plot(a.tsne(n_jobs=-1)))

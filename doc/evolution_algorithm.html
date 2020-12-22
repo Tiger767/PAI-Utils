@@ -1,0 +1,3661 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>paiutils.evolution_algorithm API documentation</title>
+<meta name="description" content="Author: Travis Hammond
+Version: 12_21_2020" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>paiutils.evolution_algorithm</code></h1>
+</header>
+<section id="section-intro">
+<p>Author: Travis Hammond
+Version: 12_21_2020</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Author: Travis Hammond
+Version: 12_21_2020
+&#34;&#34;&#34;
+
+
+from multiprocessing.pool import ThreadPool
+import numpy as np
+
+
+class Fitness:
+    &#34;&#34;&#34;Fitness contains functions that return functions that
+       calculate fitness.
+    &#34;&#34;&#34;
+
+    @staticmethod
+    def match_mse(target_genome, variable_size=False):
+        &#34;&#34;&#34;Creates a fitness_func that computes
+           the the mean squared error of the target
+           genome and the offsprings&#39; genome.
+
+        Args:
+            target_genome: A list or numpy array that is the
+                         target genome
+            variable_size: A boolean, which determines if the
+                           genome size can change
+
+        Returns:
+            A fitness function
+        &#34;&#34;&#34;
+        target_genome = np.array(target_genome)
+        if variable_size:
+            def fitness_func(offspring):
+                errors = []
+                for genome in offspring:
+                    error = (genome.shape[0]-target_genome.shape[0])**2
+                    error += (genome[:target_genome.shape[0]] -
+                              target_genome[:genome.shape[0]])**2
+                    errors.append(error.mean())
+                return np.array(errors)
+        else:
+            def fitness_func(offspring):
+                error = (offspring - target_genome)**2
+                error = error.reshape((error.shape[0], -1)).mean(axis=1)
+                return error
+        return fitness_func
+
+
+class Selection:
+    &#34;&#34;&#34;Selection contains functions that return functions
+       that select offspring based on fitness values.
+    &#34;&#34;&#34;
+
+    @staticmethod
+    def select_highest(variable_size=False):
+        &#34;&#34;&#34;Creates a selection function that selects offspring
+           with the highest fitness value.
+
+        Args:
+            variable_size: A boolean, which determines if the
+                           genome size can change
+
+        Returns:
+            A selection function
+        &#34;&#34;&#34;
+        if variable_size:
+            def selection_func(offspring, fitness_values, selection_size):
+                new_offspring = []
+                for ndx in fitness_values.argsort()[-selection_size:]:
+                    new_offspring.append(offspring[ndx])
+                return new_offspring
+        else:
+            def selection_func(offspring, fitness_values, selection_size):
+                return offspring[fitness_values.argsort()[-selection_size:]]
+        return selection_func
+
+    @staticmethod
+    def select_lowest(variable_size=False):
+        &#34;&#34;&#34;Creates a selection function that selects offspring
+           with the lowest fitness value.
+
+        Args:
+            variable_size: A boolean, which determines if the
+                           genome size can change
+
+        Returns:
+            A selection function
+        &#34;&#34;&#34;
+        if variable_size:
+            def selection_func(offspring, fitness_values, selection_size):
+                new_offspring = []
+                for ndx in fitness_values.argsort()[:selection_size]:
+                    new_offspring.append(offspring[ndx])
+                return new_offspring
+        else:
+            def selection_func(offspring, fitness_values, selection_size):
+                return offspring[fitness_values.argsort()[:selection_size]]
+        return selection_func
+
+
+class Crossover:
+    &#34;&#34;&#34;Crossover contains functions that return functions
+       that mix parent genes and return offspring.
+    &#34;&#34;&#34;
+
+    @staticmethod
+    def dual(formula=lambda a, b: (a + b)/2):
+        &#34;&#34;&#34;Creates a crossover function that mixes two parents
+           to create one offspring.
+
+        Args:
+            formula: A function that takes Parent A and Parent B
+                     and returns one Child
+
+        Returns:
+            A crossover function
+        &#34;&#34;&#34;
+        def crossover_func(parents, num_offspring):
+            replace = parents.shape[0] &lt; num_offspring
+            parents_a = np.random.choice(np.arange(parents.shape[0]),
+                                         size=num_offspring, replace=replace)
+            parents_b = np.random.choice(np.arange(parents.shape[0]),
+                                         size=num_offspring, replace=replace)
+            return formula(parents[parents_a], parents[parents_b])
+
+        return crossover_func
+
+    @staticmethod
+    def triple(formula=lambda a, b, c: (a + b + c)/3):
+        &#34;&#34;&#34;Creates a crossover function that mixes three parents
+           to create one offspring.
+
+        Args:
+            formula: A function that takes Parent A, Parent B, and Parent C
+                     and returns one Child
+
+        Returns:
+            A crossover function
+        &#34;&#34;&#34;
+        def crossover_func(parents, num_offspring):
+            replace = parents.shape[0] &lt; num_offspring
+            parents_a = np.random.choice(np.arange(parents.shape[0]),
+                                         size=num_offspring, replace=replace)
+            parents_b = np.random.choice(np.arange(parents.shape[0]),
+                                         size=num_offspring, replace=replace)
+            parents_c = np.random.choice(np.arange(parents.shape[0]),
+                                         size=num_offspring, replace=replace)
+            return formula(parents[parents_a], parents[parents_b],
+                           parents[parents_c])
+
+        return crossover_func
+
+    @staticmethod
+    def population_avg():
+        &#34;&#34;&#34;Creates a crossover function that averages all the parents to
+           create all the exact same offspring.
+
+        Returns:
+            A crossover function
+        &#34;&#34;&#34;
+        def crossover_func(parents, num_offspring):
+            return np.repeat([np.mean(parents, axis=0)], num_offspring, axis=0)
+
+        return crossover_func
+
+    @staticmethod
+    def population_shuffle():
+        &#34;&#34;&#34;Creates a crossover function that randomly
+           shuffles all the genes between all the parents.
+
+        Returns:
+            A crossover function
+        &#34;&#34;&#34;
+        def crossover_func(parents, num_offspring):
+            assert parents.ndim == 2, (
+                &#39;Population shuffle only works with inputs &#39;
+                &#39;that have 2 dimensions.&#39;
+            )
+            num_genes = parents.shape[1]
+            old_parents = parents
+            parents = parents.T.copy()
+            for gene in range(num_genes):
+                np.random.shuffle(parents[gene])
+            parents = np.vstack([old_parents, parents.T])
+            replace = parents.shape[0] &lt; num_offspring
+            indexes = np.random.choice(np.arange(parents.shape[0]),
+                                       size=num_offspring, replace=replace)
+            return parents[indexes]
+
+        return crossover_func
+
+    @staticmethod
+    def single(variable_size=False):
+        &#34;&#34;&#34;Creates a crossover function that does not perform
+           any crossover, but instead creates a child from a
+           single parent. (Parents may produce more than one child)
+
+        Args:
+            variable_size: A boolean, which determines if the
+                           genome size can change
+
+        Returns:
+            A crossover function
+        &#34;&#34;&#34;
+        if variable_size:
+            def crossover_func(parents, num_offspring):
+                replace = len(parents) &lt; num_offspring
+                indexes = np.random.choice(np.arange(len(parents)),
+                                           size=num_offspring, replace=replace)
+                new_offspring = []
+                for ndx in indexes:
+                    new_offspring.append(parents[ndx])
+                return new_offspring
+        else:
+            def crossover_func(parents, num_offspring):
+                replace = parents.shape[0] &lt; num_offspring
+                indexes = np.random.choice(np.arange(parents.shape[0]),
+                                           size=num_offspring, replace=replace)
+                return parents[indexes]
+        return crossover_func
+
+
+class Mutation:
+    &#34;&#34;&#34;Mutation contains functions that return functions
+       that mutate genes.
+    &#34;&#34;&#34;
+
+    @staticmethod
+    def _create_mutation_mask(mutation_rates, num_offspring):
+        &#34;&#34;&#34;Creates a mutation mask.
+
+        Args:
+            mutation_rates: A list of floats within 0-1 (exclusive)
+            num_offspring: An integer
+
+        Returns:
+            A numpy ndarray
+        &#34;&#34;&#34;
+        x = []
+        for rate in mutation_rates:
+            x.append(
+                np.random.binomial(1, rate,
+                                   size=num_offspring)
+            )
+        return np.stack(x, axis=1)
+
+    @classmethod
+    def additive(cls, mutation_rates, distributions, normal=True,
+                 round_values=False, variable_size=False):
+        &#34;&#34;&#34;Creates a mutation function that can add to the current value
+           of a gene.
+
+        Args:
+            mutation_rates: A list of floats within 0-1 (exclusive),
+                            or a single float if variable size is True
+            distributions: A list of either lower and upper bounds
+                           or means and standard deviations
+                           (depends on param normal), or a single
+                           distribution if variable size is True
+            normal: A boolean, which determines if the random distribution
+                    is normal or uniform
+            round_values: A boolean, which determines if mutations should be
+                          rounded to the nearest whole integer
+            variable_size: A boolean, which determines if the number of genes
+                           in the genome can change
+
+        Returns:
+            A mutation function
+        &#34;&#34;&#34;
+        if variable_size:
+            if isinstance(mutation_rates, list) and len(mutation_rates) == 1:
+                mutation_rate = mutation_rates[0]
+            elif isinstance(mutation_rates, (int, float)):
+                mutation_rate = mutation_rates
+            else:
+                raise ValueError(&#39;To have variable sizes there &#39;
+                                 &#39;must only be one rate.&#39;)
+            if (isinstance(distributions[0], (list, tuple))
+                    or len(distributions) != 2):
+                raise ValueError(&#39;To have variable sizes there &#39;
+                                 &#39;must only be one distribution.&#39;)
+            b, a = distributions
+
+            def mutation_func(offspring):
+                if normal:
+                    for ndx in range(len(offspring)):
+                        mask = np.random.binomial(1, mutation_rate,
+                                                  size=offspring[ndx].shape)
+                        mutation = np.random.normal(
+                            b, a, size=offspring[ndx].shape
+                        )
+                        if round_values:
+                            mutation = mutation.round()
+                        offspring[ndx] = mask * mutation + offspring[ndx]
+                else:
+                    for ndx in range(len(offspring)):
+                        mask = np.random.binomial(1, mutation_rate,
+                                                  size=offspring[ndx].shape)
+                        mutation = np.random.uniform(
+                            b, a, size=offspring[ndx].shape
+                        )
+                        if round_values:
+                            mutation = mutation.round()
+                        offspring[ndx] = mask * mutation + offspring[ndx]
+                return offspring
+        else:
+            distributions = np.asarray(distributions)
+            b = distributions[:, 0]
+            a = distributions[:, 1]
+
+            def mutation_func(offspring):
+                assert len(mutation_rates) == offspring.shape[1], (
+                    &#39;The number of mutation rates must match the &#39;
+                    &#39;number of offspring.&#39;
+                )
+                if normal:
+                    m = np.random.normal(b, a, size=offspring.shape)
+                else:
+                    m = np.random.uniform(b, a, size=offspring.shape)
+                if round_values:
+                    m = m.round()
+                mm = cls._create_mutation_mask(mutation_rates,
+                                               offspring.shape[0])
+                return m * mm + offspring
+        return mutation_func
+
+    @classmethod
+    def variable(cls, mutation_rates, distributions, normal=True,
+                 round_values=False, variable_size=False):
+        &#34;&#34;&#34;Creates a mutation function that can sets the value
+           of a gene.
+
+        Args:
+            mutation_rates: A list of floats within 0-1 (exclusive),
+                            or a single float if variable size is True
+            distributions: A list of either lower and upper bounds
+                           or means and standard deviations
+                           (depends on param normal), or a single
+                           distribution if variable size is True
+            normal: A boolean, which determines if the random distribution
+                    is normal or uniform
+            round_values: A boolean, which determines if mutations should be
+                          rounded to the nearest whole integer
+            variable_size: A boolean, which determines if the number of genes
+                           in the genome can change
+
+        Returns:
+            A mutation function
+        &#34;&#34;&#34;
+        if variable_size:
+            if isinstance(mutation_rates, list) and len(mutation_rates) == 1:
+                mutation_rate = mutation_rates[0]
+            elif isinstance(mutation_rates, (int, float)):
+                mutation_rate = mutation_rates
+            else:
+                raise ValueError(&#39;To have variable sizes there &#39;
+                                 &#39;must only be one rate.&#39;)
+            if (isinstance(distributions[0], (list, tuple))
+                    or len(distributions) != 2):
+                raise ValueError(&#39;To have variable sizes there &#39;
+                                 &#39;must only be one distribution.&#39;)
+            b, a = distributions
+
+            def mutate_func(offspring):
+                if normal:
+                    for ndx in range(len(offspring)):
+                        mask = np.random.binomial(1, mutation_rate,
+                                                  size=offspring[ndx].shape)
+                        if round_values:
+                            mutation = np.random.normal(
+                                b, a, size=offspring[ndx].shape
+                            ).round()
+                        else:
+                            mutation = np.random.normal(
+                                b, a, size=offspring[ndx].shape
+                            )
+                        offspring[ndx] = (mask * mutation + offspring[ndx] *
+                                          (1 - mask))
+                else:
+                    for ndx in range(len(offspring)):
+                        mask = np.random.binomial(1, mutation_rate,
+                                                  size=offspring[ndx].shape)
+                        if round_values:
+                            mutation = np.random.uniform(
+                                b, a, size=offspring[ndx].shape
+                            ).round()
+                        else:
+                            mutation = np.random.uniform(
+                                b, a, size=offspring[ndx].shape
+                            )
+                        offspring[ndx] = (mask * mutation + offspring[ndx] *
+                                          (1 - mask))
+                return offspring
+        else:
+            distributions = np.asarray(distributions)
+            b = distributions[:, 0]
+            a = distributions[:, 1]
+
+            def mutate_func(offspring):
+                assert len(mutation_rates) == offspring.shape[1], (
+                    &#39;The number of mutation rates must match the &#39;
+                    &#39;number of offspring.&#39;
+                )
+                if normal:
+                    m = np.random.normal(b, a, size=offspring.shape)
+                else:
+                    m = np.random.uniform(b, a, size=offspring.shape)
+                if round_values:
+                    m = m.round()
+                mm = cls._create_mutation_mask(mutation_rates,
+                                               offspring.shape[0])
+                mutated_offspring = m * mm + offspring * (1-mm)
+                if round_values:
+                    return mutated_offspring.round()
+                return mutated_offspring
+        return mutate_func
+
+
+class SizeMutation:
+    &#34;&#34;&#34;SizeMutation contains functions that return functions
+       that mutate the genome size.
+    &#34;&#34;&#34;
+
+    @staticmethod
+    def genome_double(value=None):
+        &#34;&#34;&#34;Creates a size mutation function that doubles the
+           size of the current genome.
+
+        Args:
+            value: A value to set the new genes to
+                (Default copies current genome values)
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        if value is None:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                return np.hstack((genome, genome))
+        else:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                return np.hstack((
+                    genome,
+                    np.full_like(genome, value)
+                ))
+        return size_mutation_partial_func
+
+    @staticmethod
+    def genome_half(keep_left=True):
+        &#34;&#34;&#34;Creates a size mutation function that halfs the
+           size of the current genome.
+
+        Args:
+            keep_left: A boolean, which determines if the
+                       left or right size should be kept
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            if len(genome) &gt; 1:
+                if keep_left:
+                    return genome[:len(genome)//2]
+                else:
+                    return genome[len(genome)//2:]
+            return genome
+
+        return size_mutation_partial_func
+
+    @staticmethod
+    def random_gene_addition(value=None):
+        &#34;&#34;&#34;Creates a size mutation function that randomly
+           inserts a gene in the genome.
+
+        Args:
+            value: A value to set the new gene to
+                   (Default copies current genome value)
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        if value is None:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                ndx = np.random.randint(1, len(genome)+1)
+                return np.hstack((genome[:ndx],
+                                  genome[ndx-1:]))
+        else:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                ndx = np.random.randint(0, len(genome)+1)
+                return np.hstack((genome[:ndx], value,
+                                  genome[ndx:]))
+        return size_mutation_partial_func
+
+    @staticmethod
+    def random_gene_deletion():
+        &#34;&#34;&#34;Creates a size mutation function that randomly
+           deletes a gene in the genome.
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            ndx = np.random.randint(0, len(genome))
+            return np.hstack((genome[:ndx],
+                              genome[ndx+1:]))
+
+        return size_mutation_partial_func
+
+    @staticmethod
+    def first_gene_addition(value=None):
+        &#34;&#34;&#34;Creates a size mutation function that inserts
+           a gene in the begining of the genome.
+
+        Args:
+            value: A value to set the new gene to
+                   (Default copies current genome value)
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        if value is None:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                return np.hstack((genome[0], genome))
+        else:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                return np.hstack((value, genome))
+        return size_mutation_partial_func
+
+    @staticmethod
+    def first_gene_deletion():
+        &#34;&#34;&#34;Creates a size mutation function that deletes
+           a gene at the begining of the genome.
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            return genome[1:]
+
+        return size_mutation_partial_func
+
+    @staticmethod
+    def last_gene_addition(value=None):
+        &#34;&#34;&#34;Creates a size mutation function that inserts
+           a gene at the end of the genome.
+
+        Args:
+            value: A value to set the new gene to
+                   (Default copies current genome value)
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        if value is None:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                return np.hstack((genome, genome[-1]))
+        else:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                return np.hstack((genome, value))
+        return size_mutation_partial_func
+
+    @staticmethod
+    def last_gene_deletion():
+        &#34;&#34;&#34;Creates a size mutation function that deletes
+           a gene at the end of the genome.
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            return genome[:-1]
+
+        return size_mutation_partial_func
+
+    @staticmethod
+    def complete_mutations(size_mutation_rate, probabilities, funcs):
+        &#34;&#34;&#34;Creates a complete size mutation function from incomplete
+           size mutation functions.
+
+        Args:
+            size_mutation_rate: A float within 0-1 (exclusive), which is the
+                                rate of a genome size mutating
+            probabilities: A list of floats within 0-1 (exclusive), which
+                           contains the chance of each size mutation function
+                           being used
+            funcs: A list of incomplete size mutation functions
+
+        Returns:
+            A complete size mutation function
+        &#34;&#34;&#34;
+        arange = np.arange(len(funcs))
+
+        def size_mutation_func(offspring):
+            new_offspring = []
+            for genome in offspring:
+                if np.random.random() &lt; size_mutation_rate:
+                    choice = np.random.choice(arange, p=probabilities)
+                    new_offspring.append(funcs[choice](genome))
+                else:
+                    new_offspring.append(genome)
+            return new_offspring
+
+        return size_mutation_func
+
+
+class EvolutionAlgorithm:
+    &#34;&#34;&#34;EvolutionAlgorithm is a class that is able to simulate &#39;natural&#39;
+       selection of genes and genomes.
+    &#34;&#34;&#34;
+
+    def __init__(self, fitness_func, selection_func, mutation_func,
+                 crossover_func, size_mutation_func=None):
+        &#34;&#34;&#34;Creates an evolution algorithm by the provided functions.
+
+        Args:
+            fitness_func: A function that takes a list or numpy ndarray of
+                          genomes (offspring), and returns list of fitness
+                          values
+            selection_func: A function that takes a list or numpy ndarray of
+                            genomes (offspring) and fitness values, and
+                            returns the selected genomes (offspring)
+            mutation_func: A function that takes a list or numpy ndarray of
+                           genomes (offspring), and returns the offspring
+                           mutated
+            crossover_func: A function that takes a list or numpy array of
+                            genomes (parents), and returns offspring
+            size_mutation_func: A function that takes a list or numpy
+                                ndarray of genomes, and returns the
+                                genomes with mutated sizes
+        &#34;&#34;&#34;
+        self.get_fitness = fitness_func
+        self.select = selection_func
+        self.crossover = crossover_func
+        self.mutate = mutation_func
+        self.mutate_size = size_mutation_func
+
+    def simulate(self, base_genome, generations, population, selection_size,
+                 return_all_genomes=False, verbose=True):
+        &#34;&#34;&#34;Simulates natural selection of genomes.
+
+        Args:
+            base_genome: A list of floats or integers (genes)
+            generations: An integer, which is the number of complete cycles of
+                         performing crossovers, mutations, and selections on
+                         the entire population
+            population: An integer, which is the number of genomes in a
+                        generation
+            selection_size: An integer, which is the number of
+                            offspring to select from the population
+                            each generation/cycle
+            return_all_genomes: A boolean, which determiens if all
+                                the genomes with their corresponding
+                                fitness values should be returned
+            verbose: A boolean, which determines if information
+                     will be printed to the console
+
+        Returns:
+            A list of tuples each containing a fitness value and a genome
+        &#34;&#34;&#34;
+        assert population &gt; selection_size, (
+            &#39;The population must be greater than the selection size.&#39;
+        )
+        all_genomes = []
+        parents = np.array([base_genome])
+        for generation in range(generations):
+            offspring = self.crossover(parents, population)
+            if self.mutate_size is not None:
+                offspring = self.mutate_size(offspring)
+            offspring = self.mutate(offspring)
+            fitness_values = self.get_fitness(offspring)
+            if return_all_genomes:
+                all_genomes += list(zip(fitness_values, parents))
+            selected_offspring = self.select(offspring, fitness_values,
+                                             selection_size)
+            parents = selected_offspring
+            if verbose:
+                highest = fitness_values.max()
+                lowest = fitness_values.min()
+                mean = fitness_values.mean()
+                print(f&#39;Generation {generation+1}\n&#39;
+                      f&#39;Highest Fitness: {highest} - &#39;
+                      f&#39;Lowest Fitness: {lowest} - &#39;
+                      f&#39;Mean Fitness: {mean}&#39;)
+        if return_all_genomes:
+            return all_genomes
+        return list(zip(self.get_fitness(parents), parents))
+
+    def simulate_islands(self, base_genome, generations, population,
+                         selection_size, islands, island_migrations,
+                         threaded=False, verbose=True):
+        &#34;&#34;&#34;Simulates natural selection of genomes with isolating islands.
+
+        Args:
+            base_genome: A list of floats or integers (genes)
+            generations: An integer, which is the number of complete cycles of
+                         performing crossovers, mutations, and selections on
+                         the entire population
+            population: An integer, which is the number of genomes in a
+                        generation
+            selection_size: An integer, which is the number of
+                            offspring to select from the population
+                            each generation/cycle
+            islands: An integer, which is the number of isolated islands in
+                     the simulation
+            island_migrations: An integer, which is the number of migrations
+                               of the offspring between the isolated islands
+            threaded: A boolean, which determines if the islands should be run
+                      on in parallel
+            verbose: A boolean, which determines if information
+                     will be printed to the console
+
+        Returns:
+            A list of tuples each containing a fitness value and a genome
+        &#34;&#34;&#34;
+        assert population &gt; selection_size, (
+            &#39;The population must be greater than the selection size.&#39;
+        )
+        assert generations &gt; island_migrations, (
+            &#39;Generations must be greater than island migrations.&#39;
+        )
+        assert islands &gt; 1 or island_migrations == 1, (
+            &#39;Island migrations should be one if there is only one island.&#39;
+        )
+
+        def island(params):
+            island_num, parents, start, end = params
+            for generation in range(start, end):
+                offspring = self.crossover(parents, population)
+                if self.mutate_size is not None:
+                    offspring = self.mutate_size(offspring)
+                offspring = self.mutate(offspring)
+                fitness_values = self.get_fitness(offspring)
+                selected_offspring = self.select(offspring, fitness_values,
+                                                 selection_size)
+                parents = selected_offspring
+                if verbose:
+                    highest = fitness_values.max()
+                    lowest = fitness_values.min()
+                    mean = fitness_values.mean()
+                    print(f&#39;Island({island_num+1}) &#39;
+                          f&#39;Generation {generation+1}\n&#39;
+                          f&#39;Highest Fitness: {highest} - &#39;
+                          f&#39;Lowest Fitness: {lowest} - &#39;
+                          f&#39;Mean Fitness: {mean}\n&#39;, end=&#39;&#39;)
+            return parents
+
+        pool = ThreadPool(islands)
+        generations = round(generations / island_migrations)
+        parents = np.array([base_genome])
+        for ndx in range(island_migrations):
+            if verbose:
+                print(f&#39;\nMigration {ndx+1}&#39;)
+            all_parents = []
+            if threaded:
+                params = []
+                for ndx2 in range(islands):
+                    params.append((ndx2, parents,
+                                   generations * ndx,
+                                   generations * (ndx + 1)))
+                results = pool.map(island, params)
+                for result in results:
+                    if isinstance(result, np.ndarray):
+                        all_parents.append(result)
+                    else:
+                        all_parents += result
+            else:
+                for ndx2 in range(islands):
+                    parents = island((ndx2, parents,
+                                      generations * ndx,
+                                      generations * (ndx + 1)))
+                    if isinstance(parents, np.ndarray):
+                        all_parents.append(parents)
+                    else:
+                        all_parents += parents
+            if isinstance(all_parents[0], np.ndarray):
+                all_parents = np.vstack(all_parents)
+            parents = all_parents
+
+        return list(zip(self.get_fitness(parents), parents))
+
+
+class HyperparameterTuner:
+    &#34;&#34;&#34;This class is used for tuning hyper parameters.&#34;&#34;&#34;
+
+    def __init__(self):
+        &#34;&#34;&#34;Initalizes lists to keep track of parameters.
+        &#34;&#34;&#34;
+        self.num_parameters = 0
+        self.mutation_distributions = []
+        self.mutation_volatilities = []
+        self.initial_values = []
+        self.parameters = []
+        self.tuning = False
+
+    def tune(self, generations, population, selection_size,
+             eval_func, lowest_best=True, crossover_func=None,
+             verbose=False):
+        &#34;&#34;&#34;Tunes the parameters to get the best parameters with
+           an evolution algorithim.
+
+        Args:
+            generations: An integer, which is the number of complete cycles of
+                         performing crossovers, mutations, and selections on
+                         the entire population
+            population: An integer, which is the number of genomes in a
+                        generation
+            selection_size: An integer, which is the number of
+                            parameter combinations to select from the
+                            population each generation/cycle
+            eval_func: A function, which returns a single value that
+                       represents the parameters fitness
+            lowest_best: A boolean, which determines if lower fitness values
+                         are better or worse
+            crossover_func: A function that takes a list or numpy array of
+                            genomes (parents), and returns offspring
+                            (defaults to no crossover)
+            verbose: A boolean, which determines if the evolution
+                     algorithm should print information to the screen
+        &#34;&#34;&#34;
+        self.tuning = True
+
+        if lowest_best:
+            selection = Selection.select_lowest()
+        else:
+            selection = Selection.select_highest()
+        if crossover_func is None:
+            crossover_func = Crossover.single()
+
+        def fitness_func(offspring):
+            errors = []
+            for genome in offspring:
+                self.parameters = genome
+                errors.append(eval_func())
+            return np.array(errors)
+
+        ea = EvolutionAlgorithm(
+            fitness_func,
+            selection,
+            Mutation.variable(self.mutation_volatilities,
+                              self.mutation_distributions,
+                              normal=False),
+            crossover_func
+        )
+        genomes = ea.simulate(self.initial_values, generations,
+                              population, selection_size, False,
+                              verbose=verbose)
+        genomes = sorted(genomes, key=lambda x: x[0])
+        self.tuning = False
+        if lowest_best:
+            self.parameters = genomes[0][1]
+        self.parameters = genomes[-1][1]
+
+    def uniform(self, lower_bound, upper_bound, volatility=.1,
+                inital_value=None, integer=False):
+        &#34;&#34;&#34;Returns a function that when called returns the
+           value of that parameter.
+
+        Args:
+            lower_bound: A float or integer, which is the lowest
+                         value that the parameter can be mutated to
+            upper_bound: A float or integer, which is the highest
+                         value that the parameter can be mutated to
+            volatility: A float, which is the rate that this parameter
+                        is mutated
+            inital_value: A float or integer, which is the starting value
+                          of the parameter
+            integer: A boolean, which determiens if the parameter should
+                      be rounded and cast to an integer
+
+        Returns:
+            A parameter function, which returns a number in the
+                uniform range
+        &#34;&#34;&#34;
+        if self.tuning:
+            raise Exception(&#39;Parameters cannot be added while tuning&#39;)
+        self.mutation_distributions.append([lower_bound, upper_bound])
+        self.mutation_volatilities.append(volatility)
+        if inital_value is None:
+            self.initial_values.append((lower_bound + upper_bound) / 2)
+        else:
+            self.initial_values.append(inital_value)
+        self.parameters.append(self.initial_values[-1])
+        ndx = self.num_parameters
+
+        def parameter():
+            nonlocal ndx
+            if integer:
+                return int(round(self.parameters[ndx]))
+            return self.parameters[ndx]
+
+        self.num_parameters += 1
+        return parameter
+
+    def list(self, alist, volatility=.1,
+             inital_ndx=None):
+        &#34;&#34;&#34;Returns a function that when called returns a element
+           from the list.
+
+        Args:
+            alist: A list of values, which can be mutated to
+            volatility: A float, which is the rate that this parameter
+                        is mutated
+            inital_ndx: A integer, which is the starting index
+                        of the parameter
+
+        Returns:
+            A parameter function, which returns a number in the
+                uniform range
+        &#34;&#34;&#34;
+        if self.tuning:
+            raise Exception(&#39;Parameters cannot be added while tuning&#39;)
+        self.mutation_distributions.append([0, len(alist)-1])
+        self.mutation_volatilities.append(volatility)
+        if inital_ndx is None:
+            self.initial_values.append(len(alist) // 2)
+        else:
+            self.initial_values.append(inital_ndx)
+        self.parameters.append(self.initial_values[-1])
+        ndx = self.num_parameters
+
+        def parameter():
+            nonlocal ndx
+            return alist[int(round(self.parameters[ndx]))]
+
+        self.num_parameters += 1
+        return parameter
+
+    def boolean(self, volatility=.1, inital_value=True):
+        &#34;&#34;&#34;Returns a function that when called returns the
+           value of that parameter.
+
+        Args:
+            volatility: A float, which is the rate that this parameter
+                        is mutated
+            inital_value: A boolean, which is the starting value
+                          of the parameter
+
+        Returns:
+            A parameter function, which returns a boolean
+        &#34;&#34;&#34;
+        if self.tuning:
+            raise Exception(&#39;Parameters cannot be added while tuning&#39;)
+        self.mutation_distributions.append([0, 2])
+        self.mutation_volatilities.append(volatility)
+        self.initial_values.append(1 if inital_value else 0)
+        self.parameters.append(self.initial_values[-1])
+        ndx = self.num_parameters
+
+        def parameter():
+            nonlocal ndx
+            return self.parameters[ndx] == 1
+
+        self.num_parameters += 1
+        return parameter</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="paiutils.evolution_algorithm.Crossover"><code class="flex name class">
+<span>class <span class="ident">Crossover</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Crossover contains functions that return functions
+that mix parent genes and return offspring.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Crossover:
+    &#34;&#34;&#34;Crossover contains functions that return functions
+       that mix parent genes and return offspring.
+    &#34;&#34;&#34;
+
+    @staticmethod
+    def dual(formula=lambda a, b: (a + b)/2):
+        &#34;&#34;&#34;Creates a crossover function that mixes two parents
+           to create one offspring.
+
+        Args:
+            formula: A function that takes Parent A and Parent B
+                     and returns one Child
+
+        Returns:
+            A crossover function
+        &#34;&#34;&#34;
+        def crossover_func(parents, num_offspring):
+            replace = parents.shape[0] &lt; num_offspring
+            parents_a = np.random.choice(np.arange(parents.shape[0]),
+                                         size=num_offspring, replace=replace)
+            parents_b = np.random.choice(np.arange(parents.shape[0]),
+                                         size=num_offspring, replace=replace)
+            return formula(parents[parents_a], parents[parents_b])
+
+        return crossover_func
+
+    @staticmethod
+    def triple(formula=lambda a, b, c: (a + b + c)/3):
+        &#34;&#34;&#34;Creates a crossover function that mixes three parents
+           to create one offspring.
+
+        Args:
+            formula: A function that takes Parent A, Parent B, and Parent C
+                     and returns one Child
+
+        Returns:
+            A crossover function
+        &#34;&#34;&#34;
+        def crossover_func(parents, num_offspring):
+            replace = parents.shape[0] &lt; num_offspring
+            parents_a = np.random.choice(np.arange(parents.shape[0]),
+                                         size=num_offspring, replace=replace)
+            parents_b = np.random.choice(np.arange(parents.shape[0]),
+                                         size=num_offspring, replace=replace)
+            parents_c = np.random.choice(np.arange(parents.shape[0]),
+                                         size=num_offspring, replace=replace)
+            return formula(parents[parents_a], parents[parents_b],
+                           parents[parents_c])
+
+        return crossover_func
+
+    @staticmethod
+    def population_avg():
+        &#34;&#34;&#34;Creates a crossover function that averages all the parents to
+           create all the exact same offspring.
+
+        Returns:
+            A crossover function
+        &#34;&#34;&#34;
+        def crossover_func(parents, num_offspring):
+            return np.repeat([np.mean(parents, axis=0)], num_offspring, axis=0)
+
+        return crossover_func
+
+    @staticmethod
+    def population_shuffle():
+        &#34;&#34;&#34;Creates a crossover function that randomly
+           shuffles all the genes between all the parents.
+
+        Returns:
+            A crossover function
+        &#34;&#34;&#34;
+        def crossover_func(parents, num_offspring):
+            assert parents.ndim == 2, (
+                &#39;Population shuffle only works with inputs &#39;
+                &#39;that have 2 dimensions.&#39;
+            )
+            num_genes = parents.shape[1]
+            old_parents = parents
+            parents = parents.T.copy()
+            for gene in range(num_genes):
+                np.random.shuffle(parents[gene])
+            parents = np.vstack([old_parents, parents.T])
+            replace = parents.shape[0] &lt; num_offspring
+            indexes = np.random.choice(np.arange(parents.shape[0]),
+                                       size=num_offspring, replace=replace)
+            return parents[indexes]
+
+        return crossover_func
+
+    @staticmethod
+    def single(variable_size=False):
+        &#34;&#34;&#34;Creates a crossover function that does not perform
+           any crossover, but instead creates a child from a
+           single parent. (Parents may produce more than one child)
+
+        Args:
+            variable_size: A boolean, which determines if the
+                           genome size can change
+
+        Returns:
+            A crossover function
+        &#34;&#34;&#34;
+        if variable_size:
+            def crossover_func(parents, num_offspring):
+                replace = len(parents) &lt; num_offspring
+                indexes = np.random.choice(np.arange(len(parents)),
+                                           size=num_offspring, replace=replace)
+                new_offspring = []
+                for ndx in indexes:
+                    new_offspring.append(parents[ndx])
+                return new_offspring
+        else:
+            def crossover_func(parents, num_offspring):
+                replace = parents.shape[0] &lt; num_offspring
+                indexes = np.random.choice(np.arange(parents.shape[0]),
+                                           size=num_offspring, replace=replace)
+                return parents[indexes]
+        return crossover_func</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="paiutils.evolution_algorithm.Crossover.dual"><code class="name flex">
+<span>def <span class="ident">dual</span></span>(<span>formula=&lt;function Crossover.&lt;lambda&gt;&gt;)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a crossover function that mixes two parents
+to create one offspring.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>formula</code></strong></dt>
+<dd>A function that takes Parent A and Parent B
+and returns one Child</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A crossover function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def dual(formula=lambda a, b: (a + b)/2):
+    &#34;&#34;&#34;Creates a crossover function that mixes two parents
+       to create one offspring.
+
+    Args:
+        formula: A function that takes Parent A and Parent B
+                 and returns one Child
+
+    Returns:
+        A crossover function
+    &#34;&#34;&#34;
+    def crossover_func(parents, num_offspring):
+        replace = parents.shape[0] &lt; num_offspring
+        parents_a = np.random.choice(np.arange(parents.shape[0]),
+                                     size=num_offspring, replace=replace)
+        parents_b = np.random.choice(np.arange(parents.shape[0]),
+                                     size=num_offspring, replace=replace)
+        return formula(parents[parents_a], parents[parents_b])
+
+    return crossover_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.Crossover.population_avg"><code class="name flex">
+<span>def <span class="ident">population_avg</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a crossover function that averages all the parents to
+create all the exact same offspring.</p>
+<h2 id="returns">Returns</h2>
+<p>A crossover function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def population_avg():
+    &#34;&#34;&#34;Creates a crossover function that averages all the parents to
+       create all the exact same offspring.
+
+    Returns:
+        A crossover function
+    &#34;&#34;&#34;
+    def crossover_func(parents, num_offspring):
+        return np.repeat([np.mean(parents, axis=0)], num_offspring, axis=0)
+
+    return crossover_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.Crossover.population_shuffle"><code class="name flex">
+<span>def <span class="ident">population_shuffle</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a crossover function that randomly
+shuffles all the genes between all the parents.</p>
+<h2 id="returns">Returns</h2>
+<p>A crossover function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def population_shuffle():
+    &#34;&#34;&#34;Creates a crossover function that randomly
+       shuffles all the genes between all the parents.
+
+    Returns:
+        A crossover function
+    &#34;&#34;&#34;
+    def crossover_func(parents, num_offspring):
+        assert parents.ndim == 2, (
+            &#39;Population shuffle only works with inputs &#39;
+            &#39;that have 2 dimensions.&#39;
+        )
+        num_genes = parents.shape[1]
+        old_parents = parents
+        parents = parents.T.copy()
+        for gene in range(num_genes):
+            np.random.shuffle(parents[gene])
+        parents = np.vstack([old_parents, parents.T])
+        replace = parents.shape[0] &lt; num_offspring
+        indexes = np.random.choice(np.arange(parents.shape[0]),
+                                   size=num_offspring, replace=replace)
+        return parents[indexes]
+
+    return crossover_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.Crossover.single"><code class="name flex">
+<span>def <span class="ident">single</span></span>(<span>variable_size=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a crossover function that does not perform
+any crossover, but instead creates a child from a
+single parent. (Parents may produce more than one child)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>variable_size</code></strong></dt>
+<dd>A boolean, which determines if the
+genome size can change</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A crossover function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def single(variable_size=False):
+    &#34;&#34;&#34;Creates a crossover function that does not perform
+       any crossover, but instead creates a child from a
+       single parent. (Parents may produce more than one child)
+
+    Args:
+        variable_size: A boolean, which determines if the
+                       genome size can change
+
+    Returns:
+        A crossover function
+    &#34;&#34;&#34;
+    if variable_size:
+        def crossover_func(parents, num_offspring):
+            replace = len(parents) &lt; num_offspring
+            indexes = np.random.choice(np.arange(len(parents)),
+                                       size=num_offspring, replace=replace)
+            new_offspring = []
+            for ndx in indexes:
+                new_offspring.append(parents[ndx])
+            return new_offspring
+    else:
+        def crossover_func(parents, num_offspring):
+            replace = parents.shape[0] &lt; num_offspring
+            indexes = np.random.choice(np.arange(parents.shape[0]),
+                                       size=num_offspring, replace=replace)
+            return parents[indexes]
+    return crossover_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.Crossover.triple"><code class="name flex">
+<span>def <span class="ident">triple</span></span>(<span>formula=&lt;function Crossover.&lt;lambda&gt;&gt;)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a crossover function that mixes three parents
+to create one offspring.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>formula</code></strong></dt>
+<dd>A function that takes Parent A, Parent B, and Parent C
+and returns one Child</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A crossover function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def triple(formula=lambda a, b, c: (a + b + c)/3):
+    &#34;&#34;&#34;Creates a crossover function that mixes three parents
+       to create one offspring.
+
+    Args:
+        formula: A function that takes Parent A, Parent B, and Parent C
+                 and returns one Child
+
+    Returns:
+        A crossover function
+    &#34;&#34;&#34;
+    def crossover_func(parents, num_offspring):
+        replace = parents.shape[0] &lt; num_offspring
+        parents_a = np.random.choice(np.arange(parents.shape[0]),
+                                     size=num_offspring, replace=replace)
+        parents_b = np.random.choice(np.arange(parents.shape[0]),
+                                     size=num_offspring, replace=replace)
+        parents_c = np.random.choice(np.arange(parents.shape[0]),
+                                     size=num_offspring, replace=replace)
+        return formula(parents[parents_a], parents[parents_b],
+                       parents[parents_c])
+
+    return crossover_func</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="paiutils.evolution_algorithm.EvolutionAlgorithm"><code class="flex name class">
+<span>class <span class="ident">EvolutionAlgorithm</span></span>
+<span>(</span><span>fitness_func, selection_func, mutation_func, crossover_func, size_mutation_func=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>EvolutionAlgorithm is a class that is able to simulate 'natural'
+selection of genes and genomes.</p>
+<p>Creates an evolution algorithm by the provided functions.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>fitness_func</code></strong></dt>
+<dd>A function that takes a list or numpy ndarray of
+genomes (offspring), and returns list of fitness
+values</dd>
+<dt><strong><code>selection_func</code></strong></dt>
+<dd>A function that takes a list or numpy ndarray of
+genomes (offspring) and fitness values, and
+returns the selected genomes (offspring)</dd>
+<dt><strong><code>mutation_func</code></strong></dt>
+<dd>A function that takes a list or numpy ndarray of
+genomes (offspring), and returns the offspring
+mutated</dd>
+<dt><strong><code>crossover_func</code></strong></dt>
+<dd>A function that takes a list or numpy array of
+genomes (parents), and returns offspring</dd>
+<dt><strong><code>size_mutation_func</code></strong></dt>
+<dd>A function that takes a list or numpy
+ndarray of genomes, and returns the
+genomes with mutated sizes</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class EvolutionAlgorithm:
+    &#34;&#34;&#34;EvolutionAlgorithm is a class that is able to simulate &#39;natural&#39;
+       selection of genes and genomes.
+    &#34;&#34;&#34;
+
+    def __init__(self, fitness_func, selection_func, mutation_func,
+                 crossover_func, size_mutation_func=None):
+        &#34;&#34;&#34;Creates an evolution algorithm by the provided functions.
+
+        Args:
+            fitness_func: A function that takes a list or numpy ndarray of
+                          genomes (offspring), and returns list of fitness
+                          values
+            selection_func: A function that takes a list or numpy ndarray of
+                            genomes (offspring) and fitness values, and
+                            returns the selected genomes (offspring)
+            mutation_func: A function that takes a list or numpy ndarray of
+                           genomes (offspring), and returns the offspring
+                           mutated
+            crossover_func: A function that takes a list or numpy array of
+                            genomes (parents), and returns offspring
+            size_mutation_func: A function that takes a list or numpy
+                                ndarray of genomes, and returns the
+                                genomes with mutated sizes
+        &#34;&#34;&#34;
+        self.get_fitness = fitness_func
+        self.select = selection_func
+        self.crossover = crossover_func
+        self.mutate = mutation_func
+        self.mutate_size = size_mutation_func
+
+    def simulate(self, base_genome, generations, population, selection_size,
+                 return_all_genomes=False, verbose=True):
+        &#34;&#34;&#34;Simulates natural selection of genomes.
+
+        Args:
+            base_genome: A list of floats or integers (genes)
+            generations: An integer, which is the number of complete cycles of
+                         performing crossovers, mutations, and selections on
+                         the entire population
+            population: An integer, which is the number of genomes in a
+                        generation
+            selection_size: An integer, which is the number of
+                            offspring to select from the population
+                            each generation/cycle
+            return_all_genomes: A boolean, which determiens if all
+                                the genomes with their corresponding
+                                fitness values should be returned
+            verbose: A boolean, which determines if information
+                     will be printed to the console
+
+        Returns:
+            A list of tuples each containing a fitness value and a genome
+        &#34;&#34;&#34;
+        assert population &gt; selection_size, (
+            &#39;The population must be greater than the selection size.&#39;
+        )
+        all_genomes = []
+        parents = np.array([base_genome])
+        for generation in range(generations):
+            offspring = self.crossover(parents, population)
+            if self.mutate_size is not None:
+                offspring = self.mutate_size(offspring)
+            offspring = self.mutate(offspring)
+            fitness_values = self.get_fitness(offspring)
+            if return_all_genomes:
+                all_genomes += list(zip(fitness_values, parents))
+            selected_offspring = self.select(offspring, fitness_values,
+                                             selection_size)
+            parents = selected_offspring
+            if verbose:
+                highest = fitness_values.max()
+                lowest = fitness_values.min()
+                mean = fitness_values.mean()
+                print(f&#39;Generation {generation+1}\n&#39;
+                      f&#39;Highest Fitness: {highest} - &#39;
+                      f&#39;Lowest Fitness: {lowest} - &#39;
+                      f&#39;Mean Fitness: {mean}&#39;)
+        if return_all_genomes:
+            return all_genomes
+        return list(zip(self.get_fitness(parents), parents))
+
+    def simulate_islands(self, base_genome, generations, population,
+                         selection_size, islands, island_migrations,
+                         threaded=False, verbose=True):
+        &#34;&#34;&#34;Simulates natural selection of genomes with isolating islands.
+
+        Args:
+            base_genome: A list of floats or integers (genes)
+            generations: An integer, which is the number of complete cycles of
+                         performing crossovers, mutations, and selections on
+                         the entire population
+            population: An integer, which is the number of genomes in a
+                        generation
+            selection_size: An integer, which is the number of
+                            offspring to select from the population
+                            each generation/cycle
+            islands: An integer, which is the number of isolated islands in
+                     the simulation
+            island_migrations: An integer, which is the number of migrations
+                               of the offspring between the isolated islands
+            threaded: A boolean, which determines if the islands should be run
+                      on in parallel
+            verbose: A boolean, which determines if information
+                     will be printed to the console
+
+        Returns:
+            A list of tuples each containing a fitness value and a genome
+        &#34;&#34;&#34;
+        assert population &gt; selection_size, (
+            &#39;The population must be greater than the selection size.&#39;
+        )
+        assert generations &gt; island_migrations, (
+            &#39;Generations must be greater than island migrations.&#39;
+        )
+        assert islands &gt; 1 or island_migrations == 1, (
+            &#39;Island migrations should be one if there is only one island.&#39;
+        )
+
+        def island(params):
+            island_num, parents, start, end = params
+            for generation in range(start, end):
+                offspring = self.crossover(parents, population)
+                if self.mutate_size is not None:
+                    offspring = self.mutate_size(offspring)
+                offspring = self.mutate(offspring)
+                fitness_values = self.get_fitness(offspring)
+                selected_offspring = self.select(offspring, fitness_values,
+                                                 selection_size)
+                parents = selected_offspring
+                if verbose:
+                    highest = fitness_values.max()
+                    lowest = fitness_values.min()
+                    mean = fitness_values.mean()
+                    print(f&#39;Island({island_num+1}) &#39;
+                          f&#39;Generation {generation+1}\n&#39;
+                          f&#39;Highest Fitness: {highest} - &#39;
+                          f&#39;Lowest Fitness: {lowest} - &#39;
+                          f&#39;Mean Fitness: {mean}\n&#39;, end=&#39;&#39;)
+            return parents
+
+        pool = ThreadPool(islands)
+        generations = round(generations / island_migrations)
+        parents = np.array([base_genome])
+        for ndx in range(island_migrations):
+            if verbose:
+                print(f&#39;\nMigration {ndx+1}&#39;)
+            all_parents = []
+            if threaded:
+                params = []
+                for ndx2 in range(islands):
+                    params.append((ndx2, parents,
+                                   generations * ndx,
+                                   generations * (ndx + 1)))
+                results = pool.map(island, params)
+                for result in results:
+                    if isinstance(result, np.ndarray):
+                        all_parents.append(result)
+                    else:
+                        all_parents += result
+            else:
+                for ndx2 in range(islands):
+                    parents = island((ndx2, parents,
+                                      generations * ndx,
+                                      generations * (ndx + 1)))
+                    if isinstance(parents, np.ndarray):
+                        all_parents.append(parents)
+                    else:
+                        all_parents += parents
+            if isinstance(all_parents[0], np.ndarray):
+                all_parents = np.vstack(all_parents)
+            parents = all_parents
+
+        return list(zip(self.get_fitness(parents), parents))</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="paiutils.evolution_algorithm.EvolutionAlgorithm.simulate"><code class="name flex">
+<span>def <span class="ident">simulate</span></span>(<span>self, base_genome, generations, population, selection_size, return_all_genomes=False, verbose=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simulates natural selection of genomes.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>base_genome</code></strong></dt>
+<dd>A list of floats or integers (genes)</dd>
+<dt><strong><code>generations</code></strong></dt>
+<dd>An integer, which is the number of complete cycles of
+performing crossovers, mutations, and selections on
+the entire population</dd>
+<dt><strong><code>population</code></strong></dt>
+<dd>An integer, which is the number of genomes in a
+generation</dd>
+<dt><strong><code>selection_size</code></strong></dt>
+<dd>An integer, which is the number of
+offspring to select from the population
+each generation/cycle</dd>
+<dt><strong><code>return_all_genomes</code></strong></dt>
+<dd>A boolean, which determiens if all
+the genomes with their corresponding
+fitness values should be returned</dd>
+<dt><strong><code>verbose</code></strong></dt>
+<dd>A boolean, which determines if information
+will be printed to the console</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A list of tuples each containing a fitness value and a genome</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def simulate(self, base_genome, generations, population, selection_size,
+             return_all_genomes=False, verbose=True):
+    &#34;&#34;&#34;Simulates natural selection of genomes.
+
+    Args:
+        base_genome: A list of floats or integers (genes)
+        generations: An integer, which is the number of complete cycles of
+                     performing crossovers, mutations, and selections on
+                     the entire population
+        population: An integer, which is the number of genomes in a
+                    generation
+        selection_size: An integer, which is the number of
+                        offspring to select from the population
+                        each generation/cycle
+        return_all_genomes: A boolean, which determiens if all
+                            the genomes with their corresponding
+                            fitness values should be returned
+        verbose: A boolean, which determines if information
+                 will be printed to the console
+
+    Returns:
+        A list of tuples each containing a fitness value and a genome
+    &#34;&#34;&#34;
+    assert population &gt; selection_size, (
+        &#39;The population must be greater than the selection size.&#39;
+    )
+    all_genomes = []
+    parents = np.array([base_genome])
+    for generation in range(generations):
+        offspring = self.crossover(parents, population)
+        if self.mutate_size is not None:
+            offspring = self.mutate_size(offspring)
+        offspring = self.mutate(offspring)
+        fitness_values = self.get_fitness(offspring)
+        if return_all_genomes:
+            all_genomes += list(zip(fitness_values, parents))
+        selected_offspring = self.select(offspring, fitness_values,
+                                         selection_size)
+        parents = selected_offspring
+        if verbose:
+            highest = fitness_values.max()
+            lowest = fitness_values.min()
+            mean = fitness_values.mean()
+            print(f&#39;Generation {generation+1}\n&#39;
+                  f&#39;Highest Fitness: {highest} - &#39;
+                  f&#39;Lowest Fitness: {lowest} - &#39;
+                  f&#39;Mean Fitness: {mean}&#39;)
+    if return_all_genomes:
+        return all_genomes
+    return list(zip(self.get_fitness(parents), parents))</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.EvolutionAlgorithm.simulate_islands"><code class="name flex">
+<span>def <span class="ident">simulate_islands</span></span>(<span>self, base_genome, generations, population, selection_size, islands, island_migrations, threaded=False, verbose=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simulates natural selection of genomes with isolating islands.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>base_genome</code></strong></dt>
+<dd>A list of floats or integers (genes)</dd>
+<dt><strong><code>generations</code></strong></dt>
+<dd>An integer, which is the number of complete cycles of
+performing crossovers, mutations, and selections on
+the entire population</dd>
+<dt><strong><code>population</code></strong></dt>
+<dd>An integer, which is the number of genomes in a
+generation</dd>
+<dt><strong><code>selection_size</code></strong></dt>
+<dd>An integer, which is the number of
+offspring to select from the population
+each generation/cycle</dd>
+<dt><strong><code>islands</code></strong></dt>
+<dd>An integer, which is the number of isolated islands in
+the simulation</dd>
+<dt><strong><code>island_migrations</code></strong></dt>
+<dd>An integer, which is the number of migrations
+of the offspring between the isolated islands</dd>
+<dt><strong><code>threaded</code></strong></dt>
+<dd>A boolean, which determines if the islands should be run
+on in parallel</dd>
+<dt><strong><code>verbose</code></strong></dt>
+<dd>A boolean, which determines if information
+will be printed to the console</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A list of tuples each containing a fitness value and a genome</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def simulate_islands(self, base_genome, generations, population,
+                     selection_size, islands, island_migrations,
+                     threaded=False, verbose=True):
+    &#34;&#34;&#34;Simulates natural selection of genomes with isolating islands.
+
+    Args:
+        base_genome: A list of floats or integers (genes)
+        generations: An integer, which is the number of complete cycles of
+                     performing crossovers, mutations, and selections on
+                     the entire population
+        population: An integer, which is the number of genomes in a
+                    generation
+        selection_size: An integer, which is the number of
+                        offspring to select from the population
+                        each generation/cycle
+        islands: An integer, which is the number of isolated islands in
+                 the simulation
+        island_migrations: An integer, which is the number of migrations
+                           of the offspring between the isolated islands
+        threaded: A boolean, which determines if the islands should be run
+                  on in parallel
+        verbose: A boolean, which determines if information
+                 will be printed to the console
+
+    Returns:
+        A list of tuples each containing a fitness value and a genome
+    &#34;&#34;&#34;
+    assert population &gt; selection_size, (
+        &#39;The population must be greater than the selection size.&#39;
+    )
+    assert generations &gt; island_migrations, (
+        &#39;Generations must be greater than island migrations.&#39;
+    )
+    assert islands &gt; 1 or island_migrations == 1, (
+        &#39;Island migrations should be one if there is only one island.&#39;
+    )
+
+    def island(params):
+        island_num, parents, start, end = params
+        for generation in range(start, end):
+            offspring = self.crossover(parents, population)
+            if self.mutate_size is not None:
+                offspring = self.mutate_size(offspring)
+            offspring = self.mutate(offspring)
+            fitness_values = self.get_fitness(offspring)
+            selected_offspring = self.select(offspring, fitness_values,
+                                             selection_size)
+            parents = selected_offspring
+            if verbose:
+                highest = fitness_values.max()
+                lowest = fitness_values.min()
+                mean = fitness_values.mean()
+                print(f&#39;Island({island_num+1}) &#39;
+                      f&#39;Generation {generation+1}\n&#39;
+                      f&#39;Highest Fitness: {highest} - &#39;
+                      f&#39;Lowest Fitness: {lowest} - &#39;
+                      f&#39;Mean Fitness: {mean}\n&#39;, end=&#39;&#39;)
+        return parents
+
+    pool = ThreadPool(islands)
+    generations = round(generations / island_migrations)
+    parents = np.array([base_genome])
+    for ndx in range(island_migrations):
+        if verbose:
+            print(f&#39;\nMigration {ndx+1}&#39;)
+        all_parents = []
+        if threaded:
+            params = []
+            for ndx2 in range(islands):
+                params.append((ndx2, parents,
+                               generations * ndx,
+                               generations * (ndx + 1)))
+            results = pool.map(island, params)
+            for result in results:
+                if isinstance(result, np.ndarray):
+                    all_parents.append(result)
+                else:
+                    all_parents += result
+        else:
+            for ndx2 in range(islands):
+                parents = island((ndx2, parents,
+                                  generations * ndx,
+                                  generations * (ndx + 1)))
+                if isinstance(parents, np.ndarray):
+                    all_parents.append(parents)
+                else:
+                    all_parents += parents
+        if isinstance(all_parents[0], np.ndarray):
+            all_parents = np.vstack(all_parents)
+        parents = all_parents
+
+    return list(zip(self.get_fitness(parents), parents))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="paiutils.evolution_algorithm.Fitness"><code class="flex name class">
+<span>class <span class="ident">Fitness</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Fitness contains functions that return functions that
+calculate fitness.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Fitness:
+    &#34;&#34;&#34;Fitness contains functions that return functions that
+       calculate fitness.
+    &#34;&#34;&#34;
+
+    @staticmethod
+    def match_mse(target_genome, variable_size=False):
+        &#34;&#34;&#34;Creates a fitness_func that computes
+           the the mean squared error of the target
+           genome and the offsprings&#39; genome.
+
+        Args:
+            target_genome: A list or numpy array that is the
+                         target genome
+            variable_size: A boolean, which determines if the
+                           genome size can change
+
+        Returns:
+            A fitness function
+        &#34;&#34;&#34;
+        target_genome = np.array(target_genome)
+        if variable_size:
+            def fitness_func(offspring):
+                errors = []
+                for genome in offspring:
+                    error = (genome.shape[0]-target_genome.shape[0])**2
+                    error += (genome[:target_genome.shape[0]] -
+                              target_genome[:genome.shape[0]])**2
+                    errors.append(error.mean())
+                return np.array(errors)
+        else:
+            def fitness_func(offspring):
+                error = (offspring - target_genome)**2
+                error = error.reshape((error.shape[0], -1)).mean(axis=1)
+                return error
+        return fitness_func</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="paiutils.evolution_algorithm.Fitness.match_mse"><code class="name flex">
+<span>def <span class="ident">match_mse</span></span>(<span>target_genome, variable_size=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a fitness_func that computes
+the the mean squared error of the target
+genome and the offsprings' genome.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target_genome</code></strong></dt>
+<dd>A list or numpy array that is the
+target genome</dd>
+<dt><strong><code>variable_size</code></strong></dt>
+<dd>A boolean, which determines if the
+genome size can change</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A fitness function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def match_mse(target_genome, variable_size=False):
+    &#34;&#34;&#34;Creates a fitness_func that computes
+       the the mean squared error of the target
+       genome and the offsprings&#39; genome.
+
+    Args:
+        target_genome: A list or numpy array that is the
+                     target genome
+        variable_size: A boolean, which determines if the
+                       genome size can change
+
+    Returns:
+        A fitness function
+    &#34;&#34;&#34;
+    target_genome = np.array(target_genome)
+    if variable_size:
+        def fitness_func(offspring):
+            errors = []
+            for genome in offspring:
+                error = (genome.shape[0]-target_genome.shape[0])**2
+                error += (genome[:target_genome.shape[0]] -
+                          target_genome[:genome.shape[0]])**2
+                errors.append(error.mean())
+            return np.array(errors)
+    else:
+        def fitness_func(offspring):
+            error = (offspring - target_genome)**2
+            error = error.reshape((error.shape[0], -1)).mean(axis=1)
+            return error
+    return fitness_func</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="paiutils.evolution_algorithm.HyperparameterTuner"><code class="flex name class">
+<span>class <span class="ident">HyperparameterTuner</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class is used for tuning hyper parameters.</p>
+<p>Initalizes lists to keep track of parameters.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class HyperparameterTuner:
+    &#34;&#34;&#34;This class is used for tuning hyper parameters.&#34;&#34;&#34;
+
+    def __init__(self):
+        &#34;&#34;&#34;Initalizes lists to keep track of parameters.
+        &#34;&#34;&#34;
+        self.num_parameters = 0
+        self.mutation_distributions = []
+        self.mutation_volatilities = []
+        self.initial_values = []
+        self.parameters = []
+        self.tuning = False
+
+    def tune(self, generations, population, selection_size,
+             eval_func, lowest_best=True, crossover_func=None,
+             verbose=False):
+        &#34;&#34;&#34;Tunes the parameters to get the best parameters with
+           an evolution algorithim.
+
+        Args:
+            generations: An integer, which is the number of complete cycles of
+                         performing crossovers, mutations, and selections on
+                         the entire population
+            population: An integer, which is the number of genomes in a
+                        generation
+            selection_size: An integer, which is the number of
+                            parameter combinations to select from the
+                            population each generation/cycle
+            eval_func: A function, which returns a single value that
+                       represents the parameters fitness
+            lowest_best: A boolean, which determines if lower fitness values
+                         are better or worse
+            crossover_func: A function that takes a list or numpy array of
+                            genomes (parents), and returns offspring
+                            (defaults to no crossover)
+            verbose: A boolean, which determines if the evolution
+                     algorithm should print information to the screen
+        &#34;&#34;&#34;
+        self.tuning = True
+
+        if lowest_best:
+            selection = Selection.select_lowest()
+        else:
+            selection = Selection.select_highest()
+        if crossover_func is None:
+            crossover_func = Crossover.single()
+
+        def fitness_func(offspring):
+            errors = []
+            for genome in offspring:
+                self.parameters = genome
+                errors.append(eval_func())
+            return np.array(errors)
+
+        ea = EvolutionAlgorithm(
+            fitness_func,
+            selection,
+            Mutation.variable(self.mutation_volatilities,
+                              self.mutation_distributions,
+                              normal=False),
+            crossover_func
+        )
+        genomes = ea.simulate(self.initial_values, generations,
+                              population, selection_size, False,
+                              verbose=verbose)
+        genomes = sorted(genomes, key=lambda x: x[0])
+        self.tuning = False
+        if lowest_best:
+            self.parameters = genomes[0][1]
+        self.parameters = genomes[-1][1]
+
+    def uniform(self, lower_bound, upper_bound, volatility=.1,
+                inital_value=None, integer=False):
+        &#34;&#34;&#34;Returns a function that when called returns the
+           value of that parameter.
+
+        Args:
+            lower_bound: A float or integer, which is the lowest
+                         value that the parameter can be mutated to
+            upper_bound: A float or integer, which is the highest
+                         value that the parameter can be mutated to
+            volatility: A float, which is the rate that this parameter
+                        is mutated
+            inital_value: A float or integer, which is the starting value
+                          of the parameter
+            integer: A boolean, which determiens if the parameter should
+                      be rounded and cast to an integer
+
+        Returns:
+            A parameter function, which returns a number in the
+                uniform range
+        &#34;&#34;&#34;
+        if self.tuning:
+            raise Exception(&#39;Parameters cannot be added while tuning&#39;)
+        self.mutation_distributions.append([lower_bound, upper_bound])
+        self.mutation_volatilities.append(volatility)
+        if inital_value is None:
+            self.initial_values.append((lower_bound + upper_bound) / 2)
+        else:
+            self.initial_values.append(inital_value)
+        self.parameters.append(self.initial_values[-1])
+        ndx = self.num_parameters
+
+        def parameter():
+            nonlocal ndx
+            if integer:
+                return int(round(self.parameters[ndx]))
+            return self.parameters[ndx]
+
+        self.num_parameters += 1
+        return parameter
+
+    def list(self, alist, volatility=.1,
+             inital_ndx=None):
+        &#34;&#34;&#34;Returns a function that when called returns a element
+           from the list.
+
+        Args:
+            alist: A list of values, which can be mutated to
+            volatility: A float, which is the rate that this parameter
+                        is mutated
+            inital_ndx: A integer, which is the starting index
+                        of the parameter
+
+        Returns:
+            A parameter function, which returns a number in the
+                uniform range
+        &#34;&#34;&#34;
+        if self.tuning:
+            raise Exception(&#39;Parameters cannot be added while tuning&#39;)
+        self.mutation_distributions.append([0, len(alist)-1])
+        self.mutation_volatilities.append(volatility)
+        if inital_ndx is None:
+            self.initial_values.append(len(alist) // 2)
+        else:
+            self.initial_values.append(inital_ndx)
+        self.parameters.append(self.initial_values[-1])
+        ndx = self.num_parameters
+
+        def parameter():
+            nonlocal ndx
+            return alist[int(round(self.parameters[ndx]))]
+
+        self.num_parameters += 1
+        return parameter
+
+    def boolean(self, volatility=.1, inital_value=True):
+        &#34;&#34;&#34;Returns a function that when called returns the
+           value of that parameter.
+
+        Args:
+            volatility: A float, which is the rate that this parameter
+                        is mutated
+            inital_value: A boolean, which is the starting value
+                          of the parameter
+
+        Returns:
+            A parameter function, which returns a boolean
+        &#34;&#34;&#34;
+        if self.tuning:
+            raise Exception(&#39;Parameters cannot be added while tuning&#39;)
+        self.mutation_distributions.append([0, 2])
+        self.mutation_volatilities.append(volatility)
+        self.initial_values.append(1 if inital_value else 0)
+        self.parameters.append(self.initial_values[-1])
+        ndx = self.num_parameters
+
+        def parameter():
+            nonlocal ndx
+            return self.parameters[ndx] == 1
+
+        self.num_parameters += 1
+        return parameter</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="paiutils.evolution_algorithm.HyperparameterTuner.boolean"><code class="name flex">
+<span>def <span class="ident">boolean</span></span>(<span>self, volatility=0.1, inital_value=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a function that when called returns the
+value of that parameter.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>volatility</code></strong></dt>
+<dd>A float, which is the rate that this parameter
+is mutated</dd>
+<dt><strong><code>inital_value</code></strong></dt>
+<dd>A boolean, which is the starting value
+of the parameter</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A parameter function, which returns a boolean</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def boolean(self, volatility=.1, inital_value=True):
+    &#34;&#34;&#34;Returns a function that when called returns the
+       value of that parameter.
+
+    Args:
+        volatility: A float, which is the rate that this parameter
+                    is mutated
+        inital_value: A boolean, which is the starting value
+                      of the parameter
+
+    Returns:
+        A parameter function, which returns a boolean
+    &#34;&#34;&#34;
+    if self.tuning:
+        raise Exception(&#39;Parameters cannot be added while tuning&#39;)
+    self.mutation_distributions.append([0, 2])
+    self.mutation_volatilities.append(volatility)
+    self.initial_values.append(1 if inital_value else 0)
+    self.parameters.append(self.initial_values[-1])
+    ndx = self.num_parameters
+
+    def parameter():
+        nonlocal ndx
+        return self.parameters[ndx] == 1
+
+    self.num_parameters += 1
+    return parameter</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.HyperparameterTuner.list"><code class="name flex">
+<span>def <span class="ident">list</span></span>(<span>self, alist, volatility=0.1, inital_ndx=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a function that when called returns a element
+from the list.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>alist</code></strong></dt>
+<dd>A list of values, which can be mutated to</dd>
+<dt><strong><code>volatility</code></strong></dt>
+<dd>A float, which is the rate that this parameter
+is mutated</dd>
+<dt><strong><code>inital_ndx</code></strong></dt>
+<dd>A integer, which is the starting index
+of the parameter</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A parameter function, which returns a number in the
+uniform range</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def list(self, alist, volatility=.1,
+         inital_ndx=None):
+    &#34;&#34;&#34;Returns a function that when called returns a element
+       from the list.
+
+    Args:
+        alist: A list of values, which can be mutated to
+        volatility: A float, which is the rate that this parameter
+                    is mutated
+        inital_ndx: A integer, which is the starting index
+                    of the parameter
+
+    Returns:
+        A parameter function, which returns a number in the
+            uniform range
+    &#34;&#34;&#34;
+    if self.tuning:
+        raise Exception(&#39;Parameters cannot be added while tuning&#39;)
+    self.mutation_distributions.append([0, len(alist)-1])
+    self.mutation_volatilities.append(volatility)
+    if inital_ndx is None:
+        self.initial_values.append(len(alist) // 2)
+    else:
+        self.initial_values.append(inital_ndx)
+    self.parameters.append(self.initial_values[-1])
+    ndx = self.num_parameters
+
+    def parameter():
+        nonlocal ndx
+        return alist[int(round(self.parameters[ndx]))]
+
+    self.num_parameters += 1
+    return parameter</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.HyperparameterTuner.tune"><code class="name flex">
+<span>def <span class="ident">tune</span></span>(<span>self, generations, population, selection_size, eval_func, lowest_best=True, crossover_func=None, verbose=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tunes the parameters to get the best parameters with
+an evolution algorithim.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>generations</code></strong></dt>
+<dd>An integer, which is the number of complete cycles of
+performing crossovers, mutations, and selections on
+the entire population</dd>
+<dt><strong><code>population</code></strong></dt>
+<dd>An integer, which is the number of genomes in a
+generation</dd>
+<dt><strong><code>selection_size</code></strong></dt>
+<dd>An integer, which is the number of
+parameter combinations to select from the
+population each generation/cycle</dd>
+<dt><strong><code>eval_func</code></strong></dt>
+<dd>A function, which returns a single value that
+represents the parameters fitness</dd>
+<dt><strong><code>lowest_best</code></strong></dt>
+<dd>A boolean, which determines if lower fitness values
+are better or worse</dd>
+<dt><strong><code>crossover_func</code></strong></dt>
+<dd>A function that takes a list or numpy array of
+genomes (parents), and returns offspring
+(defaults to no crossover)</dd>
+<dt><strong><code>verbose</code></strong></dt>
+<dd>A boolean, which determines if the evolution
+algorithm should print information to the screen</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tune(self, generations, population, selection_size,
+         eval_func, lowest_best=True, crossover_func=None,
+         verbose=False):
+    &#34;&#34;&#34;Tunes the parameters to get the best parameters with
+       an evolution algorithim.
+
+    Args:
+        generations: An integer, which is the number of complete cycles of
+                     performing crossovers, mutations, and selections on
+                     the entire population
+        population: An integer, which is the number of genomes in a
+                    generation
+        selection_size: An integer, which is the number of
+                        parameter combinations to select from the
+                        population each generation/cycle
+        eval_func: A function, which returns a single value that
+                   represents the parameters fitness
+        lowest_best: A boolean, which determines if lower fitness values
+                     are better or worse
+        crossover_func: A function that takes a list or numpy array of
+                        genomes (parents), and returns offspring
+                        (defaults to no crossover)
+        verbose: A boolean, which determines if the evolution
+                 algorithm should print information to the screen
+    &#34;&#34;&#34;
+    self.tuning = True
+
+    if lowest_best:
+        selection = Selection.select_lowest()
+    else:
+        selection = Selection.select_highest()
+    if crossover_func is None:
+        crossover_func = Crossover.single()
+
+    def fitness_func(offspring):
+        errors = []
+        for genome in offspring:
+            self.parameters = genome
+            errors.append(eval_func())
+        return np.array(errors)
+
+    ea = EvolutionAlgorithm(
+        fitness_func,
+        selection,
+        Mutation.variable(self.mutation_volatilities,
+                          self.mutation_distributions,
+                          normal=False),
+        crossover_func
+    )
+    genomes = ea.simulate(self.initial_values, generations,
+                          population, selection_size, False,
+                          verbose=verbose)
+    genomes = sorted(genomes, key=lambda x: x[0])
+    self.tuning = False
+    if lowest_best:
+        self.parameters = genomes[0][1]
+    self.parameters = genomes[-1][1]</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.HyperparameterTuner.uniform"><code class="name flex">
+<span>def <span class="ident">uniform</span></span>(<span>self, lower_bound, upper_bound, volatility=0.1, inital_value=None, integer=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a function that when called returns the
+value of that parameter.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>lower_bound</code></strong></dt>
+<dd>A float or integer, which is the lowest
+value that the parameter can be mutated to</dd>
+<dt><strong><code>upper_bound</code></strong></dt>
+<dd>A float or integer, which is the highest
+value that the parameter can be mutated to</dd>
+<dt><strong><code>volatility</code></strong></dt>
+<dd>A float, which is the rate that this parameter
+is mutated</dd>
+<dt><strong><code>inital_value</code></strong></dt>
+<dd>A float or integer, which is the starting value
+of the parameter</dd>
+<dt><strong><code>integer</code></strong></dt>
+<dd>A boolean, which determiens if the parameter should
+be rounded and cast to an integer</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A parameter function, which returns a number in the
+uniform range</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def uniform(self, lower_bound, upper_bound, volatility=.1,
+            inital_value=None, integer=False):
+    &#34;&#34;&#34;Returns a function that when called returns the
+       value of that parameter.
+
+    Args:
+        lower_bound: A float or integer, which is the lowest
+                     value that the parameter can be mutated to
+        upper_bound: A float or integer, which is the highest
+                     value that the parameter can be mutated to
+        volatility: A float, which is the rate that this parameter
+                    is mutated
+        inital_value: A float or integer, which is the starting value
+                      of the parameter
+        integer: A boolean, which determiens if the parameter should
+                  be rounded and cast to an integer
+
+    Returns:
+        A parameter function, which returns a number in the
+            uniform range
+    &#34;&#34;&#34;
+    if self.tuning:
+        raise Exception(&#39;Parameters cannot be added while tuning&#39;)
+    self.mutation_distributions.append([lower_bound, upper_bound])
+    self.mutation_volatilities.append(volatility)
+    if inital_value is None:
+        self.initial_values.append((lower_bound + upper_bound) / 2)
+    else:
+        self.initial_values.append(inital_value)
+    self.parameters.append(self.initial_values[-1])
+    ndx = self.num_parameters
+
+    def parameter():
+        nonlocal ndx
+        if integer:
+            return int(round(self.parameters[ndx]))
+        return self.parameters[ndx]
+
+    self.num_parameters += 1
+    return parameter</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="paiutils.evolution_algorithm.Mutation"><code class="flex name class">
+<span>class <span class="ident">Mutation</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutation contains functions that return functions
+that mutate genes.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Mutation:
+    &#34;&#34;&#34;Mutation contains functions that return functions
+       that mutate genes.
+    &#34;&#34;&#34;
+
+    @staticmethod
+    def _create_mutation_mask(mutation_rates, num_offspring):
+        &#34;&#34;&#34;Creates a mutation mask.
+
+        Args:
+            mutation_rates: A list of floats within 0-1 (exclusive)
+            num_offspring: An integer
+
+        Returns:
+            A numpy ndarray
+        &#34;&#34;&#34;
+        x = []
+        for rate in mutation_rates:
+            x.append(
+                np.random.binomial(1, rate,
+                                   size=num_offspring)
+            )
+        return np.stack(x, axis=1)
+
+    @classmethod
+    def additive(cls, mutation_rates, distributions, normal=True,
+                 round_values=False, variable_size=False):
+        &#34;&#34;&#34;Creates a mutation function that can add to the current value
+           of a gene.
+
+        Args:
+            mutation_rates: A list of floats within 0-1 (exclusive),
+                            or a single float if variable size is True
+            distributions: A list of either lower and upper bounds
+                           or means and standard deviations
+                           (depends on param normal), or a single
+                           distribution if variable size is True
+            normal: A boolean, which determines if the random distribution
+                    is normal or uniform
+            round_values: A boolean, which determines if mutations should be
+                          rounded to the nearest whole integer
+            variable_size: A boolean, which determines if the number of genes
+                           in the genome can change
+
+        Returns:
+            A mutation function
+        &#34;&#34;&#34;
+        if variable_size:
+            if isinstance(mutation_rates, list) and len(mutation_rates) == 1:
+                mutation_rate = mutation_rates[0]
+            elif isinstance(mutation_rates, (int, float)):
+                mutation_rate = mutation_rates
+            else:
+                raise ValueError(&#39;To have variable sizes there &#39;
+                                 &#39;must only be one rate.&#39;)
+            if (isinstance(distributions[0], (list, tuple))
+                    or len(distributions) != 2):
+                raise ValueError(&#39;To have variable sizes there &#39;
+                                 &#39;must only be one distribution.&#39;)
+            b, a = distributions
+
+            def mutation_func(offspring):
+                if normal:
+                    for ndx in range(len(offspring)):
+                        mask = np.random.binomial(1, mutation_rate,
+                                                  size=offspring[ndx].shape)
+                        mutation = np.random.normal(
+                            b, a, size=offspring[ndx].shape
+                        )
+                        if round_values:
+                            mutation = mutation.round()
+                        offspring[ndx] = mask * mutation + offspring[ndx]
+                else:
+                    for ndx in range(len(offspring)):
+                        mask = np.random.binomial(1, mutation_rate,
+                                                  size=offspring[ndx].shape)
+                        mutation = np.random.uniform(
+                            b, a, size=offspring[ndx].shape
+                        )
+                        if round_values:
+                            mutation = mutation.round()
+                        offspring[ndx] = mask * mutation + offspring[ndx]
+                return offspring
+        else:
+            distributions = np.asarray(distributions)
+            b = distributions[:, 0]
+            a = distributions[:, 1]
+
+            def mutation_func(offspring):
+                assert len(mutation_rates) == offspring.shape[1], (
+                    &#39;The number of mutation rates must match the &#39;
+                    &#39;number of offspring.&#39;
+                )
+                if normal:
+                    m = np.random.normal(b, a, size=offspring.shape)
+                else:
+                    m = np.random.uniform(b, a, size=offspring.shape)
+                if round_values:
+                    m = m.round()
+                mm = cls._create_mutation_mask(mutation_rates,
+                                               offspring.shape[0])
+                return m * mm + offspring
+        return mutation_func
+
+    @classmethod
+    def variable(cls, mutation_rates, distributions, normal=True,
+                 round_values=False, variable_size=False):
+        &#34;&#34;&#34;Creates a mutation function that can sets the value
+           of a gene.
+
+        Args:
+            mutation_rates: A list of floats within 0-1 (exclusive),
+                            or a single float if variable size is True
+            distributions: A list of either lower and upper bounds
+                           or means and standard deviations
+                           (depends on param normal), or a single
+                           distribution if variable size is True
+            normal: A boolean, which determines if the random distribution
+                    is normal or uniform
+            round_values: A boolean, which determines if mutations should be
+                          rounded to the nearest whole integer
+            variable_size: A boolean, which determines if the number of genes
+                           in the genome can change
+
+        Returns:
+            A mutation function
+        &#34;&#34;&#34;
+        if variable_size:
+            if isinstance(mutation_rates, list) and len(mutation_rates) == 1:
+                mutation_rate = mutation_rates[0]
+            elif isinstance(mutation_rates, (int, float)):
+                mutation_rate = mutation_rates
+            else:
+                raise ValueError(&#39;To have variable sizes there &#39;
+                                 &#39;must only be one rate.&#39;)
+            if (isinstance(distributions[0], (list, tuple))
+                    or len(distributions) != 2):
+                raise ValueError(&#39;To have variable sizes there &#39;
+                                 &#39;must only be one distribution.&#39;)
+            b, a = distributions
+
+            def mutate_func(offspring):
+                if normal:
+                    for ndx in range(len(offspring)):
+                        mask = np.random.binomial(1, mutation_rate,
+                                                  size=offspring[ndx].shape)
+                        if round_values:
+                            mutation = np.random.normal(
+                                b, a, size=offspring[ndx].shape
+                            ).round()
+                        else:
+                            mutation = np.random.normal(
+                                b, a, size=offspring[ndx].shape
+                            )
+                        offspring[ndx] = (mask * mutation + offspring[ndx] *
+                                          (1 - mask))
+                else:
+                    for ndx in range(len(offspring)):
+                        mask = np.random.binomial(1, mutation_rate,
+                                                  size=offspring[ndx].shape)
+                        if round_values:
+                            mutation = np.random.uniform(
+                                b, a, size=offspring[ndx].shape
+                            ).round()
+                        else:
+                            mutation = np.random.uniform(
+                                b, a, size=offspring[ndx].shape
+                            )
+                        offspring[ndx] = (mask * mutation + offspring[ndx] *
+                                          (1 - mask))
+                return offspring
+        else:
+            distributions = np.asarray(distributions)
+            b = distributions[:, 0]
+            a = distributions[:, 1]
+
+            def mutate_func(offspring):
+                assert len(mutation_rates) == offspring.shape[1], (
+                    &#39;The number of mutation rates must match the &#39;
+                    &#39;number of offspring.&#39;
+                )
+                if normal:
+                    m = np.random.normal(b, a, size=offspring.shape)
+                else:
+                    m = np.random.uniform(b, a, size=offspring.shape)
+                if round_values:
+                    m = m.round()
+                mm = cls._create_mutation_mask(mutation_rates,
+                                               offspring.shape[0])
+                mutated_offspring = m * mm + offspring * (1-mm)
+                if round_values:
+                    return mutated_offspring.round()
+                return mutated_offspring
+        return mutate_func</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="paiutils.evolution_algorithm.Mutation.additive"><code class="name flex">
+<span>def <span class="ident">additive</span></span>(<span>mutation_rates, distributions, normal=True, round_values=False, variable_size=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a mutation function that can add to the current value
+of a gene.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>mutation_rates</code></strong></dt>
+<dd>A list of floats within 0-1 (exclusive),
+or a single float if variable size is True</dd>
+<dt><strong><code>distributions</code></strong></dt>
+<dd>A list of either lower and upper bounds
+or means and standard deviations
+(depends on param normal), or a single
+distribution if variable size is True</dd>
+<dt><strong><code>normal</code></strong></dt>
+<dd>A boolean, which determines if the random distribution
+is normal or uniform</dd>
+<dt><strong><code>round_values</code></strong></dt>
+<dd>A boolean, which determines if mutations should be
+rounded to the nearest whole integer</dd>
+<dt><strong><code>variable_size</code></strong></dt>
+<dd>A boolean, which determines if the number of genes
+in the genome can change</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A mutation function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def additive(cls, mutation_rates, distributions, normal=True,
+             round_values=False, variable_size=False):
+    &#34;&#34;&#34;Creates a mutation function that can add to the current value
+       of a gene.
+
+    Args:
+        mutation_rates: A list of floats within 0-1 (exclusive),
+                        or a single float if variable size is True
+        distributions: A list of either lower and upper bounds
+                       or means and standard deviations
+                       (depends on param normal), or a single
+                       distribution if variable size is True
+        normal: A boolean, which determines if the random distribution
+                is normal or uniform
+        round_values: A boolean, which determines if mutations should be
+                      rounded to the nearest whole integer
+        variable_size: A boolean, which determines if the number of genes
+                       in the genome can change
+
+    Returns:
+        A mutation function
+    &#34;&#34;&#34;
+    if variable_size:
+        if isinstance(mutation_rates, list) and len(mutation_rates) == 1:
+            mutation_rate = mutation_rates[0]
+        elif isinstance(mutation_rates, (int, float)):
+            mutation_rate = mutation_rates
+        else:
+            raise ValueError(&#39;To have variable sizes there &#39;
+                             &#39;must only be one rate.&#39;)
+        if (isinstance(distributions[0], (list, tuple))
+                or len(distributions) != 2):
+            raise ValueError(&#39;To have variable sizes there &#39;
+                             &#39;must only be one distribution.&#39;)
+        b, a = distributions
+
+        def mutation_func(offspring):
+            if normal:
+                for ndx in range(len(offspring)):
+                    mask = np.random.binomial(1, mutation_rate,
+                                              size=offspring[ndx].shape)
+                    mutation = np.random.normal(
+                        b, a, size=offspring[ndx].shape
+                    )
+                    if round_values:
+                        mutation = mutation.round()
+                    offspring[ndx] = mask * mutation + offspring[ndx]
+            else:
+                for ndx in range(len(offspring)):
+                    mask = np.random.binomial(1, mutation_rate,
+                                              size=offspring[ndx].shape)
+                    mutation = np.random.uniform(
+                        b, a, size=offspring[ndx].shape
+                    )
+                    if round_values:
+                        mutation = mutation.round()
+                    offspring[ndx] = mask * mutation + offspring[ndx]
+            return offspring
+    else:
+        distributions = np.asarray(distributions)
+        b = distributions[:, 0]
+        a = distributions[:, 1]
+
+        def mutation_func(offspring):
+            assert len(mutation_rates) == offspring.shape[1], (
+                &#39;The number of mutation rates must match the &#39;
+                &#39;number of offspring.&#39;
+            )
+            if normal:
+                m = np.random.normal(b, a, size=offspring.shape)
+            else:
+                m = np.random.uniform(b, a, size=offspring.shape)
+            if round_values:
+                m = m.round()
+            mm = cls._create_mutation_mask(mutation_rates,
+                                           offspring.shape[0])
+            return m * mm + offspring
+    return mutation_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.Mutation.variable"><code class="name flex">
+<span>def <span class="ident">variable</span></span>(<span>mutation_rates, distributions, normal=True, round_values=False, variable_size=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a mutation function that can sets the value
+of a gene.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>mutation_rates</code></strong></dt>
+<dd>A list of floats within 0-1 (exclusive),
+or a single float if variable size is True</dd>
+<dt><strong><code>distributions</code></strong></dt>
+<dd>A list of either lower and upper bounds
+or means and standard deviations
+(depends on param normal), or a single
+distribution if variable size is True</dd>
+<dt><strong><code>normal</code></strong></dt>
+<dd>A boolean, which determines if the random distribution
+is normal or uniform</dd>
+<dt><strong><code>round_values</code></strong></dt>
+<dd>A boolean, which determines if mutations should be
+rounded to the nearest whole integer</dd>
+<dt><strong><code>variable_size</code></strong></dt>
+<dd>A boolean, which determines if the number of genes
+in the genome can change</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A mutation function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def variable(cls, mutation_rates, distributions, normal=True,
+             round_values=False, variable_size=False):
+    &#34;&#34;&#34;Creates a mutation function that can sets the value
+       of a gene.
+
+    Args:
+        mutation_rates: A list of floats within 0-1 (exclusive),
+                        or a single float if variable size is True
+        distributions: A list of either lower and upper bounds
+                       or means and standard deviations
+                       (depends on param normal), or a single
+                       distribution if variable size is True
+        normal: A boolean, which determines if the random distribution
+                is normal or uniform
+        round_values: A boolean, which determines if mutations should be
+                      rounded to the nearest whole integer
+        variable_size: A boolean, which determines if the number of genes
+                       in the genome can change
+
+    Returns:
+        A mutation function
+    &#34;&#34;&#34;
+    if variable_size:
+        if isinstance(mutation_rates, list) and len(mutation_rates) == 1:
+            mutation_rate = mutation_rates[0]
+        elif isinstance(mutation_rates, (int, float)):
+            mutation_rate = mutation_rates
+        else:
+            raise ValueError(&#39;To have variable sizes there &#39;
+                             &#39;must only be one rate.&#39;)
+        if (isinstance(distributions[0], (list, tuple))
+                or len(distributions) != 2):
+            raise ValueError(&#39;To have variable sizes there &#39;
+                             &#39;must only be one distribution.&#39;)
+        b, a = distributions
+
+        def mutate_func(offspring):
+            if normal:
+                for ndx in range(len(offspring)):
+                    mask = np.random.binomial(1, mutation_rate,
+                                              size=offspring[ndx].shape)
+                    if round_values:
+                        mutation = np.random.normal(
+                            b, a, size=offspring[ndx].shape
+                        ).round()
+                    else:
+                        mutation = np.random.normal(
+                            b, a, size=offspring[ndx].shape
+                        )
+                    offspring[ndx] = (mask * mutation + offspring[ndx] *
+                                      (1 - mask))
+            else:
+                for ndx in range(len(offspring)):
+                    mask = np.random.binomial(1, mutation_rate,
+                                              size=offspring[ndx].shape)
+                    if round_values:
+                        mutation = np.random.uniform(
+                            b, a, size=offspring[ndx].shape
+                        ).round()
+                    else:
+                        mutation = np.random.uniform(
+                            b, a, size=offspring[ndx].shape
+                        )
+                    offspring[ndx] = (mask * mutation + offspring[ndx] *
+                                      (1 - mask))
+            return offspring
+    else:
+        distributions = np.asarray(distributions)
+        b = distributions[:, 0]
+        a = distributions[:, 1]
+
+        def mutate_func(offspring):
+            assert len(mutation_rates) == offspring.shape[1], (
+                &#39;The number of mutation rates must match the &#39;
+                &#39;number of offspring.&#39;
+            )
+            if normal:
+                m = np.random.normal(b, a, size=offspring.shape)
+            else:
+                m = np.random.uniform(b, a, size=offspring.shape)
+            if round_values:
+                m = m.round()
+            mm = cls._create_mutation_mask(mutation_rates,
+                                           offspring.shape[0])
+            mutated_offspring = m * mm + offspring * (1-mm)
+            if round_values:
+                return mutated_offspring.round()
+            return mutated_offspring
+    return mutate_func</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="paiutils.evolution_algorithm.Selection"><code class="flex name class">
+<span>class <span class="ident">Selection</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Selection contains functions that return functions
+that select offspring based on fitness values.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Selection:
+    &#34;&#34;&#34;Selection contains functions that return functions
+       that select offspring based on fitness values.
+    &#34;&#34;&#34;
+
+    @staticmethod
+    def select_highest(variable_size=False):
+        &#34;&#34;&#34;Creates a selection function that selects offspring
+           with the highest fitness value.
+
+        Args:
+            variable_size: A boolean, which determines if the
+                           genome size can change
+
+        Returns:
+            A selection function
+        &#34;&#34;&#34;
+        if variable_size:
+            def selection_func(offspring, fitness_values, selection_size):
+                new_offspring = []
+                for ndx in fitness_values.argsort()[-selection_size:]:
+                    new_offspring.append(offspring[ndx])
+                return new_offspring
+        else:
+            def selection_func(offspring, fitness_values, selection_size):
+                return offspring[fitness_values.argsort()[-selection_size:]]
+        return selection_func
+
+    @staticmethod
+    def select_lowest(variable_size=False):
+        &#34;&#34;&#34;Creates a selection function that selects offspring
+           with the lowest fitness value.
+
+        Args:
+            variable_size: A boolean, which determines if the
+                           genome size can change
+
+        Returns:
+            A selection function
+        &#34;&#34;&#34;
+        if variable_size:
+            def selection_func(offspring, fitness_values, selection_size):
+                new_offspring = []
+                for ndx in fitness_values.argsort()[:selection_size]:
+                    new_offspring.append(offspring[ndx])
+                return new_offspring
+        else:
+            def selection_func(offspring, fitness_values, selection_size):
+                return offspring[fitness_values.argsort()[:selection_size]]
+        return selection_func</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="paiutils.evolution_algorithm.Selection.select_highest"><code class="name flex">
+<span>def <span class="ident">select_highest</span></span>(<span>variable_size=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a selection function that selects offspring
+with the highest fitness value.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>variable_size</code></strong></dt>
+<dd>A boolean, which determines if the
+genome size can change</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A selection function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def select_highest(variable_size=False):
+    &#34;&#34;&#34;Creates a selection function that selects offspring
+       with the highest fitness value.
+
+    Args:
+        variable_size: A boolean, which determines if the
+                       genome size can change
+
+    Returns:
+        A selection function
+    &#34;&#34;&#34;
+    if variable_size:
+        def selection_func(offspring, fitness_values, selection_size):
+            new_offspring = []
+            for ndx in fitness_values.argsort()[-selection_size:]:
+                new_offspring.append(offspring[ndx])
+            return new_offspring
+    else:
+        def selection_func(offspring, fitness_values, selection_size):
+            return offspring[fitness_values.argsort()[-selection_size:]]
+    return selection_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.Selection.select_lowest"><code class="name flex">
+<span>def <span class="ident">select_lowest</span></span>(<span>variable_size=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a selection function that selects offspring
+with the lowest fitness value.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>variable_size</code></strong></dt>
+<dd>A boolean, which determines if the
+genome size can change</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A selection function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def select_lowest(variable_size=False):
+    &#34;&#34;&#34;Creates a selection function that selects offspring
+       with the lowest fitness value.
+
+    Args:
+        variable_size: A boolean, which determines if the
+                       genome size can change
+
+    Returns:
+        A selection function
+    &#34;&#34;&#34;
+    if variable_size:
+        def selection_func(offspring, fitness_values, selection_size):
+            new_offspring = []
+            for ndx in fitness_values.argsort()[:selection_size]:
+                new_offspring.append(offspring[ndx])
+            return new_offspring
+    else:
+        def selection_func(offspring, fitness_values, selection_size):
+            return offspring[fitness_values.argsort()[:selection_size]]
+    return selection_func</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="paiutils.evolution_algorithm.SizeMutation"><code class="flex name class">
+<span>class <span class="ident">SizeMutation</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>SizeMutation contains functions that return functions
+that mutate the genome size.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SizeMutation:
+    &#34;&#34;&#34;SizeMutation contains functions that return functions
+       that mutate the genome size.
+    &#34;&#34;&#34;
+
+    @staticmethod
+    def genome_double(value=None):
+        &#34;&#34;&#34;Creates a size mutation function that doubles the
+           size of the current genome.
+
+        Args:
+            value: A value to set the new genes to
+                (Default copies current genome values)
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        if value is None:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                return np.hstack((genome, genome))
+        else:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                return np.hstack((
+                    genome,
+                    np.full_like(genome, value)
+                ))
+        return size_mutation_partial_func
+
+    @staticmethod
+    def genome_half(keep_left=True):
+        &#34;&#34;&#34;Creates a size mutation function that halfs the
+           size of the current genome.
+
+        Args:
+            keep_left: A boolean, which determines if the
+                       left or right size should be kept
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            if len(genome) &gt; 1:
+                if keep_left:
+                    return genome[:len(genome)//2]
+                else:
+                    return genome[len(genome)//2:]
+            return genome
+
+        return size_mutation_partial_func
+
+    @staticmethod
+    def random_gene_addition(value=None):
+        &#34;&#34;&#34;Creates a size mutation function that randomly
+           inserts a gene in the genome.
+
+        Args:
+            value: A value to set the new gene to
+                   (Default copies current genome value)
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        if value is None:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                ndx = np.random.randint(1, len(genome)+1)
+                return np.hstack((genome[:ndx],
+                                  genome[ndx-1:]))
+        else:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                ndx = np.random.randint(0, len(genome)+1)
+                return np.hstack((genome[:ndx], value,
+                                  genome[ndx:]))
+        return size_mutation_partial_func
+
+    @staticmethod
+    def random_gene_deletion():
+        &#34;&#34;&#34;Creates a size mutation function that randomly
+           deletes a gene in the genome.
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            ndx = np.random.randint(0, len(genome))
+            return np.hstack((genome[:ndx],
+                              genome[ndx+1:]))
+
+        return size_mutation_partial_func
+
+    @staticmethod
+    def first_gene_addition(value=None):
+        &#34;&#34;&#34;Creates a size mutation function that inserts
+           a gene in the begining of the genome.
+
+        Args:
+            value: A value to set the new gene to
+                   (Default copies current genome value)
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        if value is None:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                return np.hstack((genome[0], genome))
+        else:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                return np.hstack((value, genome))
+        return size_mutation_partial_func
+
+    @staticmethod
+    def first_gene_deletion():
+        &#34;&#34;&#34;Creates a size mutation function that deletes
+           a gene at the begining of the genome.
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            return genome[1:]
+
+        return size_mutation_partial_func
+
+    @staticmethod
+    def last_gene_addition(value=None):
+        &#34;&#34;&#34;Creates a size mutation function that inserts
+           a gene at the end of the genome.
+
+        Args:
+            value: A value to set the new gene to
+                   (Default copies current genome value)
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        if value is None:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                return np.hstack((genome, genome[-1]))
+        else:
+            def size_mutation_partial_func(genome):
+                assert genome.ndim == 1, (
+                    &#39;Genome must have 1 dimension.&#39;
+                )
+                return np.hstack((genome, value))
+        return size_mutation_partial_func
+
+    @staticmethod
+    def last_gene_deletion():
+        &#34;&#34;&#34;Creates a size mutation function that deletes
+           a gene at the end of the genome.
+
+        Returns:
+            An incomplete size mutation function
+        &#34;&#34;&#34;
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            return genome[:-1]
+
+        return size_mutation_partial_func
+
+    @staticmethod
+    def complete_mutations(size_mutation_rate, probabilities, funcs):
+        &#34;&#34;&#34;Creates a complete size mutation function from incomplete
+           size mutation functions.
+
+        Args:
+            size_mutation_rate: A float within 0-1 (exclusive), which is the
+                                rate of a genome size mutating
+            probabilities: A list of floats within 0-1 (exclusive), which
+                           contains the chance of each size mutation function
+                           being used
+            funcs: A list of incomplete size mutation functions
+
+        Returns:
+            A complete size mutation function
+        &#34;&#34;&#34;
+        arange = np.arange(len(funcs))
+
+        def size_mutation_func(offspring):
+            new_offspring = []
+            for genome in offspring:
+                if np.random.random() &lt; size_mutation_rate:
+                    choice = np.random.choice(arange, p=probabilities)
+                    new_offspring.append(funcs[choice](genome))
+                else:
+                    new_offspring.append(genome)
+            return new_offspring
+
+        return size_mutation_func</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="paiutils.evolution_algorithm.SizeMutation.complete_mutations"><code class="name flex">
+<span>def <span class="ident">complete_mutations</span></span>(<span>size_mutation_rate, probabilities, funcs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a complete size mutation function from incomplete
+size mutation functions.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>size_mutation_rate</code></strong></dt>
+<dd>A float within 0-1 (exclusive), which is the
+rate of a genome size mutating</dd>
+<dt><strong><code>probabilities</code></strong></dt>
+<dd>A list of floats within 0-1 (exclusive), which
+contains the chance of each size mutation function
+being used</dd>
+<dt><strong><code>funcs</code></strong></dt>
+<dd>A list of incomplete size mutation functions</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A complete size mutation function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def complete_mutations(size_mutation_rate, probabilities, funcs):
+    &#34;&#34;&#34;Creates a complete size mutation function from incomplete
+       size mutation functions.
+
+    Args:
+        size_mutation_rate: A float within 0-1 (exclusive), which is the
+                            rate of a genome size mutating
+        probabilities: A list of floats within 0-1 (exclusive), which
+                       contains the chance of each size mutation function
+                       being used
+        funcs: A list of incomplete size mutation functions
+
+    Returns:
+        A complete size mutation function
+    &#34;&#34;&#34;
+    arange = np.arange(len(funcs))
+
+    def size_mutation_func(offspring):
+        new_offspring = []
+        for genome in offspring:
+            if np.random.random() &lt; size_mutation_rate:
+                choice = np.random.choice(arange, p=probabilities)
+                new_offspring.append(funcs[choice](genome))
+            else:
+                new_offspring.append(genome)
+        return new_offspring
+
+    return size_mutation_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.SizeMutation.first_gene_addition"><code class="name flex">
+<span>def <span class="ident">first_gene_addition</span></span>(<span>value=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a size mutation function that inserts
+a gene in the begining of the genome.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>value</code></strong></dt>
+<dd>A value to set the new gene to
+(Default copies current genome value)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>An incomplete size mutation function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def first_gene_addition(value=None):
+    &#34;&#34;&#34;Creates a size mutation function that inserts
+       a gene in the begining of the genome.
+
+    Args:
+        value: A value to set the new gene to
+               (Default copies current genome value)
+
+    Returns:
+        An incomplete size mutation function
+    &#34;&#34;&#34;
+    if value is None:
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            return np.hstack((genome[0], genome))
+    else:
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            return np.hstack((value, genome))
+    return size_mutation_partial_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.SizeMutation.first_gene_deletion"><code class="name flex">
+<span>def <span class="ident">first_gene_deletion</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a size mutation function that deletes
+a gene at the begining of the genome.</p>
+<h2 id="returns">Returns</h2>
+<p>An incomplete size mutation function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def first_gene_deletion():
+    &#34;&#34;&#34;Creates a size mutation function that deletes
+       a gene at the begining of the genome.
+
+    Returns:
+        An incomplete size mutation function
+    &#34;&#34;&#34;
+    def size_mutation_partial_func(genome):
+        assert genome.ndim == 1, (
+            &#39;Genome must have 1 dimension.&#39;
+        )
+        return genome[1:]
+
+    return size_mutation_partial_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.SizeMutation.genome_double"><code class="name flex">
+<span>def <span class="ident">genome_double</span></span>(<span>value=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a size mutation function that doubles the
+size of the current genome.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>value</code></strong></dt>
+<dd>A value to set the new genes to
+(Default copies current genome values)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>An incomplete size mutation function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def genome_double(value=None):
+    &#34;&#34;&#34;Creates a size mutation function that doubles the
+       size of the current genome.
+
+    Args:
+        value: A value to set the new genes to
+            (Default copies current genome values)
+
+    Returns:
+        An incomplete size mutation function
+    &#34;&#34;&#34;
+    if value is None:
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            return np.hstack((genome, genome))
+    else:
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            return np.hstack((
+                genome,
+                np.full_like(genome, value)
+            ))
+    return size_mutation_partial_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.SizeMutation.genome_half"><code class="name flex">
+<span>def <span class="ident">genome_half</span></span>(<span>keep_left=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a size mutation function that halfs the
+size of the current genome.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>keep_left</code></strong></dt>
+<dd>A boolean, which determines if the
+left or right size should be kept</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>An incomplete size mutation function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def genome_half(keep_left=True):
+    &#34;&#34;&#34;Creates a size mutation function that halfs the
+       size of the current genome.
+
+    Args:
+        keep_left: A boolean, which determines if the
+                   left or right size should be kept
+
+    Returns:
+        An incomplete size mutation function
+    &#34;&#34;&#34;
+    def size_mutation_partial_func(genome):
+        assert genome.ndim == 1, (
+            &#39;Genome must have 1 dimension.&#39;
+        )
+        if len(genome) &gt; 1:
+            if keep_left:
+                return genome[:len(genome)//2]
+            else:
+                return genome[len(genome)//2:]
+        return genome
+
+    return size_mutation_partial_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.SizeMutation.last_gene_addition"><code class="name flex">
+<span>def <span class="ident">last_gene_addition</span></span>(<span>value=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a size mutation function that inserts
+a gene at the end of the genome.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>value</code></strong></dt>
+<dd>A value to set the new gene to
+(Default copies current genome value)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>An incomplete size mutation function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def last_gene_addition(value=None):
+    &#34;&#34;&#34;Creates a size mutation function that inserts
+       a gene at the end of the genome.
+
+    Args:
+        value: A value to set the new gene to
+               (Default copies current genome value)
+
+    Returns:
+        An incomplete size mutation function
+    &#34;&#34;&#34;
+    if value is None:
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            return np.hstack((genome, genome[-1]))
+    else:
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            return np.hstack((genome, value))
+    return size_mutation_partial_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.SizeMutation.last_gene_deletion"><code class="name flex">
+<span>def <span class="ident">last_gene_deletion</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a size mutation function that deletes
+a gene at the end of the genome.</p>
+<h2 id="returns">Returns</h2>
+<p>An incomplete size mutation function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def last_gene_deletion():
+    &#34;&#34;&#34;Creates a size mutation function that deletes
+       a gene at the end of the genome.
+
+    Returns:
+        An incomplete size mutation function
+    &#34;&#34;&#34;
+    def size_mutation_partial_func(genome):
+        assert genome.ndim == 1, (
+            &#39;Genome must have 1 dimension.&#39;
+        )
+        return genome[:-1]
+
+    return size_mutation_partial_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.SizeMutation.random_gene_addition"><code class="name flex">
+<span>def <span class="ident">random_gene_addition</span></span>(<span>value=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a size mutation function that randomly
+inserts a gene in the genome.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>value</code></strong></dt>
+<dd>A value to set the new gene to
+(Default copies current genome value)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>An incomplete size mutation function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def random_gene_addition(value=None):
+    &#34;&#34;&#34;Creates a size mutation function that randomly
+       inserts a gene in the genome.
+
+    Args:
+        value: A value to set the new gene to
+               (Default copies current genome value)
+
+    Returns:
+        An incomplete size mutation function
+    &#34;&#34;&#34;
+    if value is None:
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            ndx = np.random.randint(1, len(genome)+1)
+            return np.hstack((genome[:ndx],
+                              genome[ndx-1:]))
+    else:
+        def size_mutation_partial_func(genome):
+            assert genome.ndim == 1, (
+                &#39;Genome must have 1 dimension.&#39;
+            )
+            ndx = np.random.randint(0, len(genome)+1)
+            return np.hstack((genome[:ndx], value,
+                              genome[ndx:]))
+    return size_mutation_partial_func</code></pre>
+</details>
+</dd>
+<dt id="paiutils.evolution_algorithm.SizeMutation.random_gene_deletion"><code class="name flex">
+<span>def <span class="ident">random_gene_deletion</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a size mutation function that randomly
+deletes a gene in the genome.</p>
+<h2 id="returns">Returns</h2>
+<p>An incomplete size mutation function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def random_gene_deletion():
+    &#34;&#34;&#34;Creates a size mutation function that randomly
+       deletes a gene in the genome.
+
+    Returns:
+        An incomplete size mutation function
+    &#34;&#34;&#34;
+    def size_mutation_partial_func(genome):
+        assert genome.ndim == 1, (
+            &#39;Genome must have 1 dimension.&#39;
+        )
+        ndx = np.random.randint(0, len(genome))
+        return np.hstack((genome[:ndx],
+                          genome[ndx+1:]))
+
+    return size_mutation_partial_func</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="paiutils" href="index.html">paiutils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="paiutils.evolution_algorithm.Crossover" href="#paiutils.evolution_algorithm.Crossover">Crossover</a></code></h4>
+<ul class="">
+<li><code><a title="paiutils.evolution_algorithm.Crossover.dual" href="#paiutils.evolution_algorithm.Crossover.dual">dual</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.Crossover.population_avg" href="#paiutils.evolution_algorithm.Crossover.population_avg">population_avg</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.Crossover.population_shuffle" href="#paiutils.evolution_algorithm.Crossover.population_shuffle">population_shuffle</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.Crossover.single" href="#paiutils.evolution_algorithm.Crossover.single">single</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.Crossover.triple" href="#paiutils.evolution_algorithm.Crossover.triple">triple</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="paiutils.evolution_algorithm.EvolutionAlgorithm" href="#paiutils.evolution_algorithm.EvolutionAlgorithm">EvolutionAlgorithm</a></code></h4>
+<ul class="">
+<li><code><a title="paiutils.evolution_algorithm.EvolutionAlgorithm.simulate" href="#paiutils.evolution_algorithm.EvolutionAlgorithm.simulate">simulate</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.EvolutionAlgorithm.simulate_islands" href="#paiutils.evolution_algorithm.EvolutionAlgorithm.simulate_islands">simulate_islands</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="paiutils.evolution_algorithm.Fitness" href="#paiutils.evolution_algorithm.Fitness">Fitness</a></code></h4>
+<ul class="">
+<li><code><a title="paiutils.evolution_algorithm.Fitness.match_mse" href="#paiutils.evolution_algorithm.Fitness.match_mse">match_mse</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="paiutils.evolution_algorithm.HyperparameterTuner" href="#paiutils.evolution_algorithm.HyperparameterTuner">HyperparameterTuner</a></code></h4>
+<ul class="">
+<li><code><a title="paiutils.evolution_algorithm.HyperparameterTuner.boolean" href="#paiutils.evolution_algorithm.HyperparameterTuner.boolean">boolean</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.HyperparameterTuner.list" href="#paiutils.evolution_algorithm.HyperparameterTuner.list">list</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.HyperparameterTuner.tune" href="#paiutils.evolution_algorithm.HyperparameterTuner.tune">tune</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.HyperparameterTuner.uniform" href="#paiutils.evolution_algorithm.HyperparameterTuner.uniform">uniform</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="paiutils.evolution_algorithm.Mutation" href="#paiutils.evolution_algorithm.Mutation">Mutation</a></code></h4>
+<ul class="">
+<li><code><a title="paiutils.evolution_algorithm.Mutation.additive" href="#paiutils.evolution_algorithm.Mutation.additive">additive</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.Mutation.variable" href="#paiutils.evolution_algorithm.Mutation.variable">variable</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="paiutils.evolution_algorithm.Selection" href="#paiutils.evolution_algorithm.Selection">Selection</a></code></h4>
+<ul class="">
+<li><code><a title="paiutils.evolution_algorithm.Selection.select_highest" href="#paiutils.evolution_algorithm.Selection.select_highest">select_highest</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.Selection.select_lowest" href="#paiutils.evolution_algorithm.Selection.select_lowest">select_lowest</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="paiutils.evolution_algorithm.SizeMutation" href="#paiutils.evolution_algorithm.SizeMutation">SizeMutation</a></code></h4>
+<ul class="">
+<li><code><a title="paiutils.evolution_algorithm.SizeMutation.complete_mutations" href="#paiutils.evolution_algorithm.SizeMutation.complete_mutations">complete_mutations</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.SizeMutation.first_gene_addition" href="#paiutils.evolution_algorithm.SizeMutation.first_gene_addition">first_gene_addition</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.SizeMutation.first_gene_deletion" href="#paiutils.evolution_algorithm.SizeMutation.first_gene_deletion">first_gene_deletion</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.SizeMutation.genome_double" href="#paiutils.evolution_algorithm.SizeMutation.genome_double">genome_double</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.SizeMutation.genome_half" href="#paiutils.evolution_algorithm.SizeMutation.genome_half">genome_half</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.SizeMutation.last_gene_addition" href="#paiutils.evolution_algorithm.SizeMutation.last_gene_addition">last_gene_addition</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.SizeMutation.last_gene_deletion" href="#paiutils.evolution_algorithm.SizeMutation.last_gene_deletion">last_gene_deletion</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.SizeMutation.random_gene_addition" href="#paiutils.evolution_algorithm.SizeMutation.random_gene_addition">random_gene_addition</a></code></li>
+<li><code><a title="paiutils.evolution_algorithm.SizeMutation.random_gene_deletion" href="#paiutils.evolution_algorithm.SizeMutation.random_gene_deletion">random_gene_deletion</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>paiutils.util_funcs API documentation</title>
+<meta name="description" content="Author: Travis Hammond
+Version: 12_21_2020" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>paiutils.util_funcs</code></h1>
+</header>
+<section id="section-intro">
+<p>Author: Travis Hammond
+Version: 12_21_2020</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Author: Travis Hammond
+Version: 12_21_2020
+&#34;&#34;&#34;
+
+
+import os
+import csv
+import numpy as np
+import h5py
+
+
+def load_directory_datasets(path, file_loader):
+    &#34;&#34;&#34;Loads datasets from a directory.
+            Directory
+             //   \\
+            //     \\
+           //       \\
+         dogs       cats
+         //           \\
+    data files     data files
+
+    Args:
+        path: A string, which is a path to the datasets
+        file_loader: A function for loading each file, or
+                     a dictionary of postfix identifiers as keys
+                     and file loader functions for values
+
+    Returns:
+        A dictionary, which contains the datasets
+    &#34;&#34;&#34;
+
+    def load(path, fl):
+        data = []
+        for file in np.sort(os.listdir(path)):
+            data.append(fl(os.path.join(path, file)))
+        return np.array(data)
+
+    folders = [folder for folder in os.listdir(path)
+               if os.path.isdir(os.path.join(path, folder))]
+    datasets = {}
+    if isinstance(file_loader, dict):
+        file_loaders = file_loader
+        for folder in folders:
+            for postfix, file_loader in file_loaders.items():
+                if folder.endswith(postfix):
+                    datasets[folder] = load(os.path.join(path, folder),
+                                            file_loader)
+    else:
+        for folder in folders:
+            datasets[folder] = load(os.path.join(path, folder), file_loader)
+    return datasets
+
+
+def _create_folder(path):
+    if os.path.exists(path):
+        for folder in os.listdir(path):
+            if os.path.isdir(os.path.join(path, folder)):
+                for file in os.listdir(os.path.join(path, folder)):
+                    os.remove(os.path.join(path, folder, file))
+                os.rmdir(os.path.join(path, folder))
+            else:
+                os.remove(os.path.join(path, folder))
+    else:
+        os.mkdir(path)
+
+
+def save_directory_datasets(path, datasets, file_saver):
+    &#34;&#34;&#34;Saves datasets to a directory.
+            Directory
+             //   \\
+            //     \\
+           //       \\
+         dogs       cats
+         //           \\
+    data files     data files
+
+    Args:
+        path: A string, which is a path to the datasets
+        datasets: A dictionary, which contains the datasets
+        file_saver: A function for saving each file, or a
+                    dictionary of postfix identifiers as keys
+                    and file loader functions for values
+    &#34;&#34;&#34;
+    _create_folder(path)
+
+    def save(path, dataset, fs):
+        for ndx, data in enumerate(dataset):
+            fs(os.path.join(path, f&#39;{ndx}&#39;), data)
+
+    if isinstance(file_saver, dict):
+        file_savers = file_saver
+        for name, dataset in datasets.items():
+            dpath = os.path.join(path, name)
+            _create_folder(dpath)
+            for postfix, file_saver in file_savers.items():
+                if name.endswith(postfix):
+                    save(dpath, dataset, file_saver)
+                    break
+    else:
+        for name, dataset in datasets.items():
+            dpath = os.path.join(path, name)
+            _create_folder(dpath)
+            save(dpath, dataset, file_saver)
+
+
+def load_directory_database(path, file_loaders):
+    &#34;&#34;&#34;Loads groups of datasets from a directory.
+            Directory
+             //   \\
+            //     \\
+           //       \\
+        train_x     train_y
+         //           \\
+       // \\         // \\
+     dogs  cats    dogs  cats
+      ||    ||      ||    ||
+    files  files  files  files &lt;- Groups should share file names
+
+    Args:
+        path: A string, which is a path to the datasets
+        file_loaders: A dictionary of postfix identifiers as keys
+                      and file loader functions for values
+
+    Returns:
+        A dictionary, which contains the dataset groups
+    &#34;&#34;&#34;
+    folders = [folder for folder in os.listdir(path)
+               if os.path.isdir(os.path.join(path, folder))]
+    database = {}
+    for folder in folders:
+        for postfix, file_loader in file_loaders.items():
+            if folder.endswith(postfix):
+                database[folder] = load_directory_datasets(
+                    os.path.join(path, folder), file_loader
+                )
+                break
+    return database
+
+
+def save_directory_database(path, database, file_savers):
+    &#34;&#34;&#34;Saves groups of datasets from a directory.
+            Directory
+             //   \\
+            //     \\
+           //       \\
+        train_x     train_y
+         //           \\
+       // \\         // \\
+     dogs  cats    dogs  cats
+      ||    ||      ||    ||
+    files  files  files  files &lt;- Groups should share order
+
+    Args:
+        path: A string, which is a path to the datasets
+        database: A dictionary, which contains the groups of datasets
+        file_loaders: A dictionary of postfix identifiers as keys
+                      and file loader functions for values
+
+    Returns:
+        A dictionary, which contains the dataset groups
+    &#34;&#34;&#34;
+    _create_folder(path)
+    for name, datasets in database.items():
+        dpath = os.path.join(path, name)
+        _create_folder(dpath)
+        for postfix, file_saver in file_savers.items():
+            if name.endswith(postfix):
+                save_directory_datasets(dpath, datasets, file_saver)
+                break
+
+
+def load_file_datasets(path):
+    &#34;&#34;&#34;Loads datasets from a file.
+
+    Args:
+        path: A string, which is a path to the datasets
+
+    Returns:
+        A dictionary, which contains the datasets
+    &#34;&#34;&#34;
+    datasets = {}
+    with h5py.File(path, &#39;r&#39;) as hf:
+        for name in hf:
+            datasets[name] = hf[name][:]
+    return datasets
+
+
+def save_file_datasets(path, datasets):
+    &#34;&#34;&#34;Saves datasets to a file.
+
+    Args:
+        path: A string, which is a path to the datasets
+        datasets: A dictionary, which contains the datasets
+    &#34;&#34;&#34;
+    with h5py.File(path, &#39;w&#39;) as file:
+        for name, dataset in datasets.items():
+            file.create_dataset(name, data=dataset)
+
+
+def load_datasets(path, file_loader):
+    mappings = read(path)
+    datasets = {}
+    for label, filename in mappings:
+        if label not in datasets:
+            datasets[label] = []
+        datasets[label].append(file_loader(os.path.join(path, filename)))
+    return {label: np.array(dataset) for label, dataset in datasets.items()}
+
+
+def save_datasets(path, datasets, file_saver):
+    _create_folder(path)
+    mappings = []
+    for label, dataset in datasets.items():
+        for ndx, data in enumerate(dataset):
+            filename = f&#39;{label}_{ndx}&#39;
+            mappings.append((label, filename))
+            file_saver(os.path.join(path, filename), data)
+    write(mappings, path)
+
+
+def write(mappings, path, **kwargs):
+    &#34;&#34;&#34;Creates or appends a mappings csv file.
+
+    Args:
+        mappings: A dictionary
+        path: A string for the path to save the csv file to
+    &#34;&#34;&#34;
+    newfile = not os.path.isfile(os.path.join(path, &#39;mappings.csv&#39;))
+    with open(
+        os.path.join(path, &#39;mappings.csv&#39;), &#39;a+&#39;, newline=&#39;&#39;
+    ) as csvfile:
+        writer = csv.writer(csvfile)
+        if newfile:
+            writer.writerow([&#39;label&#39;, &#39;filename&#39;])
+        for label, filename in mappings:
+            writer.writerow([label, filename])
+
+
+def read(path, **kwargs):
+    &#34;&#34;&#34;Loads a mapping file.
+
+    Args:
+        path: A string from which to load the mappings.csv file
+
+    Returns:
+        A list of dictionaries
+    &#34;&#34;&#34;
+    mappings = []
+    with open(os.path.join(path, &#39;mappings.csv&#39;), newline=&#39;&#39;) as csvfile:
+        reader = csv.reader(csvfile, **kwargs)
+        reader.__next__()
+        for label, filename in reader:
+            mappings.append((label, filename))
+    return mappings</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="paiutils.util_funcs.load_datasets"><code class="name flex">
+<span>def <span class="ident">load_datasets</span></span>(<span>path, file_loader)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_datasets(path, file_loader):
+    mappings = read(path)
+    datasets = {}
+    for label, filename in mappings:
+        if label not in datasets:
+            datasets[label] = []
+        datasets[label].append(file_loader(os.path.join(path, filename)))
+    return {label: np.array(dataset) for label, dataset in datasets.items()}</code></pre>
+</details>
+</dd>
+<dt id="paiutils.util_funcs.load_directory_database"><code class="name flex">
+<span>def <span class="ident">load_directory_database</span></span>(<span>path, file_loaders)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Loads groups of datasets from a directory.
+Directory
+//
+\
+//
+\
+//
+\
+train_x
+train_y
+//
+\
+// \
+// \
+dogs
+cats
+dogs
+cats
+||
+||
+||
+||
+files
+files
+files
+files &lt;- Groups should share file names</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong></dt>
+<dd>A string, which is a path to the datasets</dd>
+<dt><strong><code>file_loaders</code></strong></dt>
+<dd>A dictionary of postfix identifiers as keys
+and file loader functions for values</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A dictionary, which contains the dataset groups</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_directory_database(path, file_loaders):
+    &#34;&#34;&#34;Loads groups of datasets from a directory.
+            Directory
+             //   \\
+            //     \\
+           //       \\
+        train_x     train_y
+         //           \\
+       // \\         // \\
+     dogs  cats    dogs  cats
+      ||    ||      ||    ||
+    files  files  files  files &lt;- Groups should share file names
+
+    Args:
+        path: A string, which is a path to the datasets
+        file_loaders: A dictionary of postfix identifiers as keys
+                      and file loader functions for values
+
+    Returns:
+        A dictionary, which contains the dataset groups
+    &#34;&#34;&#34;
+    folders = [folder for folder in os.listdir(path)
+               if os.path.isdir(os.path.join(path, folder))]
+    database = {}
+    for folder in folders:
+        for postfix, file_loader in file_loaders.items():
+            if folder.endswith(postfix):
+                database[folder] = load_directory_datasets(
+                    os.path.join(path, folder), file_loader
+                )
+                break
+    return database</code></pre>
+</details>
+</dd>
+<dt id="paiutils.util_funcs.load_directory_datasets"><code class="name flex">
+<span>def <span class="ident">load_directory_datasets</span></span>(<span>path, file_loader)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Loads datasets from a directory.
+Directory
+//
+\
+//
+\
+//
+\
+dogs
+cats
+//
+\
+data files
+data files</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong></dt>
+<dd>A string, which is a path to the datasets</dd>
+<dt><strong><code>file_loader</code></strong></dt>
+<dd>A function for loading each file, or
+a dictionary of postfix identifiers as keys
+and file loader functions for values</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A dictionary, which contains the datasets</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_directory_datasets(path, file_loader):
+    &#34;&#34;&#34;Loads datasets from a directory.
+            Directory
+             //   \\
+            //     \\
+           //       \\
+         dogs       cats
+         //           \\
+    data files     data files
+
+    Args:
+        path: A string, which is a path to the datasets
+        file_loader: A function for loading each file, or
+                     a dictionary of postfix identifiers as keys
+                     and file loader functions for values
+
+    Returns:
+        A dictionary, which contains the datasets
+    &#34;&#34;&#34;
+
+    def load(path, fl):
+        data = []
+        for file in np.sort(os.listdir(path)):
+            data.append(fl(os.path.join(path, file)))
+        return np.array(data)
+
+    folders = [folder for folder in os.listdir(path)
+               if os.path.isdir(os.path.join(path, folder))]
+    datasets = {}
+    if isinstance(file_loader, dict):
+        file_loaders = file_loader
+        for folder in folders:
+            for postfix, file_loader in file_loaders.items():
+                if folder.endswith(postfix):
+                    datasets[folder] = load(os.path.join(path, folder),
+                                            file_loader)
+    else:
+        for folder in folders:
+            datasets[folder] = load(os.path.join(path, folder), file_loader)
+    return datasets</code></pre>
+</details>
+</dd>
+<dt id="paiutils.util_funcs.load_file_datasets"><code class="name flex">
+<span>def <span class="ident">load_file_datasets</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Loads datasets from a file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong></dt>
+<dd>A string, which is a path to the datasets</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A dictionary, which contains the datasets</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_file_datasets(path):
+    &#34;&#34;&#34;Loads datasets from a file.
+
+    Args:
+        path: A string, which is a path to the datasets
+
+    Returns:
+        A dictionary, which contains the datasets
+    &#34;&#34;&#34;
+    datasets = {}
+    with h5py.File(path, &#39;r&#39;) as hf:
+        for name in hf:
+            datasets[name] = hf[name][:]
+    return datasets</code></pre>
+</details>
+</dd>
+<dt id="paiutils.util_funcs.read"><code class="name flex">
+<span>def <span class="ident">read</span></span>(<span>path, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Loads a mapping file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong></dt>
+<dd>A string from which to load the mappings.csv file</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A list of dictionaries</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read(path, **kwargs):
+    &#34;&#34;&#34;Loads a mapping file.
+
+    Args:
+        path: A string from which to load the mappings.csv file
+
+    Returns:
+        A list of dictionaries
+    &#34;&#34;&#34;
+    mappings = []
+    with open(os.path.join(path, &#39;mappings.csv&#39;), newline=&#39;&#39;) as csvfile:
+        reader = csv.reader(csvfile, **kwargs)
+        reader.__next__()
+        for label, filename in reader:
+            mappings.append((label, filename))
+    return mappings</code></pre>
+</details>
+</dd>
+<dt id="paiutils.util_funcs.save_datasets"><code class="name flex">
+<span>def <span class="ident">save_datasets</span></span>(<span>path, datasets, file_saver)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_datasets(path, datasets, file_saver):
+    _create_folder(path)
+    mappings = []
+    for label, dataset in datasets.items():
+        for ndx, data in enumerate(dataset):
+            filename = f&#39;{label}_{ndx}&#39;
+            mappings.append((label, filename))
+            file_saver(os.path.join(path, filename), data)
+    write(mappings, path)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.util_funcs.save_directory_database"><code class="name flex">
+<span>def <span class="ident">save_directory_database</span></span>(<span>path, database, file_savers)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Saves groups of datasets from a directory.
+Directory
+//
+\
+//
+\
+//
+\
+train_x
+train_y
+//
+\
+// \
+// \
+dogs
+cats
+dogs
+cats
+||
+||
+||
+||
+files
+files
+files
+files &lt;- Groups should share order</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong></dt>
+<dd>A string, which is a path to the datasets</dd>
+<dt><strong><code>database</code></strong></dt>
+<dd>A dictionary, which contains the groups of datasets</dd>
+<dt><strong><code>file_loaders</code></strong></dt>
+<dd>A dictionary of postfix identifiers as keys
+and file loader functions for values</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A dictionary, which contains the dataset groups</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_directory_database(path, database, file_savers):
+    &#34;&#34;&#34;Saves groups of datasets from a directory.
+            Directory
+             //   \\
+            //     \\
+           //       \\
+        train_x     train_y
+         //           \\
+       // \\         // \\
+     dogs  cats    dogs  cats
+      ||    ||      ||    ||
+    files  files  files  files &lt;- Groups should share order
+
+    Args:
+        path: A string, which is a path to the datasets
+        database: A dictionary, which contains the groups of datasets
+        file_loaders: A dictionary of postfix identifiers as keys
+                      and file loader functions for values
+
+    Returns:
+        A dictionary, which contains the dataset groups
+    &#34;&#34;&#34;
+    _create_folder(path)
+    for name, datasets in database.items():
+        dpath = os.path.join(path, name)
+        _create_folder(dpath)
+        for postfix, file_saver in file_savers.items():
+            if name.endswith(postfix):
+                save_directory_datasets(dpath, datasets, file_saver)
+                break</code></pre>
+</details>
+</dd>
+<dt id="paiutils.util_funcs.save_directory_datasets"><code class="name flex">
+<span>def <span class="ident">save_directory_datasets</span></span>(<span>path, datasets, file_saver)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Saves datasets to a directory.
+Directory
+//
+\
+//
+\
+//
+\
+dogs
+cats
+//
+\
+data files
+data files</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong></dt>
+<dd>A string, which is a path to the datasets</dd>
+<dt><strong><code>datasets</code></strong></dt>
+<dd>A dictionary, which contains the datasets</dd>
+<dt><strong><code>file_saver</code></strong></dt>
+<dd>A function for saving each file, or a
+dictionary of postfix identifiers as keys
+and file loader functions for values</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_directory_datasets(path, datasets, file_saver):
+    &#34;&#34;&#34;Saves datasets to a directory.
+            Directory
+             //   \\
+            //     \\
+           //       \\
+         dogs       cats
+         //           \\
+    data files     data files
+
+    Args:
+        path: A string, which is a path to the datasets
+        datasets: A dictionary, which contains the datasets
+        file_saver: A function for saving each file, or a
+                    dictionary of postfix identifiers as keys
+                    and file loader functions for values
+    &#34;&#34;&#34;
+    _create_folder(path)
+
+    def save(path, dataset, fs):
+        for ndx, data in enumerate(dataset):
+            fs(os.path.join(path, f&#39;{ndx}&#39;), data)
+
+    if isinstance(file_saver, dict):
+        file_savers = file_saver
+        for name, dataset in datasets.items():
+            dpath = os.path.join(path, name)
+            _create_folder(dpath)
+            for postfix, file_saver in file_savers.items():
+                if name.endswith(postfix):
+                    save(dpath, dataset, file_saver)
+                    break
+    else:
+        for name, dataset in datasets.items():
+            dpath = os.path.join(path, name)
+            _create_folder(dpath)
+            save(dpath, dataset, file_saver)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.util_funcs.save_file_datasets"><code class="name flex">
+<span>def <span class="ident">save_file_datasets</span></span>(<span>path, datasets)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Saves datasets to a file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong></dt>
+<dd>A string, which is a path to the datasets</dd>
+<dt><strong><code>datasets</code></strong></dt>
+<dd>A dictionary, which contains the datasets</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_file_datasets(path, datasets):
+    &#34;&#34;&#34;Saves datasets to a file.
+
+    Args:
+        path: A string, which is a path to the datasets
+        datasets: A dictionary, which contains the datasets
+    &#34;&#34;&#34;
+    with h5py.File(path, &#39;w&#39;) as file:
+        for name, dataset in datasets.items():
+            file.create_dataset(name, data=dataset)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.util_funcs.write"><code class="name flex">
+<span>def <span class="ident">write</span></span>(<span>mappings, path, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates or appends a mappings csv file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>mappings</code></strong></dt>
+<dd>A dictionary</dd>
+<dt><strong><code>path</code></strong></dt>
+<dd>A string for the path to save the csv file to</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write(mappings, path, **kwargs):
+    &#34;&#34;&#34;Creates or appends a mappings csv file.
+
+    Args:
+        mappings: A dictionary
+        path: A string for the path to save the csv file to
+    &#34;&#34;&#34;
+    newfile = not os.path.isfile(os.path.join(path, &#39;mappings.csv&#39;))
+    with open(
+        os.path.join(path, &#39;mappings.csv&#39;), &#39;a+&#39;, newline=&#39;&#39;
+    ) as csvfile:
+        writer = csv.writer(csvfile)
+        if newfile:
+            writer.writerow([&#39;label&#39;, &#39;filename&#39;])
+        for label, filename in mappings:
+            writer.writerow([label, filename])</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="paiutils" href="index.html">paiutils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="paiutils.util_funcs.load_datasets" href="#paiutils.util_funcs.load_datasets">load_datasets</a></code></li>
+<li><code><a title="paiutils.util_funcs.load_directory_database" href="#paiutils.util_funcs.load_directory_database">load_directory_database</a></code></li>
+<li><code><a title="paiutils.util_funcs.load_directory_datasets" href="#paiutils.util_funcs.load_directory_datasets">load_directory_datasets</a></code></li>
+<li><code><a title="paiutils.util_funcs.load_file_datasets" href="#paiutils.util_funcs.load_file_datasets">load_file_datasets</a></code></li>
+<li><code><a title="paiutils.util_funcs.read" href="#paiutils.util_funcs.read">read</a></code></li>
+<li><code><a title="paiutils.util_funcs.save_datasets" href="#paiutils.util_funcs.save_datasets">save_datasets</a></code></li>
+<li><code><a title="paiutils.util_funcs.save_directory_database" href="#paiutils.util_funcs.save_directory_database">save_directory_database</a></code></li>
+<li><code><a title="paiutils.util_funcs.save_directory_datasets" href="#paiutils.util_funcs.save_directory_datasets">save_directory_datasets</a></code></li>
+<li><code><a title="paiutils.util_funcs.save_file_datasets" href="#paiutils.util_funcs.save_file_datasets">save_file_datasets</a></code></li>
+<li><code><a title="paiutils.util_funcs.write" href="#paiutils.util_funcs.write">write</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

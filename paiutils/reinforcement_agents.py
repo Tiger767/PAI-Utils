@@ -1,25 +1,20 @@
 """
 Author: Travis Hammond
-Version: 5_18_2020
+Version: 12_21_2020
 """
 
 
 import os
-import h5py
 import numpy as np
 import tensorflow as tf
+import tensorflow_probability as tfp
+from tensorflow import keras
 from tensorflow.keras.models import model_from_json
 
-try:
-    from paiutils.reinforcement import (
-        Memory, PlayingData, DQNAgent,
-        PGAgent, DDPGAgent, NoisePolicy,
-    )
-except ImportError:
-    from reinforcement import (
-        Memory, PlayingData, DQNAgent,
-        PGAgent, DDPGAgent, NoisePolicy,
-    )
+from paiutils.reinforcement import (
+    Memory, PlayingData, DQNAgent,
+    MemoryAgent, PGAgent, DDPGAgent
+)
 
 
 class DQNPGAgent(DQNAgent, PGAgent):
@@ -29,11 +24,12 @@ class DQNPGAgent(DQNAgent, PGAgent):
     """
 
     def __init__(self, policy, qmodel, amodel, discounted_rate,
-                 create_memory=lambda: Memory(),
+                 create_memory=lambda shape, dtype: Memory(),
                  enable_target=True, enable_double=False,
-                 enable_PER=False):
+                 enable_per=False):
         """Initalizes the Deep Q Network and Policy Gradient Agent.
-        params:
+
+        Args:
             policy: A policy instance (for DQN Agent)
             qmodel: A keras model, which takes the state as input and outputs
                     Q Values
@@ -48,7 +44,7 @@ class DQNPGAgent(DQNAgent, PGAgent):
                            should be used
             enable_double: A boolean, which determiens if the Double Deep Q
                            Network should be used
-            enable_PER: A boolean, which determines if prioritized experience
+            enable_per: A boolean, which determines if prioritized experience
                         replay should be used
                         (The implementation for this is not the normal tree
                          implementation, and only weights the probabilily of
@@ -58,26 +54,28 @@ class DQNPGAgent(DQNAgent, PGAgent):
                           create_memory=create_memory,
                           enable_target=enable_target,
                           enable_double=enable_double,
-                          enable_PER=enable_PER)
+                          enable_per=enable_per)
         self.amodel = amodel
         self.uses_dqn_method = True
-        self.temp_rewards = create_memory()
-        self.drewards = create_memory()
-        self.pg_metric = tf.keras.metrics.Mean(name='pg_loss')
+        self.drewards = create_memory((None,),
+                                      keras.backend.floatx())
+        self.memory['drewards'] = self.drewards
+        self.episode_rewards = []
+        self.pg_metric = keras.metrics.Mean(name='pg_loss')
         self._tf_train_step = tf.function(
             self._train_step,
             input_signature=(tf.TensorSpec(shape=self.qmodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=self.qmodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None, None),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()))
+                                           dtype=keras.backend.floatx()))
         )
 
     def use_dqn(self):
@@ -89,29 +87,25 @@ class DQNPGAgent(DQNAgent, PGAgent):
     def select_action(self, state, training=False):
         """Returns the action the Agent "believes" to be
            suited for the given state.
-        params:
+
+        Args:
             state: A value, which is the state to predict
                    the Q values for
             training: A boolean, which determines if the
                       agent is training
-        return: A value, which is the selected action
+
+        Returns:
+            A value, which is the selected action
         """
         if self.uses_dqn_method:
-            def _select_action():
-                qvalues = self.qmodel(np.expand_dims(state, axis=0),
-                                      training=False)[0].numpy()
-                return qvalues
-            return self.policy.select_action(_select_action,
-                                             training=training)
+            return DQNAgent.select_action(self, state, training=training)
         else:
-            actions = np.abs(self.amodel(np.expand_dims(state, axis=0),
-                                         training=False)[0].numpy())
-            return np.random.choice(np.arange(self.action_shape[0]),
-                                    p=actions)
+            return PGAgent.select_action(self, state, training=training)
 
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state of the environment before the
                    action was performed
@@ -125,39 +119,29 @@ class DQNPGAgent(DQNAgent, PGAgent):
                       add memory is the last for the episode
         """
         DQNAgent.add_memory(self, state, action, new_state, reward, terminal)
-        self.temp_rewards.add(reward)
+        self.episode_rewards.append(reward)
 
     def forget(self):
         """Forgets or clears all memory."""
         DQNAgent.forget(self)
-        self.temp_rewards.reset()
-        self.drewards.reset()
+        self.episode_rewards.clear()
 
     def end_episode(self):
         """Ends the episode, and creates drewards based
            on the episodes rewards.
         """
-        if len(self.temp_rewards) > 0:
-            dreward = 0
-            dreward_list = []
-            # hacky, assuming memory works with reversed
-            for reward in reversed(self.temp_rewards.buffer):
-                dreward *= self.discounted_rate
-                dreward += reward
-                dreward_list.append(dreward)
-            self.temp_rewards.reset()
-            for dreward in reversed(dreward_list):
-                self.drewards.add(dreward)
+        PGAgent.end_episode(self)
 
-    def _train_step(self, states, next_states, action_onehots,
+    def _train_step(self, states, next_states, actions,
                     terminals, rewards, drewards):
         """Performs one gradient step with a batch of data.
-        params:
+
+        Args:
             states: A tensor that contains environment states
             next_states: A tensor that contains the states of
                          the environment after an action was performed
-            action_onehots: A tensor that contains onehot encodings of
-                            the action performed
+            actions: A tensor that contains onehot encodings of
+                     the action performed
             terminals: A tensor that contains ones for nonterminal
                        states and zeros for terminal states
             rewards: A tensor that contains the reward for the action
@@ -171,6 +155,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
             qvalues = self.target_qmodel(next_states, training=False)
             qvalues = tf.squeeze(tf.gather(qvalues, actions[:, tf.newaxis],
                                            axis=-1, batch_dims=1))
+            actions = tf.one_hot(actions, self.action_size,
+                                 dtype=qvalues.dtype)
         else:
             qvalues = self.target_qmodel(next_states, training=False)
             qvalues = tf.reduce_max(qvalues, axis=-1)
@@ -182,9 +168,11 @@ class DQNPGAgent(DQNAgent, PGAgent):
                 reg_loss = tf.math.add_n(self.qmodel.losses)
             else:
                 reg_loss = 0
-            y_true = (y_pred * (1 - action_onehots) +
-                      qvalues[:, tf.newaxis] * action_onehots)
-            loss = self.qmodel.loss_functions[0](y_true, y_pred) + reg_loss
+            y_true = (y_pred * (1 - actions) +
+                      qvalues[:, tf.newaxis] * actions)
+            loss = self.qmodel.compiled_loss._losses[0].fn(
+                y_true, y_pred
+            ) + reg_loss
         grads = tape.gradient(loss, self.qmodel.trainable_variables)
         self.qmodel.optimizer.apply_gradients(
             zip(grads, self.qmodel.trainable_variables)
@@ -198,8 +186,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
             # log_softmax may be more stable, but in practice
             # seems to give worse results
             log_probs = tf.reduce_sum(
-                action_onehots *
-                tf.math.log(y_pred + tf.keras.backend.epsilon()), axis=1
+                actions *
+                tf.math.log(y_pred + keras.backend.epsilon()), axis=1
             )
             loss = -tf.reduce_mean(drewards * log_probs)
         grads = tape.gradient(loss, self.amodel.trainable_variables)
@@ -210,15 +198,16 @@ class DQNPGAgent(DQNAgent, PGAgent):
 
         return abs_loss
 
-    def _train(self, states, next_states, action_onehots, terminals,
+    def _train(self, states, next_states, actions, terminals,
                rewards, drewards, epochs, batch_size, verbose=True):
         """Performs multiple gradient steps of all the data.
-        params:
+
+        Args:
             states: A numpy array that contains environment states
             next_states: A numpy array that contains the states of
                          the environment after an action was performed
-            action_onehots: A numpy array that contains onehot encodings of
-                            the action performed
+            actions: A numpy array that contains onehot encodings of
+                     the action performed
             terminals: A numpy array that contains ones for nonterminal
                        states and zeros for terminal states
             rewards: A numpy array that contains the reward for the action
@@ -231,15 +220,17 @@ class DQNPGAgent(DQNAgent, PGAgent):
                         each partial gradient step
             verbose: A boolean, which determines if information should
                      be printed to the screen
-        return: A list of floats, which are the absolute losses for all
+
+        Returns:
+            A list of floats, which are the absolute losses for all
                 the data
         """
         length = states.shape[0]
-        float_type = tf.keras.backend.floatx()
+        float_type = keras.backend.floatx()
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              next_states.astype(float_type),
-             action_onehots.astype(float_type),
+             actions.astype(float_type),
              terminals.astype(float_type),
              rewards.astype(float_type),
              drewards.astype(float_type))
@@ -271,7 +262,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
               epochs=1, repeat=1,
               target_update_interval=1, tau=1.0, verbose=True):
         """Trains the agent on a sample of its experiences.
-        params:
+
+        Args:
             batch_size: An integer, which is the size of each batch
                         within the mini-batch during one training instance
             mini_batch: An integer, which is the entire batch size for
@@ -292,6 +284,8 @@ class DQNPGAgent(DQNAgent, PGAgent):
                      should be verbose (print information to the screen)
         """
         self.total_steps += 1
+        if batch_size is None:
+            batch_size = len(self.states)
         if mini_batch > 0 and len(self.states) > mini_batch:
             length = mini_batch
         else:
@@ -300,60 +294,40 @@ class DQNPGAgent(DQNAgent, PGAgent):
         for count in range(1, repeat+1):
             if verbose:
                 print(f'Repeat {count}/{repeat}')
-            if self.PER_losses is None:
-                indexes = np.random.choice(np.arange(len(self.states)),
-                                           size=length, replace=False)
-            else:
-                PER_losses_arr = self.PER_losses.array()
-                self.max_loss = PER_losses_arr.max()
-                PER_losses_arr = PER_losses_arr / PER_losses_arr.sum()
-                indexes = np.random.choice(np.arange(len(self.states)),
-                                           size=length, replace=False,
-                                           p=PER_losses_arr)
-            if length >= 10000:  # depends on cpu and other factors
-                next_states_arr = self.next_states.array()[indexes]
-                states_arr = self.states.array()[indexes]
-                action_onehots = self.action_identity[
-                    self.actions.array()[indexes]
-                ]
-                rewards_arr = self.rewards.array()[indexes]
-                drewards_arr = self.drewards.array()[indexes]
-                terminals_arr = self.terminals.array()[indexes]
-            else:
-                next_states_arr = np.empty((length, *self.states[0].shape))
-                states_arr = np.empty((length, *self.states[0].shape))
-                action_onehots = np.empty((length, self.action_shape[0]))
-                rewards_arr = np.empty(length)
-                drewards_arr = np.empty(length)
-                terminals_arr = np.empty(length)
-                for ndx, rndx in enumerate(indexes):
-                    states_arr[ndx] = self.states[rndx]
-                    next_states_arr[ndx] = self.next_states[rndx]
-                    action_onehots[ndx] = self.action_identity[
-                        self.actions[rndx]
-                    ]
-                    rewards_arr[ndx] = self.rewards[rndx]
-                    drewards_arr[ndx] = self.drewards[rndx]
-                    terminals_arr[ndx] = self.terminals[rndx]
 
-            std = drewards_arr.std()
+            if self.per_losses is None:
+                arrays, indexes = self.states.create_shuffled_subset(
+                    [self.states, self.next_states, self.actions,
+                     self.terminals, self.rewards, self.drewards],
+                    length
+                )
+            else:
+                per_losses = self.per_losses.array()
+                self.max_loss = per_losses.max()
+                per_losses = per_losses / per_losses.sum()
+                arrays, indexes = self.states.create_shuffled_subset(
+                    [self.states, self.next_states, self.actions,
+                     self.terminals, self.rewards, self.drewards],
+                    length, weights=per_losses
+                )
+
+            std = arrays[-1].std()
             if std == 0:
                 return False
-            drewards_arr = (drewards_arr - drewards_arr.mean()) / std
-
-            losses = self._train(states_arr, next_states_arr, action_onehots,
-                                 terminals_arr, rewards_arr, drewards_arr,
-                                 epochs, batch_size, verbose=verbose)
-            if self.PER_losses is not None:
+            arrays[-1] = (arrays[-1] - arrays[-1].mean()) / std
+            losses = self._train(*arrays, epochs, batch_size, verbose=verbose)
+            if self.per_losses is not None:
                 for ndx, loss in zip(indexes, losses):
-                    self.PER_losses[ndx] = loss
+                    self.per_losses[ndx] = loss
+
             if (self.enable_target
                     and self.total_steps % target_update_interval == 0):
                 self.update_target(tau)
 
     def load(self, path, load_model=True, load_data=True, custom_objects=None):
         """Loads a save from a folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to load
             load_model: A boolean, which determines if the model
                         architectures and weights
@@ -362,40 +336,25 @@ class DQNPGAgent(DQNAgent, PGAgent):
                        from a folder should be loaded
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
+
+        Returns:
+            A string of note.txt
         """
-        DQNAgent.load(self, path, load_model=load_model, load_data=False)
+        note = DQNAgent.load(
+            self, path, load_model=load_model, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'amodel.json'), 'r') as file:
                 self.amodel = model_from_json(
                     file.read(), custom_objects=custom_objects
                 )
             self.amodel.load_weights(os.path.join(path, 'aweights.h5'))
-        if load_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:
-                for state in file['states']:
-                    self.states.add(state)
-                for new_state in file['next_states']:
-                    self.next_states.add(new_state)
-                for action in file['actions']:
-                    self.actions.add(action)
-                for reward in file['rewards']:
-                    self.rewards.add(reward)
-                for dreward in file['drewards']:
-                    self.drewards.add(dreward)
-                for terminal in file['terminals']:
-                    self.terminals.add(terminal)
-                if self.PER_losses is not None:
-                    if 'PER_losses' in file:
-                        for loss in file['PER_losses']:
-                            self.PER_losses.add(loss)
-                    else:
-                        for _ in range(len(self.states)):
-                            self.PER_losses.add(self.max_loss)
+        return note
 
     def save(self, path, save_model=True,
              save_data=True, note='DQNPGAgent Save'):
         """Saves a note, model weights, and memory to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             save_model: A boolean, which determines if the model
                         architectures and weights
@@ -403,27 +362,16 @@ class DQNPGAgent(DQNAgent, PGAgent):
             save_data: A boolean, which determines if the memory
                        should be saved
             note: A string, which is a note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         path = DQNAgent.save(self, path, save_model=save_model,
-                             save_data=False, note=note)
+                             save_data=save_data, note=note)
         if save_model:
             with open(os.path.join(path, 'amodel.json'), 'w') as file:
                 file.write(self.amodel.to_json())
             self.amodel.save_weights(os.path.join(path, 'aweights.h5'))
-        if save_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'w') as file:
-                file.create_dataset('states', data=self.states.array())
-                file.create_dataset('next_states',
-                                    data=self.next_states.array())
-                file.create_dataset('actions', data=self.actions.array())
-                file.create_dataset('rewards', data=self.rewards.array())
-                file.create_dataset('drewards', data=self.drewards.array())
-                file.create_dataset('terminals', data=self.terminals.array())
-                if self.PER_losses is not None:
-                    file.create_dataset(
-                        'PER_losses', data=self.PER_losses.array()
-                    )
         return path
 
 
@@ -435,9 +383,10 @@ class A2CAgent(PGAgent):
     """
 
     def __init__(self, amodel, cmodel, discounted_rate,
-                 lambda_rate=0, create_memory=lambda: Memory()):
+                 lambda_rate=0, create_memory=lambda shape, dtype: Memory()):
         """Initalizes the Policy Gradient Agent.
-        params:
+
+        Args:
             amodel: A keras model, which takes the state as input and outputs
                     actions (regularization losses are not applied,
                     and compiled loss are not used)
@@ -451,30 +400,38 @@ class A2CAgent(PGAgent):
             create_memory: A function, which returns a Memory instance
         """
         PGAgent.__init__(self, amodel, discounted_rate,
-                         create_memory=create_memory,
-                         policy=None)
+                         create_memory=create_memory)
         self.cmodel = cmodel
+        self.cmodel.compiled_loss.build(
+            tf.zeros(self.cmodel.output_shape[1:])
+        )
         self.lambda_rate = lambda_rate
-        self.temp_rewards = create_memory()
-        self.terminals = create_memory()
-        self.metric_c = tf.keras.metrics.Mean(name='critic_loss')
+        if lambda_rate != 0:
+            self.terminals = create_memory((None,),
+                                           keras.backend.floatx())
+            self.rewards = create_memory((None,),
+                                         keras.backend.floatx())
+            self.memory['terminals'] = self.terminals
+            self.memory['rewards'] = self.rewards
+        self.metric_c = keras.metrics.Mean(name='critic_loss')
         self._tf_train_step = tf.function(
             self._train_step,
             input_signature=(tf.TensorSpec(shape=self.amodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None, None),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(),
-                                           dtype=tf.keras.backend.floatx()))
+                                           dtype=keras.backend.floatx()))
         )
 
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state of the environment before the
                    action was performed
@@ -488,57 +445,54 @@ class A2CAgent(PGAgent):
                       add memory is the last for the episode
         """
         self.states.add(np.array(state))
-        self.actions.add(action)
-        self.temp_rewards.add(reward)
+        self.actions.add(self.action_identity[action])
+        self.episode_rewards.append(reward)
         if self.lambda_rate > 0:
             self.terminals.add(terminal)
             self.rewards.add(reward)
-
-    def forget(self):
-        """Forgets or clears all memory."""
-        PGAgent.forget(self)
-        self.temp_rewards.reset()
-        self.terminals.reset()
 
     def end_episode(self):
         """Ends the episode, and creates drewards based
            on the episodes rewards.
         """
-        if len(self.temp_rewards) > 0:
+        if len(self.episode_rewards) > 0:
             dreward = 0
             dreward_list = []
-            # hacky, assuming memory works with reversed
-            for reward in reversed(self.temp_rewards.buffer):
+            for reward in reversed(self.episode_rewards):
                 dreward *= self.discounted_rate
                 dreward += reward
                 dreward_list.append(dreward)
-            self.temp_rewards.reset()
+            self.episode_rewards.clear()
             for dreward in reversed(dreward_list):
                 self.drewards.add(dreward)
             if self.lambda_rate > 0:
                 self.terminals[-1] = True
 
+        MemoryAgent.end_episode(self)
+
     def _train_step(self, states, drewards, advantages,
-                    action_onehots, entropy_coef):
+                    actions, entropy_coef):
         """Performs one gradient step with a batch of data.
-        params:
+
+        Args:
             states: A tensor that contains environment states
             drewards: A tensor that contains the discounted reward
                       for the action performed in the environment
             advantages: A tensor, which if valid (lambda_rate > 0) contains
                         advantages for the actions performed
-            action_onehots: A tensor that contains onehot encodings of
-                            the action performed
+            actions: A tensor that contains onehot encodings of
+                     the action performed
             entropy_coef: A float, which is the coefficent of entropy to add
                           to the actor loss
         """
         with tf.GradientTape() as tape:
-            value_pred = tf.reshape(self.cmodel(states, training=True), [-1])
+            value_pred = tf.squeeze(self.cmodel(states, training=True))
             if len(self.cmodel.losses) > 0:
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss = self.cmodel.loss_functions[0](drewards, value_pred)
+            loss = self.cmodel.compiled_loss._losses[0].fn(drewards,
+                                                           value_pred)
             loss = loss + reg_loss
         grads = tape.gradient(loss, self.cmodel.trainable_variables)
         self.cmodel.optimizer.apply_gradients(
@@ -548,19 +502,17 @@ class A2CAgent(PGAgent):
 
         with tf.GradientTape() as tape:
             action_pred = self.amodel(states, training=True)
-            # log_softmax may be mathematically correct, but in practice
-            # seems to give worse results
+            log_action_pred = tf.math.log(
+                action_pred + keras.backend.epsilon()
+            )
             log_probs = tf.reduce_sum(
-                action_onehots *
-                tf.math.log(action_pred + tf.keras.backend.epsilon()), axis=1
+                actions * log_action_pred, axis=1
             )
             if self.lambda_rate == 0:
                 advantages = (drewards - value_pred)
             loss = -tf.reduce_mean(advantages * log_probs)
             entropy = tf.reduce_sum(
-                action_pred *
-                tf.math.log(action_pred + tf.keras.backend.epsilon()),
-                axis=1
+                action_pred * log_action_pred, axis=1
             )
             loss += tf.reduce_mean(entropy) * entropy_coef
         grads = tape.gradient(loss, self.amodel.trainable_variables)
@@ -569,17 +521,18 @@ class A2CAgent(PGAgent):
         )
         self.metric(loss)
 
-    def _train(self, states, drewards, advantages, action_onehots,
+    def _train(self, states, drewards, advantages, actions,
                epochs, batch_size, entropy_coef, verbose=True):
         """Performs multiple gradient steps of all the data.
-        params:
+
+        Args:
             states: A numpy array that contains environment states
             drewards: A numpy array that contains the discounted rewards
                       for the actions performed in the environment
             advantages: A numpy array, which if valid (lambda_rate > 0)
                         contains advantages for the actions performed
-            action_onehots: A numpy array that contains onehot encodings of
-                            the action performed
+            actions: A numpy array that contains onehot encodings of
+                     the action performed
             epochs: An integer, which is the number of complete gradient
                     steps to perform
             batch_size: An integer, which is the size of the batch for
@@ -588,15 +541,17 @@ class A2CAgent(PGAgent):
                           to the actor loss
             verbose: A boolean, which determines if information should
                      be printed to the screen
-        return: A float, which is the mean critic loss of the batches
+
+        Returns:
+            A float, which is the mean critic loss of the batches
         """
         length = states.shape[0]
-        float_type = tf.keras.backend.floatx()
+        float_type = keras.backend.floatx()
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              drewards.astype(float_type),
              advantages.astype(float_type),
-             action_onehots.astype(float_type))
+             actions.astype(float_type))
         ).batch(batch_size)
         entropy_coef = tf.constant(entropy_coef,
                                    dtype=float_type)
@@ -622,7 +577,8 @@ class A2CAgent(PGAgent):
     def learn(self, batch_size=None, mini_batch=0,
               epochs=1, repeat=1, entropy_coef=0, verbose=True):
         """Trains the agent on a sample of its experiences.
-        params:
+
+        Args:
             batch_size: An integer, which is the size of each batch
                         within the mini_batch during one training instance
             mini_batch: An integer, which is the entire batch size for
@@ -637,6 +593,8 @@ class A2CAgent(PGAgent):
             verbose: A boolean, which determines if training
                      should be verbose (print information to the screen)
         """
+        if batch_size is None:
+            batch_size = len(self.states)
         if mini_batch > 0 and len(self.states) > mini_batch:
             length = mini_batch
         else:
@@ -650,8 +608,8 @@ class A2CAgent(PGAgent):
                 advantages_arr = np.empty(length)
             else:
                 # cmodel predict on batches if large?
-                values = tf.reshape(
-                    self.cmodel(self.states.array()), [-1]
+                values = tf.squeeze(
+                    self.cmodel(self.states.array())
                 ).numpy()
                 advantages = np.empty(len(self.rewards))
                 for ndx in reversed(range(len(self.rewards))):
@@ -664,49 +622,30 @@ class A2CAgent(PGAgent):
                                  self.lambda_rate * advantage)
                     advantages[ndx] = advantage
 
-            indexes = np.random.choice(np.arange(len(self.states)),
-                                       size=length, replace=False)
-            if length >= 20000:  # depends on cpu and other factors
-                states_arr = self.states.array()[indexes]
-                action_onehots = self.action_identity[
-                    self.actions.array()[indexes]
-                ]
-                drewards_arr = self.drewards.array()[indexes]
-                if self.lambda_rate > 0:
-                    advantages_arr = advantages[indexes]
-            else:
-                states_arr = np.empty((length, *self.states[0].shape))
-                action_onehots = np.empty((length, self.action_shape[0]))
-                drewards_arr = np.empty(length)
-                if self.lambda_rate > 0:
-                    advantages_arr = np.empty(length)
-                for ndx in range(length):
-                    states_arr[ndx] = self.states[indexes[ndx]]
-                    action_onehots[ndx] = self.action_identity[
-                        self.actions[indexes[ndx]]
-                    ]
-                    drewards_arr[ndx] = self.drewards[indexes[ndx]]
-                    if self.lambda_rate > 0:
-                        advantages_arr[ndx] = advantages[indexes[ndx]]
+            arrays, indexes = self.states.create_shuffled_subset(
+                [self.states, self.drewards, self.actions], length
+            )
 
             if self.lambda_rate == 0:
-                std = drewards_arr.std()
+                arrays = [arrays[0], arrays[1], advantages_arr, arrays[2]]
+                std = arrays[1].std()
                 if std == 0:
                     return False
-                drewards_arr = (drewards_arr - drewards_arr.mean()) / std
+                arrays[1] = (arrays[1] - arrays[1].mean()) / std
             else:
-                std = advantages_arr.std()
+                arrays = [arrays[0], arrays[1], advantages[indexes], arrays[2]]
+                std = arrays[2].std()
                 if std == 0:
                     return False
-                advantages_arr = (advantages_arr - advantages_arr.mean()) / std
+                arrays[2] = (arrays[2] - arrays[2].mean()) / std
 
-            self._train(states_arr, drewards_arr, advantages_arr,
-                        action_onehots, epochs, batch_size, entropy_coef,
-                        verbose=verbose)
+            self._train(*arrays, epochs, batch_size,
+                        entropy_coef, verbose=verbose)
 
     def load(self, path, load_model=True, load_data=True, custom_objects=None):
         """Loads a save from a folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to load
             load_model: A boolean, which determines if the model
                         architectures and weights
@@ -715,32 +654,25 @@ class A2CAgent(PGAgent):
                        from a folder should be loaded
             custom_objects: A dictionary mapping to custom classes
                             or functions for loading the model
+
+        Returns:
+            A string of note.txt
         """
-        PGAgent.load(self, path, load_model=load_model, load_data=False)
+        note = PGAgent.load(
+            self, path, load_model=load_model, load_data=load_data)
         if load_model:
             with open(os.path.join(path, 'cmodel.json'), 'r') as file:
-                self.amodel = model_from_json(
+                self.cmodel = model_from_json(
                     file.read(), custom_objects=custom_objects
                 )
             self.cmodel.load_weights(os.path.join(path, 'cweights.h5'))
-        if load_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:
-                for state in file['states']:
-                    self.states.add(state)
-                for action in file['actions']:
-                    self.actions.add(action)
-                for dreward in file['drewards']:
-                    self.drewards.add(dreward)
-                if self.lambda_rate > 0:
-                    for reward in file['rewards']:
-                        self.rewards.add(reward)
-                    for terminal in file['terminals']:
-                        self.terminals.add(terminal)
+        return note
 
     def save(self, path, save_model=True,
              save_data=True, note='A2CAgent Save'):
         """Saves a note, models, weights, and memory to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             save_model: A boolean, which determines if the model
                         architectures and weights
@@ -748,23 +680,16 @@ class A2CAgent(PGAgent):
             save_data: A boolean, which determines if the memory
                        should be saved
             note: A string, which is a note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         path = PGAgent.save(self, path, save_model=save_model,
-                            save_data=False, note=note)
+                            save_data=save_data, note=note)
         if save_model:
             with open(os.path.join(path, 'cmodel.json'), 'w') as file:
                 file.write(self.cmodel.to_json())
             self.cmodel.save_weights(os.path.join(path, 'cweights.h5'))
-        if save_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'w') as file:
-                file.create_dataset('states', data=self.states.array())
-                file.create_dataset('actions', data=self.actions.array())
-                file.create_dataset('drewards', data=self.drewards.array())
-                if self.lambda_rate > 0:
-                    file.create_dataset('rewards', data=self.rewards.array())
-                    file.create_dataset('terminals',
-                                        data=self.terminals.array())
         return path
 
 
@@ -776,9 +701,10 @@ class PPOAgent(A2CAgent):
 
     def __init__(self, amodel, cmodel, discounted_rate,
                  lambda_rate=0, clip_ratio=.2,
-                 create_memory=lambda: Memory()):
+                 create_memory=lambda shape, dtype: Memory()):
         """Initalizes the Policy Gradient Agent.
-        params:
+
+        Args:
             amodel: A keras model, which takes the state as input and outputs
                     actions (regularization losses are not applied,
                     and compiled loss are not used)
@@ -793,49 +719,62 @@ class PPOAgent(A2CAgent):
                         between new and old action probabilities
             create_memory: A function, which returns a Memory instance
         """
-        print('WARNING: This implementation may be incorrect.')
         A2CAgent.__init__(self, amodel, cmodel, discounted_rate,
                           lambda_rate=lambda_rate,
                           create_memory=create_memory)
         self.clip_ratio = clip_ratio
-        self.old_probs = create_memory()
+        self.old_probs = create_memory((None,),
+                                       keras.backend.floatx())
+        self.memory['old_probs'] = self.old_probs
         self.prob = None
         self._tf_train_step = tf.function(
             self._train_step,
             input_signature=(tf.TensorSpec(shape=self.amodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None, None),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(),
-                                           dtype=tf.keras.backend.floatx()))
+                                           dtype=keras.backend.floatx()))
         )
 
     def select_action(self, state, training=False):
         """Returns the action the Agent "believes" to be
            suited for the given state.
-        params:
+
+        Args:
             state: A value, which is the state to predict
                    the action for
             training: A boolean, which determines if the
                       agent is training
-        return: A value, which is the selected action
+
+        Returns:
+            A value, which is the selected action
         """
+        if (self.time_distributed_states is not None
+                and state.shape == self.amodel.input_shape[2:]):
+            self.time_distributed_states = np.roll(
+                self.time_distributed_states, -1
+            )
+            self.time_distributed_states[-1] = state
+            state = self.time_distributed_states
+
         actions = self.amodel(np.expand_dims(state, axis=0),
                               training=False)[0].numpy()
-        action = np.random.choice(np.arange(self.action_shape[0]),
+        action = np.random.choice(np.arange(self.action_size),
                                   p=actions)
         self.prob = actions[action]
         return action
 
     def add_memory(self, state, action, new_state, reward, terminal):
         """Adds information from one step in the environment to the agent.
-        params:
+
+        Args:
             state: A value or list of values, which is the
                    state of the environment before the
                    action was performed
@@ -851,46 +790,45 @@ class PPOAgent(A2CAgent):
         """
         A2CAgent.add_memory(self, state, action, new_state, reward, terminal)
         if self.prob is None:
-            actions = self.amodel(np.expand_dims(state, axis=0),
-                                  training=False)[0].numpy()
-            prob = actions[action]
-            self.old_probs.add(prob)
+            # actions = self.amodel(np.expand_dims(state, axis=0),
+            #                       training=False)[0].numpy()
+            # prob = actions[action]
+            # self.old_probs.add(prob)
 
             # Assuming a uniform distribution
-            # self.old_probs.add(1 / self.action_shape[0])
+            self.old_probs.add(1 / self.action_size)
         else:
             self.old_probs.add(self.prob)
             self.prob = None
 
-    def forget(self):
-        """Forgets or clears all memory."""
-        A2CAgent.forget(self)
-        self.old_probs.forget()
-
-    def _train_step(self, states, drewards, advantages, action_onehots,
+    def _train_step(self, states, drewards, advantages, actions,
                     old_probs, entropy_coef):
         """Performs one gradient step with a batch of data.
-        params:
+
+        Args:
             states: A tensor that contains environment states
             drewards: A tensor that contains the discounted reward
                       for the action performed in the environment
             advantages: A tensor, which if valid (lambda_rate > 0) contains
                         advantages for the actions performed
-            action_onehots: A tensor that contains onehot encodings of
-                            the action performed
+            actions: A tensor that contains onehot encodings of
+                     the action performed
             old_probs: A tensor of the old probs
             entropy_coef: A tensor constant float, which is the
                           coefficent of entropy to add to the
                           actor loss
-        return: A tensor of the new probs
+
+        Returns:
+            A tensor of the new probs
         """
         with tf.GradientTape() as tape:
-            value_pred = tf.reshape(self.cmodel(states, training=True), [-1])
+            value_pred = tf.squeeze(self.cmodel(states, training=True))
             if len(self.cmodel.losses) > 0:
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss = self.cmodel.loss_functions[0](drewards, value_pred)
+            loss = self.cmodel.compiled_loss._losses[0].fn(drewards,
+                                                           value_pred)
             loss = loss + reg_loss
         grads = tape.gradient(loss, self.cmodel.trainable_variables)
         self.cmodel.optimizer.apply_gradients(
@@ -900,8 +838,8 @@ class PPOAgent(A2CAgent):
 
         with tf.GradientTape() as tape:
             action_pred = self.amodel(states, training=True)
-            probs = tf.reduce_sum(action_onehots * action_pred, axis=1)
-            ratio = probs / (old_probs + tf.keras.backend.epsilon())
+            probs = tf.reduce_sum(actions * action_pred, axis=1)
+            ratio = probs / (old_probs + keras.backend.epsilon())
             clipped_ratio = tf.clip_by_value(ratio, 1.0 - self.clip_ratio,
                                              1.0 + self.clip_ratio)
             if self.lambda_rate == 0:
@@ -911,7 +849,7 @@ class PPOAgent(A2CAgent):
             )
             entropy = tf.reduce_sum(
                 action_pred *
-                tf.math.log(action_pred + tf.keras.backend.epsilon()),
+                tf.math.log(action_pred + keras.backend.epsilon()),
                 axis=1
             )
             loss += tf.reduce_mean(entropy) * entropy_coef
@@ -923,18 +861,19 @@ class PPOAgent(A2CAgent):
         self.metric(loss)
         return probs
 
-    def _train(self, states, drewards, advantages, action_onehots,
+    def _train(self, states, drewards, advantages, actions,
                old_probs, epochs, batch_size, entropy_coef,
                verbose=True):
         """Performs multiple gradient steps of all the data.
-        params:
+
+        Args:
             states: A numpy array that contains environment states
             drewards: A numpy array that contains the discounted reward
                       for the action performed in the environment
             advantages: A numpy array, which if valid (lambda_rate > 0)
                         contains advantages for the actions performed
-            action_onehots: A numpy array that contains onehot encodings of
-                            the action performed
+            actions: A numpy array that contains onehot encodings of
+                     the action performed
             old_probs: A numpy array of the old probs
             epochs: An integer, which is the number of complete gradient
                     steps to perform
@@ -944,16 +883,18 @@ class PPOAgent(A2CAgent):
                           to the actor loss
             verbose: A boolean, which determines if information should
                      be printed to the screen
-        return: A tuple of a float (mean critic loss of the batches) and
+
+        Returns:
+            A tuple of a float (mean critic loss of the batches) and
                 a numpy ndarray of probs
         """
         length = states.shape[0]
-        float_type = tf.keras.backend.floatx()
+        float_type = keras.backend.floatx()
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              drewards.astype(float_type),
              advantages.astype(float_type),
-             action_onehots.astype(float_type),
+             actions.astype(float_type),
              old_probs.astype(float_type))
         ).batch(batch_size)
         entropy_coef = tf.constant(entropy_coef,
@@ -985,7 +926,8 @@ class PPOAgent(A2CAgent):
     def learn(self, batch_size=None, mini_batch=0,
               epochs=1, repeat=1, entropy_coef=0, verbose=True):
         """Trains the agent on a sample of its experiences.
-        params:
+
+        Args:
             batch_size: An integer, which is the size of each batch
                         within the mini_batch during one training instance
             mini_batch: An integer, which is the entire batch size for
@@ -1000,6 +942,8 @@ class PPOAgent(A2CAgent):
             verbose: A boolean, which determines if training
                      should be verbose (print information to the screen)
         """
+        if batch_size is None:
+            batch_size = len(self.states)
         if mini_batch > 0 and len(self.states) > mini_batch:
             length = mini_batch
         else:
@@ -1013,8 +957,8 @@ class PPOAgent(A2CAgent):
                 advantages_arr = np.empty(length)
             else:
                 # cmodel predict on batches if large?
-                values = tf.reshape(
-                    self.cmodel(self.states.array()), [-1]
+                values = tf.squeeze(
+                    self.cmodel(self.states.array())
                 ).numpy()
                 advantages = np.empty(len(self.rewards))
                 for ndx in reversed(range(len(self.rewards))):
@@ -1027,84 +971,36 @@ class PPOAgent(A2CAgent):
                                  self.lambda_rate * advantage)
                     advantages[ndx] = advantage
 
-            indexes = np.random.choice(np.arange(len(self.states)),
-                                       size=length, replace=False)
-            if length >= 15000:  # depends on cpu and other factors
-                states_arr = self.states.array()[indexes]
-                action_onehots = self.action_identity[
-                    self.actions.array()[indexes]
-                ]
-                drewards_arr = self.drewards.array()[indexes]
-                old_probs_arr = self.old_probs.array()[indexes]
-                if self.lambda_rate > 0:
-                    advantages_arr = advantages[indexes]
-            else:
-                states_arr = np.empty((length, *self.states[0].shape))
-                action_onehots = np.empty((length, self.action_shape[0]))
-                drewards_arr = np.empty(length)
-                if self.lambda_rate > 0:
-                    advantages_arr = np.empty(length)
-                old_probs_arr = np.empty(length)
-                for ndx in range(length):
-                    states_arr[ndx] = self.states[indexes[ndx]]
-                    action_onehots[ndx] = self.action_identity[
-                        self.actions[indexes[ndx]]
-                    ]
-                    drewards_arr[ndx] = self.drewards[indexes[ndx]]
-                    if self.lambda_rate > 0:
-                        advantages_arr[ndx] = advantages[indexes[ndx]]
-                    old_probs_arr[ndx] = self.old_probs[indexes[ndx]]
+            arrays, indexes = self.states.create_shuffled_subset(
+                [self.states, self.drewards, self.actions, self.old_probs],
+                length
+            )
 
             if self.lambda_rate == 0:
-                std = drewards_arr.std()
+                arrays = [arrays[0], arrays[1], advantages_arr,
+                          arrays[2], arrays[3]]
+                std = arrays[1].std()
                 if std == 0:
                     return False
-                drewards_arr = (drewards_arr - drewards_arr.mean()) / std
+                arrays[1] = (arrays[1] - arrays[1].mean()) / std
             else:
-                std = advantages_arr.std()
+                arrays = [arrays[0], arrays[1], advantages[indexes],
+                          arrays[2], arrays[3]]
+                std = arrays[2].std()
                 if std == 0:
                     return False
-                advantages_arr = (advantages_arr - advantages_arr.mean()) / std
+                arrays[2] = (arrays[2] - arrays[2].mean()) / std
 
-            loss, new_probs = self._train(
-                states_arr, drewards_arr, advantages_arr, action_onehots,
-                old_probs_arr, epochs, batch_size, entropy_coef,
-                verbose=verbose
-            )
+            loss, new_probs = self._train(*arrays, epochs, batch_size,
+                                          entropy_coef, verbose=verbose)
             for ndx in range(length):
                 self.old_probs[indexes[ndx]] = new_probs[ndx]
-
-    def load(self, path, load_model=True, load_data=True):
-        """Loads a save from a folder.
-        params:
-            path: A string, which is the path to a folder to load
-            load_model: A boolean, which determines if the model
-                        architectures and weights
-                        should be loaded
-            load_data: A boolean, which determines if the memory
-                       from a folder should be loaded
-        """
-        A2CAgent.load(self, path, load_model=load_model, load_data=False)
-        if load_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'r') as file:
-                for state in file['states']:
-                    self.states.add(state)
-                for action in file['actions']:
-                    self.actions.add(action)
-                for dreward in file['drewards']:
-                    self.drewards.add(dreward)
-                for old_prob in file['old_probs']:
-                    self.old_probs.add(old_prob)
-                if self.lambda_rate > 0:
-                    for reward in file['rewards']:
-                        self.rewards.add(reward)
-                    for terminal in file['terminals']:
-                        self.terminals.add(terminal)
 
     def save(self, path, save_model=True,
              save_data=True, note='PPOAgent Save'):
         """Saves a note, models, weights, and memory to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             save_model: A boolean, which determines if the model
                         architectures and weights
@@ -1112,47 +1008,13 @@ class PPOAgent(A2CAgent):
             save_data: A boolean, which determines if the memory
                        should be saved
             note: A string, which is a note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         path = A2CAgent.save(self, path, save_model=save_model,
-                             save_data=False, note=note)
-        if save_data:
-            with h5py.File(os.path.join(path, 'data.h5'), 'w') as file:
-                file.create_dataset('states', data=self.states.array())
-                file.create_dataset('actions', data=self.actions.array())
-                file.create_dataset('drewards', data=self.drewards.array())
-                file.create_dataset('old_probs',
-                                    data=self.old_probs.array())
-                if self.lambda_rate > 0:
-                    file.create_dataset('rewards', data=self.rewards.array())
-                    file.create_dataset('terminals',
-                                        data=self.terminals.array())
+                             save_data=save_data, note=note)
         return path
-
-
-class PGCAAgent(PGAgent):
-    """This class is a PGAgent adapted for continuous action spaces."""
-
-    def __init__(self, amodel, discounted_rate, max_action,
-                 create_memory=lambda: Memory(),
-                 policy=None):
-        """Initalizes the Policy Gradient Agent.
-        params:
-            amodel: A keras model, which takes the state as input and outputs
-                    actions (regularization losses are not applied,
-                    and compiled loss are not used)
-            discounted_rate: A float within 0.0-1.0, which is the rate that
-                             future rewards should be counted for the current
-                             reward
-            max_action: A float/integer, which is the max output of amodel
-            create_memory: A function, which returns a Memory instance
-        """
-        raise NotImplementedError('This Agent has not been '
-                                  'implemented in this version.')
-        PGAgent.__init__(self, amodel, discounted_rate,
-                         create_memory=create_memory,
-                         policy=None)
-        self.max_action = max_action
 
 
 class TD3Agent(DDPGAgent):
@@ -1163,9 +1025,10 @@ class TD3Agent(DDPGAgent):
     """
 
     def __init__(self, policy, amodel, cmodel, discounted_rate,
-                 create_memory=lambda: Memory()):
+                 create_memory=lambda shape, dtype: Memory()):
         """Initalizes the DDPG Agent.
-        params:
+
+        Args:
             policy: A noise policy instance, which used for exploring
             amodel: A keras model, which takes the state as input and outputs
                     actions (regularization losses are not applied,
@@ -1177,28 +1040,28 @@ class TD3Agent(DDPGAgent):
                              reward
             create_memory: A function, which returns a Memory instance
         """
-        if not isinstance(policy, NoisePolicy):
-            raise ValueError('The policy parameter must be a '
-                             'instance of NoisePolicy.')
         DDPGAgent.__init__(self, policy, amodel, cmodel, discounted_rate,
                            create_memory=create_memory,
                            enable_target=True)
+        coutput_shape = self.cmodel.output_shape
+        if not isinstance(coutput_shape, list) or len(coutput_shape) != 2:
+            raise ValueError('cmodel should have two outputs')
         self._tf_train_step = tf.function(
             self._train_step,
             input_signature=(tf.TensorSpec(shape=self.amodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=self.amodel.input_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=self.amodel.output_shape,
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(None,),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(),
-                                           dtype=tf.keras.backend.floatx()),
+                                           dtype=keras.backend.floatx()),
                              tf.TensorSpec(shape=(), dtype=tf.int32))
         )
         self.gradient_step_count = 0
@@ -1211,7 +1074,8 @@ class TD3Agent(DDPGAgent):
                          actor_update_infreq=2,
                          verbose=True):
         """Sets the playing data.
-        params:
+
+        Args:
             training: A boolean, which determines if the agent
                       should be treated as in a training mode
             memorizing: A boolean, which determines if the agent
@@ -1263,7 +1127,8 @@ class TD3Agent(DDPGAgent):
                     rewards, policy_noise_std, policy_noise_clip,
                     actor_update):
         """Performs one gradient step with a batch of data.
-        params:
+
+        Args:
             states: A tensor that contains environment states
             next_states: A tensor that contains the states of
                          the environment after an action was performed
@@ -1290,7 +1155,7 @@ class TD3Agent(DDPGAgent):
         next_qvalues1, next_qvalues2 = self.target_cmodel(
             [next_states, next_actions], training=False
         )
-        next_qvalues = tf.minimum(next_qvalues1, next_qvalues2)
+        next_qvalues = tf.squeeze(tf.minimum(next_qvalues1, next_qvalues2))
         qvalues_true = (rewards +
                         self.discounted_rate * next_qvalues * terminals)
         # Critic
@@ -1298,12 +1163,18 @@ class TD3Agent(DDPGAgent):
             qvalues_pred1, qvalues_pred2 = self.cmodel(
                 [states, actions], training=True
             )
+            qvalues_pred1 = tf.squeeze(qvalues_pred1)
+            qvalues_pred2 = tf.squeeze(qvalues_pred2)
             if len(self.cmodel.losses) > 0:
                 reg_loss = tf.math.add_n(self.cmodel.losses)
             else:
                 reg_loss = 0
-            loss1 = self.cmodel.loss_functions[0](qvalues_true, qvalues_pred1)
-            loss2 = self.cmodel.loss_functions[0](qvalues_true, qvalues_pred2)
+            loss1 = self.cmodel.compiled_loss._losses[0].fn(
+                qvalues_true, qvalues_pred1
+            )
+            loss2 = self.cmodel.compiled_loss._losses[0].fn(
+                qvalues_true, qvalues_pred2
+            )
             loss = tf.reduce_mean(loss1) + tf.reduce_mean(loss2) + reg_loss
         grads = tape.gradient(loss, self.cmodel.trainable_variables)
         self.cmodel.optimizer.apply_gradients(
@@ -1328,7 +1199,8 @@ class TD3Agent(DDPGAgent):
                epochs, batch_size, policy_noise_std, policy_noise_clip,
                actor_update_infreq, verbose=True):
         """Performs multiple gradient steps of all the data.
-        params:
+
+        Args:
             states: A numpy array that contains environment states
             next_states: A numpy array that contains the states of
                          the environment after an action was performed
@@ -1351,10 +1223,12 @@ class TD3Agent(DDPGAgent):
                                the actor is updated compared to the critic
             verbose: A boolean, which determines if information should
                      be printed to the screen
-        return: A float, which is the mean critic loss of the batches
+
+        Returns:
+            A float, which is the mean critic loss of the batches
         """
         length = states.shape[0]
-        float_type = tf.keras.backend.floatx()
+        float_type = keras.backend.floatx()
         batches = tf.data.Dataset.from_tensor_slices(
             (states.astype(float_type),
              next_states.astype(float_type),
@@ -1396,7 +1270,8 @@ class TD3Agent(DDPGAgent):
               tau=1.0, policy_noise_std=.2, policy_noise_clip=.5,
               actor_update_infreq=2, verbose=True):
         """Trains the agent on a sample of its experiences.
-        params:
+
+        Args:
             batch_size: An integer, which is the size of each batch
                         within the mini_batch during one training instance
             mini_batch: An integer, which is the entire batch size for
@@ -1421,11 +1296,13 @@ class TD3Agent(DDPGAgent):
                                the normal noise added to target actions
                                for gradient steps
             actor_update_infreq: An integer, which is the infrequency that
-                               the actor is updated compared to the critic
+                                 the actor is updated compared to the critic
             verbose: A boolean, which determines if training
                      should be verbose (print information to the screen)
         """
         self.total_steps += 1
+        if batch_size is None:
+            batch_size = len(self.states)
         if mini_batch > 0 and len(self.states) > mini_batch:
             length = mini_batch
         else:
@@ -1434,29 +1311,14 @@ class TD3Agent(DDPGAgent):
         for count in range(1, repeat+1):
             if verbose:
                 print(f'Repeat {count}/{repeat}')
-            indexes = np.random.choice(np.arange(len(self.states)),
-                                       size=length, replace=False)
-            if length >= 10000:  # depends on cpu and other factors
-                next_states_arr = self.next_states.array()[indexes]
-                states_arr = self.states.array()[indexes]
-                actions_arr = self.actions.array()[indexes]
-                rewards_arr = self.rewards.array()[indexes]
-                terminals_arr = self.terminals.array()[indexes]
-            else:
-                next_states_arr = np.empty((length, *self.states[0].shape))
-                states_arr = np.empty((length, *self.states[0].shape))
-                actions_arr = np.empty((length, *self.actions[0].shape))
-                rewards_arr = np.empty(length)
-                terminals_arr = np.empty(length)
-                for ndx, rndx in enumerate(indexes):
-                    states_arr[ndx] = self.states[rndx]
-                    next_states_arr[ndx] = self.next_states[rndx]
-                    actions_arr[ndx] = self.actions[rndx]
-                    rewards_arr[ndx] = self.rewards[rndx]
-                    terminals_arr[ndx] = self.terminals[rndx]
 
-            self._train(states_arr, next_states_arr, actions_arr,
-                        terminals_arr, rewards_arr, epochs, batch_size,
+            arrays, _ = self.states.create_shuffled_subset(
+                [self.states, self.next_states, self.actions,
+                 self.terminals, self.rewards],
+                length
+            )
+
+            self._train(*arrays, epochs, batch_size,
                         policy_noise_std, policy_noise_clip,
                         actor_update_infreq, verbose=verbose)
 
@@ -1465,9 +1327,10 @@ class TD3Agent(DDPGAgent):
                 self.update_target(tau)
 
     def save(self, path, save_model=True, save_data=True,
-             note='DDPGAgent Save'):
+             note='T3DAgent Save'):
         """Saves a note, weights of the models, and memory to a new folder.
-        params:
+
+        Args:
             path: A string, which is the path to a folder to save within
             save_model: A boolean, which determines if the model
                         architectures and weights
@@ -1475,7 +1338,210 @@ class TD3Agent(DDPGAgent):
             save_data: A boolean, which determines if the memory
                        should be saved
             note: A string, which is a note to save in the folder
-        return: A string, which is the complete path of the save
+
+        Returns:
+            A string, which is the complete path of the save
         """
         return DDPGAgent.save(self, path, save_model=save_model,
-                              save_data=save_data, note='T3DAgent Save')
+                              save_data=save_data, note=note)
+
+
+class Continuous:
+    """This interface is used for the continuous action space
+       variants of algorithms.
+    """
+
+    @staticmethod
+    def scale(lower_bound, upper_bound, name=None):
+        def _scale(x):
+            x = tf.multiply(x, upper_bound - lower_bound)
+            x = x + upper_bound + lower_bound
+            return tf.multiply(.5, x)
+        return _scale
+
+    @staticmethod
+    def sample(name=None):
+        def _sample(x):
+            mean, std = x
+            eps = tf.random.normal(tf.shape(mean))
+            action = eps * std + mean
+            return action
+        return _sample
+
+    @staticmethod
+    def clip(lower_bound, upper_bound, name=None):
+        def _clip(x):
+            return tf.clip_by_value(x, lower_bound, upper_bound)
+        return _clip
+
+
+class PGCAgent(PGAgent, Continuous):
+    """This class is a continuous action space variant of the PGAgent.
+    """
+
+    def __init__(self, amodel, discounted_rate,
+                 create_memory=lambda shape, dtype: Memory()):
+        """Initalizes the Policy Gradient Agent.
+
+        Args:
+            amodel: A keras model, which takes the state as input and outputs
+                    actions (regularization losses are not applied,
+                    and compiled loss are not used)
+            discounted_rate: A float within 0.0-1.0, which is the rate that
+                             future rewards should be counted for the current
+                             reward
+            create_memory: A function, which returns a Memory instance
+        """
+        if len(amodel.output_shape) != 3:
+            raise ValueError('The model must have three outputs: '
+                             'mean, stddev, and actions')
+        PGAgent.__init__(self, amodel, discounted_rate,
+                         create_memory=create_memory)
+
+    def add_memory(self, state, action, new_state, reward, terminal):
+        """Adds information from one step in the environment to the agent.
+
+        Args:
+            state: A value or list of values, which is the
+                   state of the environment before the
+                   action was performed
+            action: A value or list of values, which is the action
+                    the agent took
+            new_state: A value or list of values, which is the
+                       state of the environment after performing
+                       the action (discarded)
+            reward: A float, which is the evaluation of
+                    the action performed
+            terminal: A boolean, which determines if this call to
+                      add memory is the last for the episode
+                      (discarded)
+        """
+        self.states.add(np.array(state))
+        self.actions.add(action)
+        self.episode_rewards.append(reward)
+
+    def _train_step(self, states, drewards, actions, entropy_coef):
+        """Performs one gradient step with a batch of data.
+
+        Args:
+            states: A tensor that contains environment states
+            drewards: A tensor that contains the discounted reward
+                      for the action performed in the environment
+            actions: A tensor that contains onehot encodings of
+                     the action performed
+            entropy_coef: A tensor constant float, which is the
+                          coefficent of entropy to add to the
+                          actor loss
+        """
+        with tf.GradientTape() as tape:
+            locs, scales, _ = self.amodel(states, training=True)
+            normal = tfp.distributions.MultivariateNormalDiag(locs, scales)
+            probs = normal.prob(actions)
+            log_probs = tf.math.log(probs + keras.backend.epsilon())
+            loss = -tf.reduce_mean(drewards * log_probs)
+            entropy = tf.reduce_mean(probs * log_probs)
+            loss += entropy * entropy_coef
+        grads = tape.gradient(loss, self.amodel.trainable_variables)
+        self.amodel.optimizer.apply_gradients(
+            zip(grads, self.amodel.trainable_variables)
+        )
+        self.metric(loss)
+
+
+class A2CCAgent(A2CAgent, Continuous):
+    """This class is a continuous action space variant of the A2CAgent.
+    """
+
+    def __init__(self, amodel, cmodel, discounted_rate,
+                 lambda_rate=0, create_memory=lambda shape, dtype: Memory()):
+        """Initalizes the Policy Gradient Agent.
+
+        Args:
+            amodel: A keras model, which takes the state as input and outputs
+                    actions (regularization losses are not applied,
+                    and compiled loss are not used)
+            cmodel: A keras model, which takes the state as input and outputs
+                    the value of that state
+            discounted_rate: A float within 0.0-1.0, which is the rate that
+                             future rewards should be counted for the current
+                             reward
+            lambda_rate: A float within 0.0-1.0, which if nonzero will enable
+                         generalized advantage estimation
+            create_memory: A function, which returns a Memory instance
+        """
+        if len(amodel.output_shape) != 3:
+            raise ValueError('The model must have three outputs: '
+                             'mean, stddev, and actions')
+        A2CAgent.__init__(self, amodel, cmodel, discounted_rate,
+                          lambda_rate=lambda_rate,
+                          create_memory=create_memory)
+
+    def add_memory(self, state, action, new_state, reward, terminal):
+        """Adds information from one step in the environment to the agent.
+
+        Args:
+            state: A value or list of values, which is the
+                   state of the environment before the
+                   action was performed
+            action: A value or list of values, which is the action
+                    the agent took
+            new_state: A value or list of values, which is the
+                       state of the environment after performing
+                       the action
+            reward: A float/integer, which is the evaluation of
+                    the action performed
+            terminal: A boolean, which determines if this call to
+                      add memory is the last for the episode
+        """
+        self.states.add(np.array(state))
+        self.actions.add(action)
+        self.episode_rewards.append(reward)
+        if self.lambda_rate > 0:
+            self.terminals.add(terminal)
+            self.rewards.add(reward)
+
+    def _train_step(self, states, drewards, advantages,
+                    actions, entropy_coef):
+        """Performs one gradient step with a batch of data.
+
+        Args:
+            states: A tensor that contains environment states
+            drewards: A tensor that contains the discounted reward
+                      for the action performed in the environment
+            advantages: A tensor, which if valid (lambda_rate > 0) contains
+                        advantages for the actions performed
+            actions: A tensor that contains onehot encodings of
+                     the action performed
+            entropy_coef: A float, which is the coefficent of entropy to add
+                          to the actor loss
+        """
+        with tf.GradientTape() as tape:
+            value_pred = tf.squeeze(self.cmodel(states, training=True))
+            if len(self.cmodel.losses) > 0:
+                reg_loss = tf.math.add_n(self.cmodel.losses)
+            else:
+                reg_loss = 0
+            loss = self.cmodel.compiled_loss._losses[0].fn(drewards,
+                                                           value_pred)
+            loss = loss + reg_loss
+        grads = tape.gradient(loss, self.cmodel.trainable_variables)
+        self.cmodel.optimizer.apply_gradients(
+            zip(grads, self.cmodel.trainable_variables)
+        )
+        self.metric_c(loss)
+
+        with tf.GradientTape() as tape:
+            locs, scales, _ = self.amodel(states, training=True)
+            normal = tfp.distributions.MultivariateNormalDiag(locs, scales)
+            probs = normal.prob(actions)
+            log_probs = tf.math.log(probs + keras.backend.epsilon())
+            if self.lambda_rate == 0:
+                advantages = (drewards - value_pred)
+            loss = -tf.reduce_mean(advantages * log_probs)
+            entropy = tf.reduce_mean(probs * log_probs)
+            loss += entropy * entropy_coef
+        grads = tape.gradient(loss, self.amodel.trainable_variables)
+        self.amodel.optimizer.apply_gradients(
+            zip(grads, self.amodel.trainable_variables)
+        )
+        self.metric(loss)

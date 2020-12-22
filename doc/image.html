@@ -1,0 +1,4015 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>paiutils.image API documentation</title>
+<meta name="description" content="Author: Travis Hammond
+Version: 12_21_2020" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>paiutils.image</code></h1>
+</header>
+<section id="section-intro">
+<p>Author: Travis Hammond
+Version: 12_21_2020</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Author: Travis Hammond
+Version: 12_21_2020
+&#34;&#34;&#34;
+
+
+import cv2
+import numpy as np
+from time import sleep
+from threading import Thread, Event, Lock
+
+
+def rgb2bgr(image):
+    &#34;&#34;&#34;Converts a RGB image to a BGR image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+
+def bgr2rgb(image):
+    &#34;&#34;&#34;Converts a BGR image to a RGB image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+
+def bgr2hsv(image):
+    &#34;&#34;&#34;Converts a BGR image to a HSV image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+
+def hsv2bgr(image):
+    &#34;&#34;&#34;Converts a HSV image to a BGR image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
+
+
+def bgr2hls(image):
+    &#34;&#34;&#34;Converts a BGR image to a HLS image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
+
+
+def hls2bgr(image):
+    &#34;&#34;&#34;Converts a HLS image to a BGR image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_HLS2BGR)
+
+
+def gray(image):
+    &#34;&#34;&#34;Converts a BGR image to a grayscale image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 2 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+
+def resize(image, target_shape, interpolation=None):
+    &#34;&#34;&#34;Resizes an image to a targeted shape.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        target_shape: A tuple with the vertical size then horizontal size
+        interpolation: A cv2 interpolation
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    if interpolation is not None:
+        return cv2.resize(image, target_shape, interpolation=interpolation)
+    if np.prod(image.shape) &gt; np.prod(target_shape):
+        return cv2.resize(image, target_shape, interpolation=cv2.INTER_AREA)
+    return cv2.resize(image, target_shape, interpolation=cv2.INTER_CUBIC)
+
+
+def normalize(image):
+    &#34;&#34;&#34;Normalizes an image between -1 and 1.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return (image.astype(np.float) - 127.5) / 127.5
+
+
+def denormalize(image):
+    &#34;&#34;&#34;Denormalizes an image that is between -1 and 1 to 0 and 255.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions and is normalized
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return np.clip(image * 127.5 + 127.5, 0, 255).astype(np.uint8)
+
+
+def pyr(image, level):
+    &#34;&#34;&#34;Resize image using pyramids.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        level: An integer, which if positive enlarges and if negative reduces
+    returns: A numpy ndarray, which has the same number of dimensions
+             of the image
+    &#34;&#34;&#34;
+    if level &gt; 0:
+        for _ in range(level):
+            image = cv2.pyrUp(image)
+    elif level &lt; 0:
+        for _ in range(-level):
+            image = cv2.pyrDown(image)
+    return image
+
+
+def load(filename, target_shape=None, color=True):
+    &#34;&#34;&#34;Loads an image from a file.
+
+    Args:
+        filename: A string, which is the directory or filename of the
+                  file to load
+        target_shape: A tuple with the vertical size then horizontal size
+        color: A boolean, which determines if the image should be
+               converted to gray scale
+
+    Returns:
+        A numpy ndarray, which has 2 or 3 dimensions
+    &#34;&#34;&#34;
+    image = cv2.imread(filename)
+    if image is None:
+        raise ValueError(f&#39;{filename} is not a supported image file&#39;)
+    if target_shape is not None:
+        image = resize(image, target_shape)
+    if not color:
+        image = gray(image)
+    return image
+
+
+def save(filename, image, target_shape=None, color=True):
+    &#34;&#34;&#34;Saves an image to a file.
+
+    Args:
+        filename: A string, which is the directory or filename to save image to
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        target_shape: A tuple with the vertical size then horizontal size
+        color: A boolean, which determines if the image should be
+               converted to gray scale
+    &#34;&#34;&#34;
+    if target_shape is not None:
+        image = resize(image, target_shape)
+    if not color:
+        image = gray(image)
+    cv2.imwrite(filename, image)
+
+
+def increase_brightness(image, percentage, relative=False):
+    &#34;&#34;&#34;Increases the brightness of image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        percentage: An integer, which is how much to increase
+        relative: A boolean, which determines if the percentage is
+                  is in terms of max brightness or current brightness
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    v = hsv[:, :, 2]
+    if relative:
+        v = v.astype(np.int) + v.astype(np.int) * percentage / 100
+    else:
+        v = v.astype(np.int) + 255 * percentage / 100
+    v = v.round().clip(0, 255).astype(np.uint8)
+    hsv[:, :, 2] = v
+    return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+
+def set_brightness(image, percentage, relative=False):
+    &#34;&#34;&#34;Sets the brightness of image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        percentage: An integer, which is how much to increase
+        relative: A boolean, which determines if the percentage is
+                  is in terms of max brightness or current brightness
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    v = hsv[:, :, 2]
+    if relative:
+        v = v.astype(np.int) * percentage / 100
+        v = v.round().clip(0, 255)
+    else:
+        v = np.full(v.shape, np.clip(round(255 * percentage / 100), 0, 255))
+    v = v.astype(np.uint8)
+    hsv[:, :, 2] = v
+    return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+
+def set_gamma(image, gamma=1.0):
+    &#34;&#34;&#34;Set gamma levels of the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        gamma: A float, which is the amount to change the images gamma
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    image = (image / 255.0)**(1.0 / gamma) * 255
+    return image.round().astype(np.uint8)
+
+
+def apply_clahe(image, clip_limit=40.0, tile_grid_size=(8, 8)):
+    &#34;&#34;&#34;Applys CLAHE (Contrast Limited Adaptive Histogram Equalization).
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions (preferably 2)
+        clip_limit: A float, which is the threshold for contrasting
+        tile_grid_size: A tuple of 2 natural numbers, which is the number
+                        of rows and columns, respectively
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    clahe = cv2.createCLAHE(clip_limit, tile_grid_size)
+    if image.ndim == 2:
+        return clahe.apply(image)
+    else:
+        b = clahe.apply(image[:, :, 0])
+        g = clahe.apply(image[:, :, 1])
+        r = clahe.apply(image[:, :, 2])
+        return cv2.merge((b, g, r))
+
+
+def equalize(image):
+    &#34;&#34;&#34;Equalizes the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    if image.ndim == 2:
+        return cv2.equalizeHist(image)
+    else:
+        b = cv2.equalizeHist(image[:, :, 0])
+        g = cv2.equalizeHist(image[:, :, 1])
+        r = cv2.equalizeHist(image[:, :, 2])
+        return cv2.merge((b, g, r))
+
+
+def rotate(image, angle):
+    &#34;&#34;&#34;Rotates the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        angle: A float, which is in terms of degress
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    center = tuple(np.array(image.shape[1::-1]) / 2)
+    rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
+    return cv2.warpAffine(
+        image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR
+    )
+
+
+def hflip(image):
+    &#34;&#34;&#34;Horizontally flips the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return cv2.flip(image, 1)
+
+
+def vflip(image):
+    &#34;&#34;&#34;Vertically flips the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return cv2.flip(image, 0)
+
+
+def translate(image, vertical=0, horizontal=0):
+    &#34;&#34;&#34;Translates the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        vertical: An integer (possibly a float), which is the amount to
+                  shift the image vertically
+        horizontal: An integer (possibly a float), which is the amount to
+                  shift the image horizontally
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return cv2.warpAffine(image,
+                          np.float32([[1, 0, horizontal], [0, 1, vertical]]),
+                          image.shape[1::-1])
+
+
+def crop_rect(image, vertical, horizontal, width, height):
+    &#34;&#34;&#34;Crops a rectangle out of the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        vertical: An integer, which is the vertical coord for the top left
+                  of the rectangle
+        horizontal: An integer, which is the horizontal coord for the top left
+                  of the rectangle
+        width: An integer, which is the width of the rectangle
+        height: An integer, which is the height of the rectangle
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return image[vertical:vertical + height, horizontal:horizontal + width]
+
+
+def crop_rect_coords(image, vertical1, horizontal1, vertical2, horizontal2):
+    &#34;&#34;&#34;Crops a rectangle out of the image through two coords.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        vertical1: An integer, which is the vertical coord for the top left
+                   of the rectangle
+        horizontal1: An integer, which is the horizontal coord for the top left
+                     of the rectangle
+        vertical2: An integer, which is the vertical coord for the bottom right
+                   of the rectangle
+        horizontal2: An integer, which is the horizontal coord for the bottom
+                     right of the rectangle
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return image[vertical1:vertical2, horizontal1:horizontal2]
+
+
+def shrink_sides(image, ts=0, bs=0, ls=0, rs=0):
+    &#34;&#34;&#34;Shrinks/crops the image through shrinking each side of the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        ts: An integer, which is the amount to shrink the top side
+            of the image
+        bs: An integer, which is the amount to shrink the bottom side
+            of the image
+        ls: An integer, which is the amount to shrink the left side
+            of the image
+        rs: An integer, which is the amount to shrink the right side
+            of the image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return image[ts:image.shape[0] - bs, ls:image.shape[1] - rs]
+
+
+def crop(image, shape, horizontal_center=0, vertical_center=0):
+    &#34;&#34;&#34;Crops the image with a given center coord and the shape of a rectangle.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        shape: A tuple of 2 integers, which is the shape of the rectangle
+        horizontal_center: An integer, which is the offset from the
+                           image&#39;s horizontal center
+        vertical_center: An integer, which is the  offset from the
+                         image&#39;s vertical center
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    ds = (image.shape[0] - shape[0]) // 2, (image.shape[1] - shape[1]) // 2
+    return shrink_sides(image, ds[0] + vertical_center,
+                        ds[0] - vertical_center,
+                        ds[1] + horizontal_center,
+                        ds[1] - horizontal_center)
+
+
+def pad(image, ts=0, bs=0, ls=0, rs=0, color=(0, 0, 0)):
+    &#34;&#34;&#34;Pads the image through adding pixels to each side of the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        ts: An integer, which is the amount to pad the top side
+            of the image
+        bs: An integer, which is the amount to pad the bottom side
+            of the image
+        ls: An integer, which is the amount to pad the left side
+            of the image
+        rs: An integer, which is the amount to pad the right side
+            of the image
+        color: A tuple of 3 integers or an integer with a range of
+               0-255 (inclusive), which is the color of the padding
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return cv2.copyMakeBorder(image, ts, bs, ls, rs, cv2.BORDER_CONSTANT,
+                              value=color)
+
+
+def blend(image1, image2, image1_weight=.5, image2_weight=None):
+    &#34;&#34;&#34;Blends two images together.
+
+    Args:
+        image1: A numpy ndarray, which has 2 or 3 dimensions
+        image2: A numpy ndarray, which has same dimensions as image1
+        image1_weight: A float, which is the intensity of image1
+                       to preserve
+        image2_weight: A float, which is the intensity of image2
+                       to preserve
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image1
+    &#34;&#34;&#34;
+    if image2_weight is None:
+        image2_weight = 1 - image1_weight
+    return cv2.addWeighted(image1, image1_weight, image2, image2_weight, 0)
+
+
+def zoom(image, shape, horizontal_center=0, vertical_center=0):
+    &#34;&#34;&#34;Zooms the image to shape on a given center coord.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        shape: A tuple of 2 integers, which is the shape of the zoomed image
+        horizontal_center: An integer, which is the horizontal offset from
+                           the image&#39;s center
+        vertical_center: An integer, which is the vertical offset from
+                         the image&#39;s center
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    old_shape = image.shape[1::-1]
+    if old_shape[0] &lt; shape[0] and old_shape[1] &lt; shape[1]:
+        ds = (shape[0] - old_shape[0]) // 2, (shape[1] - old_shape[1]) // 2
+        image = pad(image, ds[0] + vertical_center,
+                    ds[0] - vertical_center,
+                    ds[1] + horizontal_center,
+                    ds[1] - horizontal_center)
+        return resize(image, old_shape)
+    else:
+        image = crop(image, shape, vertical_center=vertical_center,
+                     horizontal_center=horizontal_center)
+        return resize(image, old_shape)
+
+
+def transform_perspective(image, pts, shape):
+    &#34;&#34;&#34;Transforms the perspective of an image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        pts: A list of list with 2 integers (possibly floats)
+        shape: A tuple of 2 integers
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    pts1 = np.float32(pts)
+    pts2 = np.float32([[0, 0], [shape[0], 0], [0, shape[1]], shape])
+    m = cv2.getPerspectiveTransform(pts1, pts2)
+    return cv2.warpPerspective(image, m, shape)
+
+
+def unsharp_mask(image, kernel_shape=(5, 5), sigma=1.0,
+                 amount=1.0, threshold=0):
+    &#34;&#34;&#34;Sharpens the image through the unsharp masking technique.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        kernel_shape: A tuple of 2 integers, which is the shape of the
+                      blurring kernel
+        sigma: A float, which is the standard deviation of the Gaussian blur
+        amount: A float, which is the amount to subtracted the blurred
+                image from the image
+        threshold: An integer within 0-255 (inclusive), which is the low
+                   contrast threshold to copy the image to the sharpened image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    blurred = cv2.GaussianBlur(image, kernel_shape, sigma)
+    sharpened = float(amount + 1) * image - float(amount) * blurred
+    sharpened = np.maximum(sharpened, np.zeros(sharpened.shape))
+    sharpened = np.minimum(sharpened, 255 * np.ones(sharpened.shape))
+    sharpened = sharpened.round().astype(np.uint8)
+    if threshold &gt; 0:
+        low_contrast_mask = np.absolute(image - blurred) &lt; threshold
+        np.copyto(sharpened, image, where=low_contrast_mask)
+    return sharpened
+
+
+def create_mask_of_colors_in_range(image, lower_bounds, upper_bounds):
+    &#34;&#34;&#34;Creates a mask of the colors in within the lower and upper bounds.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+        lower_bounds: A tuple of 3 integers (HSV), which is the lower bound
+        upper_bounds: A tuple of 3 integers (HSV), which is the upper bound
+
+    Returns:
+        A numpy ndarray, which has 2 dimensions
+    &#34;&#34;&#34;
+    if isinstance(lower_bounds[0], int):
+        lower_bounds = [lower_bounds]
+    if isinstance(upper_bounds[0], int):
+        upper_bounds = [upper_bounds]
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    masks = np.zeros(hsv.shape[:2], dtype=np.uint8)
+    for lower_bound, upper_bound in zip(lower_bounds, upper_bounds):
+        mask = cv2.inRange(hsv, tuple(lower_bound), tuple(upper_bound))
+        masks = cv2.bitwise_or(masks, mask)
+    return masks
+
+
+def compute_color_ranges(images, percentage_captured=50,
+                         num_bounds=1, use_evolution_algo=False):
+    &#34;&#34;&#34;Computes the color ranges that captures a percentage of the image.
+    This algorithm is not well designed and is mainly for testing purposes.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+        percentage_captured: An integer within 0-100 (inclusive), which acts
+                             as the threshold for the bounds
+        num_bounds: An integer, which does nothing
+        use_evolution_algo: A boolean, which does nothing
+
+    Returns:
+        A tuple of 2 list with the former containing lower
+            bounds and the latter upper bounds
+    &#34;&#34;&#34;
+    if use_evolution_algo:
+        raise NotImplementedError(&#39;NOT DONE&#39;)
+    else:
+        hsv = cv2.cvtColor(np.vstack(images), cv2.COLOR_BGR2HSV)
+        hsv_flat = np.reshape(hsv, (np.prod(hsv.shape[:2]), 3))
+        pc = percentage_captured / 2
+        lower_bounds = [np.floor(np.percentile(hsv_flat, 50 - pc, axis=0))]
+        upper_bounds = [np.ceil(np.percentile(hsv_flat, 50 + pc, axis=0))]
+        # should do, but slow: greatest number, shortest range
+    return lower_bounds, upper_bounds
+
+
+def create_magnitude_spectrum(image):
+    &#34;&#34;&#34;Creates a magnitude spectrum from image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+
+    Returns:
+        A numpy ndarray, which has 2 dimensions
+    &#34;&#34;&#34;
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    dft = cv2.dft(np.float32(image), flags=cv2.DFT_COMPLEX_OUTPUT)
+    dft_shift = np.fft.fftshift(dft)
+    magnitude_spectrum = 20 * np.log(cv2.magnitude(dft_shift[:, :, 0],
+                                                   dft_shift[:, :, 1]))
+    return magnitude_spectrum
+
+
+def freq_filter_image(image, high=True):
+    &#34;&#34;&#34;Filters frequencies in the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+
+    Returns:
+        A numpy ndarray, which has 2 dimensions
+    &#34;&#34;&#34;
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    dft = cv2.dft(np.float32(image), flags=cv2.DFT_COMPLEX_OUTPUT)
+    dft_shift = np.fft.fftshift(dft)
+
+    rows, cols = image.shape
+    crow, ccol = rows // 2, cols // 2
+    if high:
+        dft_shift[crow - 30:crow + 31, ccol - 30:ccol + 31] = 0
+    else:
+        mask = np.zeros((rows, cols, 2), np.uint8)
+        mask[crow - 30:crow + 30, ccol - 30:ccol + 30] = 1
+        dft_shift *= mask
+    image = cv2.idft(np.fft.ifftshift(dft_shift))
+    image = cv2.magnitude(image[:, :, 0], image[:, :, 1])
+    return image
+
+
+def create_histograms(images, hsv_images=False, channels=None,
+                      vrange=None, num_bins=None):
+    &#34;&#34;&#34;Create histograms.
+
+    Args:
+        image: A list of numpy ndarray, which each ndarray is 2 or
+               3 dimensions (must all have same dimensions)
+        hsv_images: A boolean, which determines if the image is HSV
+        channels: A list of integers within 0-2 (inclusive), which are the
+                  channels to get the histograms of
+        vrange: A list the same length as channels with list containing 2
+                integers containing the lower and upper+1 value of a channel
+        num_bins: An integer, which is the number of bins to have for
+                  the histograms
+
+    Returns:
+        A numpy ndarray, which is a list of the histograms
+    &#34;&#34;&#34;
+    if not isinstance(images, list):
+        images = [images]
+    if channels is None:
+        if images[0].ndim == 2:
+            channels = [0]
+        else:
+            channels = list(range(images[0].shape[-1]))
+    if vrange is None:
+        if hsv_images:
+            vrange = []
+            if 0 in channels:
+                vrange += [0, 180]
+            if 1 in channels:
+                vrange += [0, 256]
+            if 2 in channels:
+                vrange += [0, 256]
+        else:
+            vrange = [0, 256] * len(channels)
+    if num_bins is None:
+        if hsv_images:
+            num_bins = []
+            if 0 in channels:
+                num_bins += [180]
+            if 1 in channels:
+                num_bins += [256]
+            if 2 in channels:
+                num_bins += [256]
+        else:
+            num_bins = [256] * len(channels)
+    else:
+        num_bins = [num_bins]
+    return cv2.calcHist(images, channels, None, num_bins, vrange)
+
+
+class HistogramBackProjector:
+    &#34;&#34;&#34;This Class is used to find objects of interest in an image.&#34;&#34;&#34;
+
+    def __init__(self, object_image):
+        &#34;&#34;&#34;Initializes the HBP by computing the object image&#39;s histogram.
+
+        Args:
+            object_image: A numpy ndarray, which has 3 dimensions (BGR)
+        &#34;&#34;&#34;
+        hsv = cv2.cvtColor(object_image, cv2.COLOR_BGR2HSV)
+        hist = cv2.calcHist([hsv], [0, 1], None, [180, 256],
+                            [0, 180, 0, 256])
+        cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX)
+        self.hist = hist
+
+    def backproject(self, image, raw=False, threshold=50, disc_kernel=(5, 5)):
+        &#34;&#34;&#34;Back projects the image to the object image.
+
+        Args:
+            image: A numpy ndarray, which has 3 dimensions
+            raw: A boolean, which determines if the output image
+                 is thresholded
+            threshold: An integer, which is the threshold of the back
+                       projected image
+            disc_kernel: A tuple of 2 integers, which is the size of the
+                         kernel for filtering
+
+        Returns:
+            A numpy ndarray, which has 3 dimensions
+        &#34;&#34;&#34;
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        dst = cv2.calcBackProject([hsv], [0, 1], self.hist,
+                                  [0, 180, 0, 256], 1)
+        if raw:
+            return dst
+        disc = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, disc_kernel)
+        cv2.filter2D(dst, -1, disc, dst)
+        thresh = cv2.threshold(dst, threshold, 255, 0)[1]
+        thresh = cv2.merge((thresh, thresh, thresh))
+        return cv2.bitwise_and(image, thresh)
+
+
+class TemplateMatcher:
+    &#34;&#34;&#34;This class is used to find parts of an image that match a template.&#34;&#34;&#34;
+
+    methods = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR,
+               cv2.TM_CCORR_NORMED, cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]
+
+    def __init__(self, template, mask=None):
+        &#34;&#34;&#34;Initializes the TemplateMatcher by converting and setting the template.
+
+        Args:
+            template: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+            mask: A numpy ndarray, which acts as a binary mask or weights
+        &#34;&#34;&#34;
+        self.template = template
+        self.mask = mask
+        self.h, self.w = self.template.shape[:2]
+
+    def match_coords(self, image, method=cv2.TM_CCOEFF_NORMED):
+        &#34;&#34;&#34;Finds the top left point and dimensions (width, height)
+           of a subimage that most matches the template.
+
+        Args:
+            image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+            method: A cv2 constant or integer, which determines the
+                    method of finding a match
+        returns: A tuple of 2 tuples with 2 integers in each
+                 ((left, top), (width, height)) and a float
+                 of the confidence
+        &#34;&#34;&#34;
+        result = cv2.matchTemplate(image, self.template,
+                                   method, mask=self.mask)
+        min_loc, max_loc = cv2.minMaxLoc(result)[2:]
+        if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+            top_left = min_loc
+        else:
+            top_left = max_loc
+        return top_left, (self.w, self.h), result[top_left[::-1]]
+
+    def match_draw_rect(self, image, color=(0, 255, 0), thickness=2,
+                        method=cv2.TM_CCOEFF_NORMED):
+        &#34;&#34;&#34;Finds the top left point and dimensions (width, height)
+           of a subimage that most matches the template and then
+           draws a rectange with those coords.
+
+        Args:
+            image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+            color: A tuple of 1 or 3 integers, which represents the
+                   color of the drawn rectangle
+            thickness: An integer, which is the thickness of the
+                       rectangle line
+            method: A cv2 constant or integer, which determines the
+                    method of finding a match
+        returns: A float of the confidence
+        &#34;&#34;&#34;
+        top_left, (w, h), result = self.match_coords(image, method)
+        cv2.rectangle(image, top_left, (top_left[0] + w, top_left[1] + h),
+                      color, thickness)
+        return result
+
+    def match_draw_all_rects(self, image, threshold=.8, color=(0, 255, 0),
+                             thickness=2, method=cv2.TM_CCOEFF_NORMED):
+        &#34;&#34;&#34;Finds the top left point and dimensions (width, height)
+           of all subimages that match the template and then
+           draws a rectange with those coords.
+
+        Args:
+            image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+            threshold: A float, which is the threshold for being a match
+                       (higher more of a match)
+            color: A tuple of 1 or 3 integers, which represents the
+                   color of the drawn rectangle
+            thickness: An integer, which is the thickness of the
+                       rectangle line
+            method: A cv2 constant or integer, which determines the
+                    method of finding a match
+        returns: A tuple of 2 tuples with 2 integers in each
+                 ((left, top), (width, height))
+        &#34;&#34;&#34;
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        result = cv2.matchTemplate(gray_image, self.template,
+                                   method, mask=self.mask)
+        if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+            ys, xs = np.where(result &lt;= threshold)
+        else:
+            ys, xs = np.where(result &gt;= threshold)
+        for x, y in zip(xs, ys):
+            # Not checking for overlaps
+            cv2.rectangle(image, (x, y), (x + self.w, y + self.h),
+                          color, thickness)
+
+
+class Camera:
+    &#34;&#34;&#34;This class is used for capturing pictures with the
+       computer&#39;s camera.
+    &#34;&#34;&#34;
+    _DEVICES = set()
+
+    def __init__(self, fps=30, camera_device=0):
+        &#34;&#34;&#34;Initializes the camera and checks if it worked.
+
+        Args:
+            fps: An integer, which is the number of frames per second
+            camera_device: An integer, which determines the device to use
+        &#34;&#34;&#34;
+        self.camera_device = camera_device
+        self.camera = cv2.VideoCapture(camera_device)
+        self.camera.set(cv2.CAP_PROP_FPS, fps)
+        if not self.camera.isOpened():
+            raise Exception(&#34;Camera could not be found&#34;)
+        if camera_device in Camera._DEVICES:
+            raise Exception(&#34;Camera device already in use&#34;)
+        else:
+            Camera._DEVICES.add(camera_device)
+
+    def __enter__(self):
+        if not self.camera.isOpened():
+            self.open()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+    def open(self):
+        if self.camera_device in Camera._DEVICES:
+            raise Exception(&#34;Camera device already in use&#34;)
+        else:
+            Camera._DEVICES.add(self.camera_device)
+        if not self.camera.open(self.camera_device):
+            raise Exception(&#34;Camera could not be found&#34;)
+
+    def close(self):
+        if self.camera.isOpened() and self.camera_device in Camera._DEVICES:
+            Camera._DEVICES.remove(self.camera_device)
+        self.camera.release()
+
+    def capture(self, filename=None, target_shape=None, color=True):
+        &#34;&#34;&#34;Uses the camera object to capture an iamge.
+
+        Args:
+            filename: A string, which is the directory or filename to
+                      save image to
+            target_shape: A tuple with the vertical size then horizontal
+                          size
+            color: A boolean, which determines if the image should be
+                   converted to gray scale
+
+        Returns:
+            None or a numpy ndarray, which has 2 or 3 dimensions
+        &#34;&#34;&#34;
+        grabbed, frame = self.camera.read()
+        if not grabbed:
+            return False
+        if target_shape is not None:
+            frame = resize(frame, target_shape)
+        if not color:
+            frame = gray(frame)
+        if filename is not None:
+            cv2.imwrite(filename, frame)
+            return True
+        else:
+            return frame
+
+    def record(self, num_frames=None, filename=None,
+               target_shape=None, color=True):
+        &#34;&#34;&#34;Uses the camera object to capture many iamges in a row.
+
+        Args:
+            num_frmaes: An integer, which is the number of frames to capture
+            filename: A string, which is the directory or filename to
+                      save image to
+            target_shape: A tuple with the vertical size then horizontal
+                          size
+            color: A boolean, which determines if the image should be
+                   converted to gray scale
+
+        Returns:
+            None or a list of numpy ndarrays, which have 2 or 3 dimensions
+        &#34;&#34;&#34;
+        frames = []
+        for _ in range(num_frames):
+            grabbed, frame = self.camera.read()
+            if not grabbed:
+                return False
+            frames.append(frame)
+        for ndx in range(num_frames):
+            if target_shape is not None:
+                frames[ndx] = resize(frames[ndx], target_shape)
+            if not color:
+                frames[ndx] = gray(frames[ndx])
+                cv2.imwrite(f&#39;{ndx+1}_{filename}&#39;, frames[ndx])
+                return True
+        if filename is None:
+            return frames
+        else:
+            return True
+
+
+class LockDict:
+    &#34;&#34;&#34;This class is used by camera and is a thread safe dict.&#34;&#34;&#34;
+
+    def __init__(self, dict_=None):
+        &#34;&#34;&#34;Initializes the LockDict.
+
+        Args:
+            dict_: A dictionary
+        &#34;&#34;&#34;
+        self.dict = dict_ if dict_ else {}
+        self.lock = Lock()
+
+    def __getitem__(self, key):
+        &#34;&#34;&#34;Gets an item from a key.
+
+        Args:
+            key: A hashable value
+
+        Returns:
+            A value
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        if key not in self.dict.keys():
+            raise KeyError
+        x = self.dict[key]
+        self.lock.release()
+        return x
+
+    def __setitem__(self, key, value):
+        &#34;&#34;&#34;Sets a key to a value.
+
+        Args:
+            key: A hashable value
+            value: A value
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        self.dict[key] = value
+        self.lock.release()
+
+    def __contains__(self, key):
+        &#34;&#34;&#34;Checks if key is in the dictionary.
+
+        Args:
+            key: A hashable value
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        x = key in self.dict
+        self.lock.release()
+        return x
+
+    def __delitem__(self, key):
+        &#34;&#34;&#34;Deletes a key and value.
+
+        Args:
+            key: A hashable value
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        del self.dict[key]
+        self.lock.release()
+
+    def keys(self):
+        &#34;&#34;&#34;Returns a set of all the keys.
+
+        Returns:
+            A set
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        x = set(self.dict.keys())
+        self.lock.release()
+        return x
+
+    def values(self):
+        &#34;&#34;&#34;Returns a list of all the values.
+
+        Returns:
+            A list
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        x = list(self.dict.values())
+        self.lock.release()
+        return x
+
+    def items(self):
+        &#34;&#34;&#34;Returns a list of all the keys and values.
+
+        Returns:
+            A list of tuples with key then value
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        x = list(self.dict.items())
+        self.lock.release()
+        return x
+
+
+class Windows:
+    &#34;&#34;&#34;This class is used to displays images.&#34;&#34;&#34;
+    CREATED = False
+
+    def __init__(self, update_delay=1):
+        &#34;&#34;&#34;Initializes the Dictionaries for holding the windows.
+           (Can only have one instance per process)
+
+        Args:
+            update_delay: An integer, which is the number of ms
+                          to delay each update (must be &gt; 0)
+        &#34;&#34;&#34;
+        if Windows.CREATED:
+            raise Exception(&#39;Only one Windows instance can exist per process.&#39;)
+        else:
+            Windows.CREATED = True
+        assert update_delay &gt; 0, &#39;update_delay must be greater than 0&#39;
+        self.update_delay = update_delay
+        self.windows = LockDict()
+        self.callbacks = LockDict()
+        self.stop_event = Event()
+        self.thread = None
+
+    def start(self):
+        &#34;&#34;&#34;Starts the thread for updating.&#34;&#34;&#34;
+        if self.thread is None:
+            self.thread = Thread(target=self._update, daemon=True)
+            self.thread.start()
+        self.stop_event.clear()
+
+    def stop(self):
+        &#34;&#34;&#34;Stops the thread from updating the windows and removes.
+           all windows.
+        &#34;&#34;&#34;
+        if self.thread is not None:
+            self.stop_event.set()
+
+    def __enter__(self):
+        &#34;&#34;&#34;Starts the thread for updating.&#34;&#34;&#34;
+        self.start()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        &#34;&#34;&#34;Stops the thread from updating the windows and removes
+           all windows.
+        &#34;&#34;&#34;
+        self.stop()
+        if type is not None:
+            return False
+
+    def _update(self):
+        &#34;&#34;&#34;Updates the windows. (Called by thread)&#34;&#34;&#34;
+        windows_open = False
+        while True:
+            while not self.stop_event.is_set():
+                windows_open = True
+                for name, image in self.windows.items():
+                    if self.callbacks[name] is not None:
+                        cv2.namedWindow(name)
+                        cv2.setMouseCallback(name, self.callbacks[name])
+                        self.callbacks[name] = None
+                    cv2.imshow(name, image)
+                    cv2.waitKey(self.update_delay)
+            if windows_open:
+                cv2.destroyAllWindows()
+                self.windows = LockDict()
+                self.callbacks = LockDict()
+                windows_open = False
+            sleep(.01)
+
+    def add(self, name=&#39;Image&#39;, image=None, mouse_callback=None):
+        &#34;&#34;&#34;Adds an image to the update dictionary.
+
+        Args:
+            name: A string, which is the unguaranteed name of the window.
+            image: A numpy ndarray, which has 2 or 3 dimensions
+            mouse_callback: A function, which can be called on window events
+
+        Returns:
+            A string, which is the name for the window
+        &#34;&#34;&#34;
+        ndx = 1
+        temp_name = name
+        while temp_name in self.windows:
+            temp_name = f&#39;{name} ({ndx})&#39;
+            ndx += 1
+        name = temp_name
+        if image is None:
+            self.windows[name] = np.full((100, 100), 0, dtype=np.uint8)
+            self.callbacks[name] = mouse_callback
+        else:
+            self.windows[name] = image
+            self.callbacks[name] = mouse_callback
+        return name
+
+    def set(self, name, image):
+        &#34;&#34;&#34;Sets the window to image.
+
+        Args:
+            name: A string, which is the unguaranteed name of the window.
+            image: A numpy ndarray, which has 2 or 3 dimensions
+        &#34;&#34;&#34;
+        self.windows[name] = image
+
+    def remove(self, name):
+        &#34;&#34;&#34;Removes a window from the update dictionary.
+
+        Args:
+            name: A string, which is the unguaranteed name of the window.
+        &#34;&#34;&#34;
+        del self.windows[name]
+        del self.callbacks[name]
+        cv2.destroyWindow(name)
+
+    @staticmethod
+    def mouse_callback_logger(event, x, y, flags, param):
+        &#34;&#34;&#34;Logs all the events of a window.
+
+        Args:
+            event: A cv2 constant or an integer
+            x: An integer, which is the horizontal position of the event
+            y: An integer, which is the vertical position of the event
+            flags: A cv2 constant or an integet
+            param: A list of additional variables
+        &#34;&#34;&#34;
+        log = []
+        if flags == cv2.EVENT_FLAG_LBUTTON:
+            log.append(&#39;left&#39;)
+        elif flags == cv2.EVENT_FLAG_RBUTTON:
+            log.append(&#39;right&#39;)
+        elif flags == cv2.EVENT_FLAG_MBUTTON:
+            log.append(&#39;middle&#39;)
+        elif flags == cv2.EVENT_FLAG_CTRLKEY:
+            log.append(&#39;CTRL&#39;)
+        elif flags == cv2.EVENT_FLAG_SHIFTKEY:
+            log.append(&#39;SHIFT&#39;)
+        elif flags == cv2.EVENT_FLAG_ALTKEY:
+            log.append(&#39;ALT&#39;)
+
+        if event == cv2.EVENT_MOUSEMOVE:
+            log.append(&#39;mouse moved&#39;)
+        elif event == cv2.EVENT_LBUTTONDOWN:
+            log.append(&#39;left button down&#39;)
+        elif event == cv2.EVENT_RBUTTONDOWN:
+            log.append(&#39;right button down&#39;)
+        elif event == cv2.EVENT_MBUTTONDOWN:
+            log.append(&#39;middle button down&#39;)
+        elif event == cv2.EVENT_LBUTTONUP:
+            log.append(&#39;left button up&#39;)
+        elif event == cv2.EVENT_RBUTTONUP:
+            log.append(&#39;right button up&#39;)
+        elif event == cv2.EVENT_MBUTTONUP:
+            log.append(&#39;middle button up&#39;)
+        elif event == cv2.EVENT_LBUTTONDBLCLK:
+            log.append(&#39;left button double click&#39;)
+        elif event == cv2.EVENT_RBUTTONDBLCLK:
+            log.append(&#39;right button double click&#39;)
+        elif event == cv2.EVENT_MBUTTONDBLCLK:
+            log.append(&#39;middle button double click&#39;)
+        elif event == cv2.EVENT_MOUSEWHEEL:
+            log.append(&#39;mouse wheel&#39;)
+        elif event == cv2.EVENT_MOUSEHWHEEL:
+            log.append(&#39;mouse horizontal wheel&#39;)
+
+        log.append(f&#39;x: {x} y: {y}&#39;)
+
+        print(&#39; + &#39;.join(log))</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="paiutils.image.apply_clahe"><code class="name flex">
+<span>def <span class="ident">apply_clahe</span></span>(<span>image, clip_limit=40.0, tile_grid_size=(8, 8))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Applys CLAHE (Contrast Limited Adaptive Histogram Equalization).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions (preferably 2)</dd>
+<dt><strong><code>clip_limit</code></strong></dt>
+<dd>A float, which is the threshold for contrasting</dd>
+<dt><strong><code>tile_grid_size</code></strong></dt>
+<dd>A tuple of 2 natural numbers, which is the number
+of rows and columns, respectively</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def apply_clahe(image, clip_limit=40.0, tile_grid_size=(8, 8)):
+    &#34;&#34;&#34;Applys CLAHE (Contrast Limited Adaptive Histogram Equalization).
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions (preferably 2)
+        clip_limit: A float, which is the threshold for contrasting
+        tile_grid_size: A tuple of 2 natural numbers, which is the number
+                        of rows and columns, respectively
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    clahe = cv2.createCLAHE(clip_limit, tile_grid_size)
+    if image.ndim == 2:
+        return clahe.apply(image)
+    else:
+        b = clahe.apply(image[:, :, 0])
+        g = clahe.apply(image[:, :, 1])
+        r = clahe.apply(image[:, :, 2])
+        return cv2.merge((b, g, r))</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.bgr2hls"><code class="name flex">
+<span>def <span class="ident">bgr2hls</span></span>(<span>image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts a BGR image to a HLS image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 3 dimensions</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has 3 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bgr2hls(image):
+    &#34;&#34;&#34;Converts a BGR image to a HLS image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_BGR2HLS)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.bgr2hsv"><code class="name flex">
+<span>def <span class="ident">bgr2hsv</span></span>(<span>image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts a BGR image to a HSV image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 3 dimensions</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has 3 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bgr2hsv(image):
+    &#34;&#34;&#34;Converts a BGR image to a HSV image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_BGR2HSV)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.bgr2rgb"><code class="name flex">
+<span>def <span class="ident">bgr2rgb</span></span>(<span>image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts a BGR image to a RGB image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 3 dimensions</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has 3 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bgr2rgb(image):
+    &#34;&#34;&#34;Converts a BGR image to a RGB image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.blend"><code class="name flex">
+<span>def <span class="ident">blend</span></span>(<span>image1, image2, image1_weight=0.5, image2_weight=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Blends two images together.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image1</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>image2</code></strong></dt>
+<dd>A numpy ndarray, which has same dimensions as image1</dd>
+<dt><strong><code>image1_weight</code></strong></dt>
+<dd>A float, which is the intensity of image1
+to preserve</dd>
+<dt><strong><code>image2_weight</code></strong></dt>
+<dd>A float, which is the intensity of image2
+to preserve</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image1</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def blend(image1, image2, image1_weight=.5, image2_weight=None):
+    &#34;&#34;&#34;Blends two images together.
+
+    Args:
+        image1: A numpy ndarray, which has 2 or 3 dimensions
+        image2: A numpy ndarray, which has same dimensions as image1
+        image1_weight: A float, which is the intensity of image1
+                       to preserve
+        image2_weight: A float, which is the intensity of image2
+                       to preserve
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image1
+    &#34;&#34;&#34;
+    if image2_weight is None:
+        image2_weight = 1 - image1_weight
+    return cv2.addWeighted(image1, image1_weight, image2, image2_weight, 0)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.compute_color_ranges"><code class="name flex">
+<span>def <span class="ident">compute_color_ranges</span></span>(<span>images, percentage_captured=50, num_bounds=1, use_evolution_algo=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the color ranges that captures a percentage of the image.
+This algorithm is not well designed and is mainly for testing purposes.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions (BGR)</dd>
+<dt><strong><code>percentage_captured</code></strong></dt>
+<dd>An integer within 0-100 (inclusive), which acts
+as the threshold for the bounds</dd>
+<dt><strong><code>num_bounds</code></strong></dt>
+<dd>An integer, which does nothing</dd>
+<dt><strong><code>use_evolution_algo</code></strong></dt>
+<dd>A boolean, which does nothing</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A tuple of 2 list with the former containing lower
+bounds and the latter upper bounds</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_color_ranges(images, percentage_captured=50,
+                         num_bounds=1, use_evolution_algo=False):
+    &#34;&#34;&#34;Computes the color ranges that captures a percentage of the image.
+    This algorithm is not well designed and is mainly for testing purposes.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+        percentage_captured: An integer within 0-100 (inclusive), which acts
+                             as the threshold for the bounds
+        num_bounds: An integer, which does nothing
+        use_evolution_algo: A boolean, which does nothing
+
+    Returns:
+        A tuple of 2 list with the former containing lower
+            bounds and the latter upper bounds
+    &#34;&#34;&#34;
+    if use_evolution_algo:
+        raise NotImplementedError(&#39;NOT DONE&#39;)
+    else:
+        hsv = cv2.cvtColor(np.vstack(images), cv2.COLOR_BGR2HSV)
+        hsv_flat = np.reshape(hsv, (np.prod(hsv.shape[:2]), 3))
+        pc = percentage_captured / 2
+        lower_bounds = [np.floor(np.percentile(hsv_flat, 50 - pc, axis=0))]
+        upper_bounds = [np.ceil(np.percentile(hsv_flat, 50 + pc, axis=0))]
+        # should do, but slow: greatest number, shortest range
+    return lower_bounds, upper_bounds</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.create_histograms"><code class="name flex">
+<span>def <span class="ident">create_histograms</span></span>(<span>images, hsv_images=False, channels=None, vrange=None, num_bins=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create histograms.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A list of numpy ndarray, which each ndarray is 2 or
+3 dimensions (must all have same dimensions)</dd>
+<dt><strong><code>hsv_images</code></strong></dt>
+<dd>A boolean, which determines if the image is HSV</dd>
+<dt><strong><code>channels</code></strong></dt>
+<dd>A list of integers within 0-2 (inclusive), which are the
+channels to get the histograms of</dd>
+<dt><strong><code>vrange</code></strong></dt>
+<dd>A list the same length as channels with list containing 2
+integers containing the lower and upper+1 value of a channel</dd>
+<dt><strong><code>num_bins</code></strong></dt>
+<dd>An integer, which is the number of bins to have for
+the histograms</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which is a list of the histograms</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_histograms(images, hsv_images=False, channels=None,
+                      vrange=None, num_bins=None):
+    &#34;&#34;&#34;Create histograms.
+
+    Args:
+        image: A list of numpy ndarray, which each ndarray is 2 or
+               3 dimensions (must all have same dimensions)
+        hsv_images: A boolean, which determines if the image is HSV
+        channels: A list of integers within 0-2 (inclusive), which are the
+                  channels to get the histograms of
+        vrange: A list the same length as channels with list containing 2
+                integers containing the lower and upper+1 value of a channel
+        num_bins: An integer, which is the number of bins to have for
+                  the histograms
+
+    Returns:
+        A numpy ndarray, which is a list of the histograms
+    &#34;&#34;&#34;
+    if not isinstance(images, list):
+        images = [images]
+    if channels is None:
+        if images[0].ndim == 2:
+            channels = [0]
+        else:
+            channels = list(range(images[0].shape[-1]))
+    if vrange is None:
+        if hsv_images:
+            vrange = []
+            if 0 in channels:
+                vrange += [0, 180]
+            if 1 in channels:
+                vrange += [0, 256]
+            if 2 in channels:
+                vrange += [0, 256]
+        else:
+            vrange = [0, 256] * len(channels)
+    if num_bins is None:
+        if hsv_images:
+            num_bins = []
+            if 0 in channels:
+                num_bins += [180]
+            if 1 in channels:
+                num_bins += [256]
+            if 2 in channels:
+                num_bins += [256]
+        else:
+            num_bins = [256] * len(channels)
+    else:
+        num_bins = [num_bins]
+    return cv2.calcHist(images, channels, None, num_bins, vrange)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.create_magnitude_spectrum"><code class="name flex">
+<span>def <span class="ident">create_magnitude_spectrum</span></span>(<span>image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a magnitude spectrum from image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions (BGR)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has 2 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_magnitude_spectrum(image):
+    &#34;&#34;&#34;Creates a magnitude spectrum from image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+
+    Returns:
+        A numpy ndarray, which has 2 dimensions
+    &#34;&#34;&#34;
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    dft = cv2.dft(np.float32(image), flags=cv2.DFT_COMPLEX_OUTPUT)
+    dft_shift = np.fft.fftshift(dft)
+    magnitude_spectrum = 20 * np.log(cv2.magnitude(dft_shift[:, :, 0],
+                                                   dft_shift[:, :, 1]))
+    return magnitude_spectrum</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.create_mask_of_colors_in_range"><code class="name flex">
+<span>def <span class="ident">create_mask_of_colors_in_range</span></span>(<span>image, lower_bounds, upper_bounds)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a mask of the colors in within the lower and upper bounds.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions (BGR)</dd>
+<dt><strong><code>lower_bounds</code></strong></dt>
+<dd>A tuple of 3 integers (HSV), which is the lower bound</dd>
+<dt><strong><code>upper_bounds</code></strong></dt>
+<dd>A tuple of 3 integers (HSV), which is the upper bound</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has 2 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_mask_of_colors_in_range(image, lower_bounds, upper_bounds):
+    &#34;&#34;&#34;Creates a mask of the colors in within the lower and upper bounds.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+        lower_bounds: A tuple of 3 integers (HSV), which is the lower bound
+        upper_bounds: A tuple of 3 integers (HSV), which is the upper bound
+
+    Returns:
+        A numpy ndarray, which has 2 dimensions
+    &#34;&#34;&#34;
+    if isinstance(lower_bounds[0], int):
+        lower_bounds = [lower_bounds]
+    if isinstance(upper_bounds[0], int):
+        upper_bounds = [upper_bounds]
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    masks = np.zeros(hsv.shape[:2], dtype=np.uint8)
+    for lower_bound, upper_bound in zip(lower_bounds, upper_bounds):
+        mask = cv2.inRange(hsv, tuple(lower_bound), tuple(upper_bound))
+        masks = cv2.bitwise_or(masks, mask)
+    return masks</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.crop"><code class="name flex">
+<span>def <span class="ident">crop</span></span>(<span>image, shape, horizontal_center=0, vertical_center=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Crops the image with a given center coord and the shape of a rectangle.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>shape</code></strong></dt>
+<dd>A tuple of 2 integers, which is the shape of the rectangle</dd>
+<dt><strong><code>horizontal_center</code></strong></dt>
+<dd>An integer, which is the offset from the
+image's horizontal center</dd>
+<dt><strong><code>vertical_center</code></strong></dt>
+<dd>An integer, which is the
+offset from the
+image's vertical center</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def crop(image, shape, horizontal_center=0, vertical_center=0):
+    &#34;&#34;&#34;Crops the image with a given center coord and the shape of a rectangle.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        shape: A tuple of 2 integers, which is the shape of the rectangle
+        horizontal_center: An integer, which is the offset from the
+                           image&#39;s horizontal center
+        vertical_center: An integer, which is the  offset from the
+                         image&#39;s vertical center
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    ds = (image.shape[0] - shape[0]) // 2, (image.shape[1] - shape[1]) // 2
+    return shrink_sides(image, ds[0] + vertical_center,
+                        ds[0] - vertical_center,
+                        ds[1] + horizontal_center,
+                        ds[1] - horizontal_center)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.crop_rect"><code class="name flex">
+<span>def <span class="ident">crop_rect</span></span>(<span>image, vertical, horizontal, width, height)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Crops a rectangle out of the image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>vertical</code></strong></dt>
+<dd>An integer, which is the vertical coord for the top left
+of the rectangle</dd>
+<dt><strong><code>horizontal</code></strong></dt>
+<dd>An integer, which is the horizontal coord for the top left
+of the rectangle</dd>
+<dt><strong><code>width</code></strong></dt>
+<dd>An integer, which is the width of the rectangle</dd>
+<dt><strong><code>height</code></strong></dt>
+<dd>An integer, which is the height of the rectangle</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def crop_rect(image, vertical, horizontal, width, height):
+    &#34;&#34;&#34;Crops a rectangle out of the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        vertical: An integer, which is the vertical coord for the top left
+                  of the rectangle
+        horizontal: An integer, which is the horizontal coord for the top left
+                  of the rectangle
+        width: An integer, which is the width of the rectangle
+        height: An integer, which is the height of the rectangle
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return image[vertical:vertical + height, horizontal:horizontal + width]</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.crop_rect_coords"><code class="name flex">
+<span>def <span class="ident">crop_rect_coords</span></span>(<span>image, vertical1, horizontal1, vertical2, horizontal2)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Crops a rectangle out of the image through two coords.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>vertical1</code></strong></dt>
+<dd>An integer, which is the vertical coord for the top left
+of the rectangle</dd>
+<dt><strong><code>horizontal1</code></strong></dt>
+<dd>An integer, which is the horizontal coord for the top left
+of the rectangle</dd>
+<dt><strong><code>vertical2</code></strong></dt>
+<dd>An integer, which is the vertical coord for the bottom right
+of the rectangle</dd>
+<dt><strong><code>horizontal2</code></strong></dt>
+<dd>An integer, which is the horizontal coord for the bottom
+right of the rectangle</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def crop_rect_coords(image, vertical1, horizontal1, vertical2, horizontal2):
+    &#34;&#34;&#34;Crops a rectangle out of the image through two coords.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        vertical1: An integer, which is the vertical coord for the top left
+                   of the rectangle
+        horizontal1: An integer, which is the horizontal coord for the top left
+                     of the rectangle
+        vertical2: An integer, which is the vertical coord for the bottom right
+                   of the rectangle
+        horizontal2: An integer, which is the horizontal coord for the bottom
+                     right of the rectangle
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return image[vertical1:vertical2, horizontal1:horizontal2]</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.denormalize"><code class="name flex">
+<span>def <span class="ident">denormalize</span></span>(<span>image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Denormalizes an image that is between -1 and 1 to 0 and 255.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions and is normalized</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def denormalize(image):
+    &#34;&#34;&#34;Denormalizes an image that is between -1 and 1 to 0 and 255.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions and is normalized
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return np.clip(image * 127.5 + 127.5, 0, 255).astype(np.uint8)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.equalize"><code class="name flex">
+<span>def <span class="ident">equalize</span></span>(<span>image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Equalizes the image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def equalize(image):
+    &#34;&#34;&#34;Equalizes the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    if image.ndim == 2:
+        return cv2.equalizeHist(image)
+    else:
+        b = cv2.equalizeHist(image[:, :, 0])
+        g = cv2.equalizeHist(image[:, :, 1])
+        r = cv2.equalizeHist(image[:, :, 2])
+        return cv2.merge((b, g, r))</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.freq_filter_image"><code class="name flex">
+<span>def <span class="ident">freq_filter_image</span></span>(<span>image, high=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Filters frequencies in the image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions (BGR)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has 2 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def freq_filter_image(image, high=True):
+    &#34;&#34;&#34;Filters frequencies in the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+
+    Returns:
+        A numpy ndarray, which has 2 dimensions
+    &#34;&#34;&#34;
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    dft = cv2.dft(np.float32(image), flags=cv2.DFT_COMPLEX_OUTPUT)
+    dft_shift = np.fft.fftshift(dft)
+
+    rows, cols = image.shape
+    crow, ccol = rows // 2, cols // 2
+    if high:
+        dft_shift[crow - 30:crow + 31, ccol - 30:ccol + 31] = 0
+    else:
+        mask = np.zeros((rows, cols, 2), np.uint8)
+        mask[crow - 30:crow + 30, ccol - 30:ccol + 30] = 1
+        dft_shift *= mask
+    image = cv2.idft(np.fft.ifftshift(dft_shift))
+    image = cv2.magnitude(image[:, :, 0], image[:, :, 1])
+    return image</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.gray"><code class="name flex">
+<span>def <span class="ident">gray</span></span>(<span>image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts a BGR image to a grayscale image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 3 dimensions</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has 2 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gray(image):
+    &#34;&#34;&#34;Converts a BGR image to a grayscale image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 2 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.hflip"><code class="name flex">
+<span>def <span class="ident">hflip</span></span>(<span>image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Horizontally flips the image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def hflip(image):
+    &#34;&#34;&#34;Horizontally flips the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return cv2.flip(image, 1)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.hls2bgr"><code class="name flex">
+<span>def <span class="ident">hls2bgr</span></span>(<span>image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts a HLS image to a BGR image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 3 dimensions</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has 3 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def hls2bgr(image):
+    &#34;&#34;&#34;Converts a HLS image to a BGR image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_HLS2BGR)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.hsv2bgr"><code class="name flex">
+<span>def <span class="ident">hsv2bgr</span></span>(<span>image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts a HSV image to a BGR image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 3 dimensions</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has 3 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def hsv2bgr(image):
+    &#34;&#34;&#34;Converts a HSV image to a BGR image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_HSV2BGR)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.increase_brightness"><code class="name flex">
+<span>def <span class="ident">increase_brightness</span></span>(<span>image, percentage, relative=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Increases the brightness of image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>percentage</code></strong></dt>
+<dd>An integer, which is how much to increase</dd>
+<dt><strong><code>relative</code></strong></dt>
+<dd>A boolean, which determines if the percentage is
+is in terms of max brightness or current brightness</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def increase_brightness(image, percentage, relative=False):
+    &#34;&#34;&#34;Increases the brightness of image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        percentage: An integer, which is how much to increase
+        relative: A boolean, which determines if the percentage is
+                  is in terms of max brightness or current brightness
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    v = hsv[:, :, 2]
+    if relative:
+        v = v.astype(np.int) + v.astype(np.int) * percentage / 100
+    else:
+        v = v.astype(np.int) + 255 * percentage / 100
+    v = v.round().clip(0, 255).astype(np.uint8)
+    hsv[:, :, 2] = v
+    return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.load"><code class="name flex">
+<span>def <span class="ident">load</span></span>(<span>filename, target_shape=None, color=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Loads an image from a file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filename</code></strong></dt>
+<dd>A string, which is the directory or filename of the
+file to load</dd>
+<dt><strong><code>target_shape</code></strong></dt>
+<dd>A tuple with the vertical size then horizontal size</dd>
+<dt><strong><code>color</code></strong></dt>
+<dd>A boolean, which determines if the image should be
+converted to gray scale</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has 2 or 3 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load(filename, target_shape=None, color=True):
+    &#34;&#34;&#34;Loads an image from a file.
+
+    Args:
+        filename: A string, which is the directory or filename of the
+                  file to load
+        target_shape: A tuple with the vertical size then horizontal size
+        color: A boolean, which determines if the image should be
+               converted to gray scale
+
+    Returns:
+        A numpy ndarray, which has 2 or 3 dimensions
+    &#34;&#34;&#34;
+    image = cv2.imread(filename)
+    if image is None:
+        raise ValueError(f&#39;{filename} is not a supported image file&#39;)
+    if target_shape is not None:
+        image = resize(image, target_shape)
+    if not color:
+        image = gray(image)
+    return image</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.normalize"><code class="name flex">
+<span>def <span class="ident">normalize</span></span>(<span>image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Normalizes an image between -1 and 1.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def normalize(image):
+    &#34;&#34;&#34;Normalizes an image between -1 and 1.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return (image.astype(np.float) - 127.5) / 127.5</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.pad"><code class="name flex">
+<span>def <span class="ident">pad</span></span>(<span>image, ts=0, bs=0, ls=0, rs=0, color=(0, 0, 0))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pads the image through adding pixels to each side of the image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>ts</code></strong></dt>
+<dd>An integer, which is the amount to pad the top side
+of the image</dd>
+<dt><strong><code>bs</code></strong></dt>
+<dd>An integer, which is the amount to pad the bottom side
+of the image</dd>
+<dt><strong><code>ls</code></strong></dt>
+<dd>An integer, which is the amount to pad the left side
+of the image</dd>
+<dt><strong><code>rs</code></strong></dt>
+<dd>An integer, which is the amount to pad the right side
+of the image</dd>
+<dt><strong><code>color</code></strong></dt>
+<dd>A tuple of 3 integers or an integer with a range of
+0-255 (inclusive), which is the color of the padding</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pad(image, ts=0, bs=0, ls=0, rs=0, color=(0, 0, 0)):
+    &#34;&#34;&#34;Pads the image through adding pixels to each side of the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        ts: An integer, which is the amount to pad the top side
+            of the image
+        bs: An integer, which is the amount to pad the bottom side
+            of the image
+        ls: An integer, which is the amount to pad the left side
+            of the image
+        rs: An integer, which is the amount to pad the right side
+            of the image
+        color: A tuple of 3 integers or an integer with a range of
+               0-255 (inclusive), which is the color of the padding
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return cv2.copyMakeBorder(image, ts, bs, ls, rs, cv2.BORDER_CONSTANT,
+                              value=color)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.pyr"><code class="name flex">
+<span>def <span class="ident">pyr</span></span>(<span>image, level)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Resize image using pyramids.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>level</code></strong></dt>
+<dd>An integer, which if positive enlarges and if negative reduces</dd>
+</dl>
+<p>returns: A numpy ndarray, which has the same number of dimensions
+of the image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pyr(image, level):
+    &#34;&#34;&#34;Resize image using pyramids.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        level: An integer, which if positive enlarges and if negative reduces
+    returns: A numpy ndarray, which has the same number of dimensions
+             of the image
+    &#34;&#34;&#34;
+    if level &gt; 0:
+        for _ in range(level):
+            image = cv2.pyrUp(image)
+    elif level &lt; 0:
+        for _ in range(-level):
+            image = cv2.pyrDown(image)
+    return image</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.resize"><code class="name flex">
+<span>def <span class="ident">resize</span></span>(<span>image, target_shape, interpolation=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Resizes an image to a targeted shape.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>target_shape</code></strong></dt>
+<dd>A tuple with the vertical size then horizontal size</dd>
+<dt><strong><code>interpolation</code></strong></dt>
+<dd>A cv2 interpolation</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def resize(image, target_shape, interpolation=None):
+    &#34;&#34;&#34;Resizes an image to a targeted shape.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        target_shape: A tuple with the vertical size then horizontal size
+        interpolation: A cv2 interpolation
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    if interpolation is not None:
+        return cv2.resize(image, target_shape, interpolation=interpolation)
+    if np.prod(image.shape) &gt; np.prod(target_shape):
+        return cv2.resize(image, target_shape, interpolation=cv2.INTER_AREA)
+    return cv2.resize(image, target_shape, interpolation=cv2.INTER_CUBIC)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.rgb2bgr"><code class="name flex">
+<span>def <span class="ident">rgb2bgr</span></span>(<span>image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts a RGB image to a BGR image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 3 dimensions</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has 3 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rgb2bgr(image):
+    &#34;&#34;&#34;Converts a RGB image to a BGR image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
+    &#34;&#34;&#34;
+    return cv2.cvtColor(image, cv2.COLOR_RGB2BGR)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.rotate"><code class="name flex">
+<span>def <span class="ident">rotate</span></span>(<span>image, angle)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Rotates the image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>angle</code></strong></dt>
+<dd>A float, which is in terms of degress</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rotate(image, angle):
+    &#34;&#34;&#34;Rotates the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        angle: A float, which is in terms of degress
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    center = tuple(np.array(image.shape[1::-1]) / 2)
+    rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
+    return cv2.warpAffine(
+        image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR
+    )</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.save"><code class="name flex">
+<span>def <span class="ident">save</span></span>(<span>filename, image, target_shape=None, color=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Saves an image to a file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filename</code></strong></dt>
+<dd>A string, which is the directory or filename to save image to</dd>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>target_shape</code></strong></dt>
+<dd>A tuple with the vertical size then horizontal size</dd>
+<dt><strong><code>color</code></strong></dt>
+<dd>A boolean, which determines if the image should be
+converted to gray scale</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save(filename, image, target_shape=None, color=True):
+    &#34;&#34;&#34;Saves an image to a file.
+
+    Args:
+        filename: A string, which is the directory or filename to save image to
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        target_shape: A tuple with the vertical size then horizontal size
+        color: A boolean, which determines if the image should be
+               converted to gray scale
+    &#34;&#34;&#34;
+    if target_shape is not None:
+        image = resize(image, target_shape)
+    if not color:
+        image = gray(image)
+    cv2.imwrite(filename, image)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.set_brightness"><code class="name flex">
+<span>def <span class="ident">set_brightness</span></span>(<span>image, percentage, relative=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the brightness of image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>percentage</code></strong></dt>
+<dd>An integer, which is how much to increase</dd>
+<dt><strong><code>relative</code></strong></dt>
+<dd>A boolean, which determines if the percentage is
+is in terms of max brightness or current brightness</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_brightness(image, percentage, relative=False):
+    &#34;&#34;&#34;Sets the brightness of image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        percentage: An integer, which is how much to increase
+        relative: A boolean, which determines if the percentage is
+                  is in terms of max brightness or current brightness
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    v = hsv[:, :, 2]
+    if relative:
+        v = v.astype(np.int) * percentage / 100
+        v = v.round().clip(0, 255)
+    else:
+        v = np.full(v.shape, np.clip(round(255 * percentage / 100), 0, 255))
+    v = v.astype(np.uint8)
+    hsv[:, :, 2] = v
+    return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.set_gamma"><code class="name flex">
+<span>def <span class="ident">set_gamma</span></span>(<span>image, gamma=1.0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Set gamma levels of the image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>gamma</code></strong></dt>
+<dd>A float, which is the amount to change the images gamma</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_gamma(image, gamma=1.0):
+    &#34;&#34;&#34;Set gamma levels of the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        gamma: A float, which is the amount to change the images gamma
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    image = (image / 255.0)**(1.0 / gamma) * 255
+    return image.round().astype(np.uint8)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.shrink_sides"><code class="name flex">
+<span>def <span class="ident">shrink_sides</span></span>(<span>image, ts=0, bs=0, ls=0, rs=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Shrinks/crops the image through shrinking each side of the image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>ts</code></strong></dt>
+<dd>An integer, which is the amount to shrink the top side
+of the image</dd>
+<dt><strong><code>bs</code></strong></dt>
+<dd>An integer, which is the amount to shrink the bottom side
+of the image</dd>
+<dt><strong><code>ls</code></strong></dt>
+<dd>An integer, which is the amount to shrink the left side
+of the image</dd>
+<dt><strong><code>rs</code></strong></dt>
+<dd>An integer, which is the amount to shrink the right side
+of the image</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def shrink_sides(image, ts=0, bs=0, ls=0, rs=0):
+    &#34;&#34;&#34;Shrinks/crops the image through shrinking each side of the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        ts: An integer, which is the amount to shrink the top side
+            of the image
+        bs: An integer, which is the amount to shrink the bottom side
+            of the image
+        ls: An integer, which is the amount to shrink the left side
+            of the image
+        rs: An integer, which is the amount to shrink the right side
+            of the image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return image[ts:image.shape[0] - bs, ls:image.shape[1] - rs]</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.transform_perspective"><code class="name flex">
+<span>def <span class="ident">transform_perspective</span></span>(<span>image, pts, shape)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Transforms the perspective of an image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>pts</code></strong></dt>
+<dd>A list of list with 2 integers (possibly floats)</dd>
+<dt><strong><code>shape</code></strong></dt>
+<dd>A tuple of 2 integers</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transform_perspective(image, pts, shape):
+    &#34;&#34;&#34;Transforms the perspective of an image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        pts: A list of list with 2 integers (possibly floats)
+        shape: A tuple of 2 integers
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    pts1 = np.float32(pts)
+    pts2 = np.float32([[0, 0], [shape[0], 0], [0, shape[1]], shape])
+    m = cv2.getPerspectiveTransform(pts1, pts2)
+    return cv2.warpPerspective(image, m, shape)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.translate"><code class="name flex">
+<span>def <span class="ident">translate</span></span>(<span>image, vertical=0, horizontal=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Translates the image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>vertical</code></strong></dt>
+<dd>An integer (possibly a float), which is the amount to
+shift the image vertically</dd>
+<dt><strong><code>horizontal</code></strong></dt>
+<dd>An integer (possibly a float), which is the amount to
+shift the image horizontally</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def translate(image, vertical=0, horizontal=0):
+    &#34;&#34;&#34;Translates the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        vertical: An integer (possibly a float), which is the amount to
+                  shift the image vertically
+        horizontal: An integer (possibly a float), which is the amount to
+                  shift the image horizontally
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return cv2.warpAffine(image,
+                          np.float32([[1, 0, horizontal], [0, 1, vertical]]),
+                          image.shape[1::-1])</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.unsharp_mask"><code class="name flex">
+<span>def <span class="ident">unsharp_mask</span></span>(<span>image, kernel_shape=(5, 5), sigma=1.0, amount=1.0, threshold=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sharpens the image through the unsharp masking technique.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>kernel_shape</code></strong></dt>
+<dd>A tuple of 2 integers, which is the shape of the
+blurring kernel</dd>
+<dt><strong><code>sigma</code></strong></dt>
+<dd>A float, which is the standard deviation of the Gaussian blur</dd>
+<dt><strong><code>amount</code></strong></dt>
+<dd>A float, which is the amount to subtracted the blurred
+image from the image</dd>
+<dt><strong><code>threshold</code></strong></dt>
+<dd>An integer within 0-255 (inclusive), which is the low
+contrast threshold to copy the image to the sharpened image</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def unsharp_mask(image, kernel_shape=(5, 5), sigma=1.0,
+                 amount=1.0, threshold=0):
+    &#34;&#34;&#34;Sharpens the image through the unsharp masking technique.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        kernel_shape: A tuple of 2 integers, which is the shape of the
+                      blurring kernel
+        sigma: A float, which is the standard deviation of the Gaussian blur
+        amount: A float, which is the amount to subtracted the blurred
+                image from the image
+        threshold: An integer within 0-255 (inclusive), which is the low
+                   contrast threshold to copy the image to the sharpened image
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    blurred = cv2.GaussianBlur(image, kernel_shape, sigma)
+    sharpened = float(amount + 1) * image - float(amount) * blurred
+    sharpened = np.maximum(sharpened, np.zeros(sharpened.shape))
+    sharpened = np.minimum(sharpened, 255 * np.ones(sharpened.shape))
+    sharpened = sharpened.round().astype(np.uint8)
+    if threshold &gt; 0:
+        low_contrast_mask = np.absolute(image - blurred) &lt; threshold
+        np.copyto(sharpened, image, where=low_contrast_mask)
+    return sharpened</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.vflip"><code class="name flex">
+<span>def <span class="ident">vflip</span></span>(<span>image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Vertically flips the image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def vflip(image):
+    &#34;&#34;&#34;Vertically flips the image.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    return cv2.flip(image, 0)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.zoom"><code class="name flex">
+<span>def <span class="ident">zoom</span></span>(<span>image, shape, horizontal_center=0, vertical_center=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Zooms the image to shape on a given center coord.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>shape</code></strong></dt>
+<dd>A tuple of 2 integers, which is the shape of the zoomed image</dd>
+<dt><strong><code>horizontal_center</code></strong></dt>
+<dd>An integer, which is the horizontal offset from
+the image's center</dd>
+<dt><strong><code>vertical_center</code></strong></dt>
+<dd>An integer, which is the vertical offset from
+the image's center</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has the same number of dimensions as image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def zoom(image, shape, horizontal_center=0, vertical_center=0):
+    &#34;&#34;&#34;Zooms the image to shape on a given center coord.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        shape: A tuple of 2 integers, which is the shape of the zoomed image
+        horizontal_center: An integer, which is the horizontal offset from
+                           the image&#39;s center
+        vertical_center: An integer, which is the vertical offset from
+                         the image&#39;s center
+
+    Returns:
+        A numpy ndarray, which has the same number of dimensions as image
+    &#34;&#34;&#34;
+    old_shape = image.shape[1::-1]
+    if old_shape[0] &lt; shape[0] and old_shape[1] &lt; shape[1]:
+        ds = (shape[0] - old_shape[0]) // 2, (shape[1] - old_shape[1]) // 2
+        image = pad(image, ds[0] + vertical_center,
+                    ds[0] - vertical_center,
+                    ds[1] + horizontal_center,
+                    ds[1] - horizontal_center)
+        return resize(image, old_shape)
+    else:
+        image = crop(image, shape, vertical_center=vertical_center,
+                     horizontal_center=horizontal_center)
+        return resize(image, old_shape)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="paiutils.image.Camera"><code class="flex name class">
+<span>class <span class="ident">Camera</span></span>
+<span>(</span><span>fps=30, camera_device=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class is used for capturing pictures with the
+computer's camera.</p>
+<p>Initializes the camera and checks if it worked.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>fps</code></strong></dt>
+<dd>An integer, which is the number of frames per second</dd>
+<dt><strong><code>camera_device</code></strong></dt>
+<dd>An integer, which determines the device to use</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Camera:
+    &#34;&#34;&#34;This class is used for capturing pictures with the
+       computer&#39;s camera.
+    &#34;&#34;&#34;
+    _DEVICES = set()
+
+    def __init__(self, fps=30, camera_device=0):
+        &#34;&#34;&#34;Initializes the camera and checks if it worked.
+
+        Args:
+            fps: An integer, which is the number of frames per second
+            camera_device: An integer, which determines the device to use
+        &#34;&#34;&#34;
+        self.camera_device = camera_device
+        self.camera = cv2.VideoCapture(camera_device)
+        self.camera.set(cv2.CAP_PROP_FPS, fps)
+        if not self.camera.isOpened():
+            raise Exception(&#34;Camera could not be found&#34;)
+        if camera_device in Camera._DEVICES:
+            raise Exception(&#34;Camera device already in use&#34;)
+        else:
+            Camera._DEVICES.add(camera_device)
+
+    def __enter__(self):
+        if not self.camera.isOpened():
+            self.open()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+    def open(self):
+        if self.camera_device in Camera._DEVICES:
+            raise Exception(&#34;Camera device already in use&#34;)
+        else:
+            Camera._DEVICES.add(self.camera_device)
+        if not self.camera.open(self.camera_device):
+            raise Exception(&#34;Camera could not be found&#34;)
+
+    def close(self):
+        if self.camera.isOpened() and self.camera_device in Camera._DEVICES:
+            Camera._DEVICES.remove(self.camera_device)
+        self.camera.release()
+
+    def capture(self, filename=None, target_shape=None, color=True):
+        &#34;&#34;&#34;Uses the camera object to capture an iamge.
+
+        Args:
+            filename: A string, which is the directory or filename to
+                      save image to
+            target_shape: A tuple with the vertical size then horizontal
+                          size
+            color: A boolean, which determines if the image should be
+                   converted to gray scale
+
+        Returns:
+            None or a numpy ndarray, which has 2 or 3 dimensions
+        &#34;&#34;&#34;
+        grabbed, frame = self.camera.read()
+        if not grabbed:
+            return False
+        if target_shape is not None:
+            frame = resize(frame, target_shape)
+        if not color:
+            frame = gray(frame)
+        if filename is not None:
+            cv2.imwrite(filename, frame)
+            return True
+        else:
+            return frame
+
+    def record(self, num_frames=None, filename=None,
+               target_shape=None, color=True):
+        &#34;&#34;&#34;Uses the camera object to capture many iamges in a row.
+
+        Args:
+            num_frmaes: An integer, which is the number of frames to capture
+            filename: A string, which is the directory or filename to
+                      save image to
+            target_shape: A tuple with the vertical size then horizontal
+                          size
+            color: A boolean, which determines if the image should be
+                   converted to gray scale
+
+        Returns:
+            None or a list of numpy ndarrays, which have 2 or 3 dimensions
+        &#34;&#34;&#34;
+        frames = []
+        for _ in range(num_frames):
+            grabbed, frame = self.camera.read()
+            if not grabbed:
+                return False
+            frames.append(frame)
+        for ndx in range(num_frames):
+            if target_shape is not None:
+                frames[ndx] = resize(frames[ndx], target_shape)
+            if not color:
+                frames[ndx] = gray(frames[ndx])
+                cv2.imwrite(f&#39;{ndx+1}_{filename}&#39;, frames[ndx])
+                return True
+        if filename is None:
+            return frames
+        else:
+            return True</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="paiutils.image.Camera.capture"><code class="name flex">
+<span>def <span class="ident">capture</span></span>(<span>self, filename=None, target_shape=None, color=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Uses the camera object to capture an iamge.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filename</code></strong></dt>
+<dd>A string, which is the directory or filename to
+save image to</dd>
+<dt><strong><code>target_shape</code></strong></dt>
+<dd>A tuple with the vertical size then horizontal
+size</dd>
+<dt><strong><code>color</code></strong></dt>
+<dd>A boolean, which determines if the image should be
+converted to gray scale</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None or a numpy ndarray, which has 2 or 3 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def capture(self, filename=None, target_shape=None, color=True):
+    &#34;&#34;&#34;Uses the camera object to capture an iamge.
+
+    Args:
+        filename: A string, which is the directory or filename to
+                  save image to
+        target_shape: A tuple with the vertical size then horizontal
+                      size
+        color: A boolean, which determines if the image should be
+               converted to gray scale
+
+    Returns:
+        None or a numpy ndarray, which has 2 or 3 dimensions
+    &#34;&#34;&#34;
+    grabbed, frame = self.camera.read()
+    if not grabbed:
+        return False
+    if target_shape is not None:
+        frame = resize(frame, target_shape)
+    if not color:
+        frame = gray(frame)
+    if filename is not None:
+        cv2.imwrite(filename, frame)
+        return True
+    else:
+        return frame</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.Camera.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def close(self):
+    if self.camera.isOpened() and self.camera_device in Camera._DEVICES:
+        Camera._DEVICES.remove(self.camera_device)
+    self.camera.release()</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.Camera.open"><code class="name flex">
+<span>def <span class="ident">open</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def open(self):
+    if self.camera_device in Camera._DEVICES:
+        raise Exception(&#34;Camera device already in use&#34;)
+    else:
+        Camera._DEVICES.add(self.camera_device)
+    if not self.camera.open(self.camera_device):
+        raise Exception(&#34;Camera could not be found&#34;)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.Camera.record"><code class="name flex">
+<span>def <span class="ident">record</span></span>(<span>self, num_frames=None, filename=None, target_shape=None, color=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Uses the camera object to capture many iamges in a row.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>num_frmaes</code></strong></dt>
+<dd>An integer, which is the number of frames to capture</dd>
+<dt><strong><code>filename</code></strong></dt>
+<dd>A string, which is the directory or filename to
+save image to</dd>
+<dt><strong><code>target_shape</code></strong></dt>
+<dd>A tuple with the vertical size then horizontal
+size</dd>
+<dt><strong><code>color</code></strong></dt>
+<dd>A boolean, which determines if the image should be
+converted to gray scale</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None or a list of numpy ndarrays, which have 2 or 3 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def record(self, num_frames=None, filename=None,
+           target_shape=None, color=True):
+    &#34;&#34;&#34;Uses the camera object to capture many iamges in a row.
+
+    Args:
+        num_frmaes: An integer, which is the number of frames to capture
+        filename: A string, which is the directory or filename to
+                  save image to
+        target_shape: A tuple with the vertical size then horizontal
+                      size
+        color: A boolean, which determines if the image should be
+               converted to gray scale
+
+    Returns:
+        None or a list of numpy ndarrays, which have 2 or 3 dimensions
+    &#34;&#34;&#34;
+    frames = []
+    for _ in range(num_frames):
+        grabbed, frame = self.camera.read()
+        if not grabbed:
+            return False
+        frames.append(frame)
+    for ndx in range(num_frames):
+        if target_shape is not None:
+            frames[ndx] = resize(frames[ndx], target_shape)
+        if not color:
+            frames[ndx] = gray(frames[ndx])
+            cv2.imwrite(f&#39;{ndx+1}_{filename}&#39;, frames[ndx])
+            return True
+    if filename is None:
+        return frames
+    else:
+        return True</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="paiutils.image.HistogramBackProjector"><code class="flex name class">
+<span>class <span class="ident">HistogramBackProjector</span></span>
+<span>(</span><span>object_image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This Class is used to find objects of interest in an image.</p>
+<p>Initializes the HBP by computing the object image's histogram.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>object_image</code></strong></dt>
+<dd>A numpy ndarray, which has 3 dimensions (BGR)</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class HistogramBackProjector:
+    &#34;&#34;&#34;This Class is used to find objects of interest in an image.&#34;&#34;&#34;
+
+    def __init__(self, object_image):
+        &#34;&#34;&#34;Initializes the HBP by computing the object image&#39;s histogram.
+
+        Args:
+            object_image: A numpy ndarray, which has 3 dimensions (BGR)
+        &#34;&#34;&#34;
+        hsv = cv2.cvtColor(object_image, cv2.COLOR_BGR2HSV)
+        hist = cv2.calcHist([hsv], [0, 1], None, [180, 256],
+                            [0, 180, 0, 256])
+        cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX)
+        self.hist = hist
+
+    def backproject(self, image, raw=False, threshold=50, disc_kernel=(5, 5)):
+        &#34;&#34;&#34;Back projects the image to the object image.
+
+        Args:
+            image: A numpy ndarray, which has 3 dimensions
+            raw: A boolean, which determines if the output image
+                 is thresholded
+            threshold: An integer, which is the threshold of the back
+                       projected image
+            disc_kernel: A tuple of 2 integers, which is the size of the
+                         kernel for filtering
+
+        Returns:
+            A numpy ndarray, which has 3 dimensions
+        &#34;&#34;&#34;
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        dst = cv2.calcBackProject([hsv], [0, 1], self.hist,
+                                  [0, 180, 0, 256], 1)
+        if raw:
+            return dst
+        disc = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, disc_kernel)
+        cv2.filter2D(dst, -1, disc, dst)
+        thresh = cv2.threshold(dst, threshold, 255, 0)[1]
+        thresh = cv2.merge((thresh, thresh, thresh))
+        return cv2.bitwise_and(image, thresh)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="paiutils.image.HistogramBackProjector.backproject"><code class="name flex">
+<span>def <span class="ident">backproject</span></span>(<span>self, image, raw=False, threshold=50, disc_kernel=(5, 5))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Back projects the image to the object image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 3 dimensions</dd>
+<dt><strong><code>raw</code></strong></dt>
+<dd>A boolean, which determines if the output image
+is thresholded</dd>
+<dt><strong><code>threshold</code></strong></dt>
+<dd>An integer, which is the threshold of the back
+projected image</dd>
+<dt><strong><code>disc_kernel</code></strong></dt>
+<dd>A tuple of 2 integers, which is the size of the
+kernel for filtering</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A numpy ndarray, which has 3 dimensions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def backproject(self, image, raw=False, threshold=50, disc_kernel=(5, 5)):
+    &#34;&#34;&#34;Back projects the image to the object image.
+
+    Args:
+        image: A numpy ndarray, which has 3 dimensions
+        raw: A boolean, which determines if the output image
+             is thresholded
+        threshold: An integer, which is the threshold of the back
+                   projected image
+        disc_kernel: A tuple of 2 integers, which is the size of the
+                     kernel for filtering
+
+    Returns:
+        A numpy ndarray, which has 3 dimensions
+    &#34;&#34;&#34;
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    dst = cv2.calcBackProject([hsv], [0, 1], self.hist,
+                              [0, 180, 0, 256], 1)
+    if raw:
+        return dst
+    disc = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, disc_kernel)
+    cv2.filter2D(dst, -1, disc, dst)
+    thresh = cv2.threshold(dst, threshold, 255, 0)[1]
+    thresh = cv2.merge((thresh, thresh, thresh))
+    return cv2.bitwise_and(image, thresh)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="paiutils.image.LockDict"><code class="flex name class">
+<span>class <span class="ident">LockDict</span></span>
+<span>(</span><span>dict_=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class is used by camera and is a thread safe dict.</p>
+<p>Initializes the LockDict.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>dict_</code></strong></dt>
+<dd>A dictionary</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LockDict:
+    &#34;&#34;&#34;This class is used by camera and is a thread safe dict.&#34;&#34;&#34;
+
+    def __init__(self, dict_=None):
+        &#34;&#34;&#34;Initializes the LockDict.
+
+        Args:
+            dict_: A dictionary
+        &#34;&#34;&#34;
+        self.dict = dict_ if dict_ else {}
+        self.lock = Lock()
+
+    def __getitem__(self, key):
+        &#34;&#34;&#34;Gets an item from a key.
+
+        Args:
+            key: A hashable value
+
+        Returns:
+            A value
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        if key not in self.dict.keys():
+            raise KeyError
+        x = self.dict[key]
+        self.lock.release()
+        return x
+
+    def __setitem__(self, key, value):
+        &#34;&#34;&#34;Sets a key to a value.
+
+        Args:
+            key: A hashable value
+            value: A value
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        self.dict[key] = value
+        self.lock.release()
+
+    def __contains__(self, key):
+        &#34;&#34;&#34;Checks if key is in the dictionary.
+
+        Args:
+            key: A hashable value
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        x = key in self.dict
+        self.lock.release()
+        return x
+
+    def __delitem__(self, key):
+        &#34;&#34;&#34;Deletes a key and value.
+
+        Args:
+            key: A hashable value
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        del self.dict[key]
+        self.lock.release()
+
+    def keys(self):
+        &#34;&#34;&#34;Returns a set of all the keys.
+
+        Returns:
+            A set
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        x = set(self.dict.keys())
+        self.lock.release()
+        return x
+
+    def values(self):
+        &#34;&#34;&#34;Returns a list of all the values.
+
+        Returns:
+            A list
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        x = list(self.dict.values())
+        self.lock.release()
+        return x
+
+    def items(self):
+        &#34;&#34;&#34;Returns a list of all the keys and values.
+
+        Returns:
+            A list of tuples with key then value
+        &#34;&#34;&#34;
+        self.lock.acquire()
+        x = list(self.dict.items())
+        self.lock.release()
+        return x</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="paiutils.image.LockDict.items"><code class="name flex">
+<span>def <span class="ident">items</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a list of all the keys and values.</p>
+<h2 id="returns">Returns</h2>
+<p>A list of tuples with key then value</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def items(self):
+    &#34;&#34;&#34;Returns a list of all the keys and values.
+
+    Returns:
+        A list of tuples with key then value
+    &#34;&#34;&#34;
+    self.lock.acquire()
+    x = list(self.dict.items())
+    self.lock.release()
+    return x</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.LockDict.keys"><code class="name flex">
+<span>def <span class="ident">keys</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a set of all the keys.</p>
+<h2 id="returns">Returns</h2>
+<p>A set</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def keys(self):
+    &#34;&#34;&#34;Returns a set of all the keys.
+
+    Returns:
+        A set
+    &#34;&#34;&#34;
+    self.lock.acquire()
+    x = set(self.dict.keys())
+    self.lock.release()
+    return x</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.LockDict.values"><code class="name flex">
+<span>def <span class="ident">values</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a list of all the values.</p>
+<h2 id="returns">Returns</h2>
+<p>A list</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def values(self):
+    &#34;&#34;&#34;Returns a list of all the values.
+
+    Returns:
+        A list
+    &#34;&#34;&#34;
+    self.lock.acquire()
+    x = list(self.dict.values())
+    self.lock.release()
+    return x</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="paiutils.image.TemplateMatcher"><code class="flex name class">
+<span>class <span class="ident">TemplateMatcher</span></span>
+<span>(</span><span>template, mask=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class is used to find parts of an image that match a template.</p>
+<p>Initializes the TemplateMatcher by converting and setting the template.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>template</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions (BGR)</dd>
+<dt><strong><code>mask</code></strong></dt>
+<dd>A numpy ndarray, which acts as a binary mask or weights</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TemplateMatcher:
+    &#34;&#34;&#34;This class is used to find parts of an image that match a template.&#34;&#34;&#34;
+
+    methods = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR,
+               cv2.TM_CCORR_NORMED, cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]
+
+    def __init__(self, template, mask=None):
+        &#34;&#34;&#34;Initializes the TemplateMatcher by converting and setting the template.
+
+        Args:
+            template: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+            mask: A numpy ndarray, which acts as a binary mask or weights
+        &#34;&#34;&#34;
+        self.template = template
+        self.mask = mask
+        self.h, self.w = self.template.shape[:2]
+
+    def match_coords(self, image, method=cv2.TM_CCOEFF_NORMED):
+        &#34;&#34;&#34;Finds the top left point and dimensions (width, height)
+           of a subimage that most matches the template.
+
+        Args:
+            image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+            method: A cv2 constant or integer, which determines the
+                    method of finding a match
+        returns: A tuple of 2 tuples with 2 integers in each
+                 ((left, top), (width, height)) and a float
+                 of the confidence
+        &#34;&#34;&#34;
+        result = cv2.matchTemplate(image, self.template,
+                                   method, mask=self.mask)
+        min_loc, max_loc = cv2.minMaxLoc(result)[2:]
+        if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+            top_left = min_loc
+        else:
+            top_left = max_loc
+        return top_left, (self.w, self.h), result[top_left[::-1]]
+
+    def match_draw_rect(self, image, color=(0, 255, 0), thickness=2,
+                        method=cv2.TM_CCOEFF_NORMED):
+        &#34;&#34;&#34;Finds the top left point and dimensions (width, height)
+           of a subimage that most matches the template and then
+           draws a rectange with those coords.
+
+        Args:
+            image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+            color: A tuple of 1 or 3 integers, which represents the
+                   color of the drawn rectangle
+            thickness: An integer, which is the thickness of the
+                       rectangle line
+            method: A cv2 constant or integer, which determines the
+                    method of finding a match
+        returns: A float of the confidence
+        &#34;&#34;&#34;
+        top_left, (w, h), result = self.match_coords(image, method)
+        cv2.rectangle(image, top_left, (top_left[0] + w, top_left[1] + h),
+                      color, thickness)
+        return result
+
+    def match_draw_all_rects(self, image, threshold=.8, color=(0, 255, 0),
+                             thickness=2, method=cv2.TM_CCOEFF_NORMED):
+        &#34;&#34;&#34;Finds the top left point and dimensions (width, height)
+           of all subimages that match the template and then
+           draws a rectange with those coords.
+
+        Args:
+            image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+            threshold: A float, which is the threshold for being a match
+                       (higher more of a match)
+            color: A tuple of 1 or 3 integers, which represents the
+                   color of the drawn rectangle
+            thickness: An integer, which is the thickness of the
+                       rectangle line
+            method: A cv2 constant or integer, which determines the
+                    method of finding a match
+        returns: A tuple of 2 tuples with 2 integers in each
+                 ((left, top), (width, height))
+        &#34;&#34;&#34;
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        result = cv2.matchTemplate(gray_image, self.template,
+                                   method, mask=self.mask)
+        if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+            ys, xs = np.where(result &lt;= threshold)
+        else:
+            ys, xs = np.where(result &gt;= threshold)
+        for x, y in zip(xs, ys):
+            # Not checking for overlaps
+            cv2.rectangle(image, (x, y), (x + self.w, y + self.h),
+                          color, thickness)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="paiutils.image.TemplateMatcher.methods"><code class="name">var <span class="ident">methods</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="paiutils.image.TemplateMatcher.match_coords"><code class="name flex">
+<span>def <span class="ident">match_coords</span></span>(<span>self, image, method=5)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Finds the top left point and dimensions (width, height)
+of a subimage that most matches the template.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions (BGR)</dd>
+<dt><strong><code>method</code></strong></dt>
+<dd>A cv2 constant or integer, which determines the
+method of finding a match</dd>
+</dl>
+<p>returns: A tuple of 2 tuples with 2 integers in each
+((left, top), (width, height)) and a float
+of the confidence</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def match_coords(self, image, method=cv2.TM_CCOEFF_NORMED):
+    &#34;&#34;&#34;Finds the top left point and dimensions (width, height)
+       of a subimage that most matches the template.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+        method: A cv2 constant or integer, which determines the
+                method of finding a match
+    returns: A tuple of 2 tuples with 2 integers in each
+             ((left, top), (width, height)) and a float
+             of the confidence
+    &#34;&#34;&#34;
+    result = cv2.matchTemplate(image, self.template,
+                               method, mask=self.mask)
+    min_loc, max_loc = cv2.minMaxLoc(result)[2:]
+    if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+        top_left = min_loc
+    else:
+        top_left = max_loc
+    return top_left, (self.w, self.h), result[top_left[::-1]]</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.TemplateMatcher.match_draw_all_rects"><code class="name flex">
+<span>def <span class="ident">match_draw_all_rects</span></span>(<span>self, image, threshold=0.8, color=(0, 255, 0), thickness=2, method=5)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Finds the top left point and dimensions (width, height)
+of all subimages that match the template and then
+draws a rectange with those coords.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions (BGR)</dd>
+<dt><strong><code>threshold</code></strong></dt>
+<dd>A float, which is the threshold for being a match
+(higher more of a match)</dd>
+<dt><strong><code>color</code></strong></dt>
+<dd>A tuple of 1 or 3 integers, which represents the
+color of the drawn rectangle</dd>
+<dt><strong><code>thickness</code></strong></dt>
+<dd>An integer, which is the thickness of the
+rectangle line</dd>
+<dt><strong><code>method</code></strong></dt>
+<dd>A cv2 constant or integer, which determines the
+method of finding a match</dd>
+</dl>
+<p>returns: A tuple of 2 tuples with 2 integers in each
+((left, top), (width, height))</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def match_draw_all_rects(self, image, threshold=.8, color=(0, 255, 0),
+                         thickness=2, method=cv2.TM_CCOEFF_NORMED):
+    &#34;&#34;&#34;Finds the top left point and dimensions (width, height)
+       of all subimages that match the template and then
+       draws a rectange with those coords.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+        threshold: A float, which is the threshold for being a match
+                   (higher more of a match)
+        color: A tuple of 1 or 3 integers, which represents the
+               color of the drawn rectangle
+        thickness: An integer, which is the thickness of the
+                   rectangle line
+        method: A cv2 constant or integer, which determines the
+                method of finding a match
+    returns: A tuple of 2 tuples with 2 integers in each
+             ((left, top), (width, height))
+    &#34;&#34;&#34;
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    result = cv2.matchTemplate(gray_image, self.template,
+                               method, mask=self.mask)
+    if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+        ys, xs = np.where(result &lt;= threshold)
+    else:
+        ys, xs = np.where(result &gt;= threshold)
+    for x, y in zip(xs, ys):
+        # Not checking for overlaps
+        cv2.rectangle(image, (x, y), (x + self.w, y + self.h),
+                      color, thickness)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.TemplateMatcher.match_draw_rect"><code class="name flex">
+<span>def <span class="ident">match_draw_rect</span></span>(<span>self, image, color=(0, 255, 0), thickness=2, method=5)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Finds the top left point and dimensions (width, height)
+of a subimage that most matches the template and then
+draws a rectange with those coords.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions (BGR)</dd>
+<dt><strong><code>color</code></strong></dt>
+<dd>A tuple of 1 or 3 integers, which represents the
+color of the drawn rectangle</dd>
+<dt><strong><code>thickness</code></strong></dt>
+<dd>An integer, which is the thickness of the
+rectangle line</dd>
+<dt><strong><code>method</code></strong></dt>
+<dd>A cv2 constant or integer, which determines the
+method of finding a match</dd>
+</dl>
+<p>returns: A float of the confidence</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def match_draw_rect(self, image, color=(0, 255, 0), thickness=2,
+                    method=cv2.TM_CCOEFF_NORMED):
+    &#34;&#34;&#34;Finds the top left point and dimensions (width, height)
+       of a subimage that most matches the template and then
+       draws a rectange with those coords.
+
+    Args:
+        image: A numpy ndarray, which has 2 or 3 dimensions (BGR)
+        color: A tuple of 1 or 3 integers, which represents the
+               color of the drawn rectangle
+        thickness: An integer, which is the thickness of the
+                   rectangle line
+        method: A cv2 constant or integer, which determines the
+                method of finding a match
+    returns: A float of the confidence
+    &#34;&#34;&#34;
+    top_left, (w, h), result = self.match_coords(image, method)
+    cv2.rectangle(image, top_left, (top_left[0] + w, top_left[1] + h),
+                  color, thickness)
+    return result</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="paiutils.image.Windows"><code class="flex name class">
+<span>class <span class="ident">Windows</span></span>
+<span>(</span><span>update_delay=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class is used to displays images.</p>
+<p>Initializes the Dictionaries for holding the windows.
+(Can only have one instance per process)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>update_delay</code></strong></dt>
+<dd>An integer, which is the number of ms
+to delay each update (must be &gt; 0)</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Windows:
+    &#34;&#34;&#34;This class is used to displays images.&#34;&#34;&#34;
+    CREATED = False
+
+    def __init__(self, update_delay=1):
+        &#34;&#34;&#34;Initializes the Dictionaries for holding the windows.
+           (Can only have one instance per process)
+
+        Args:
+            update_delay: An integer, which is the number of ms
+                          to delay each update (must be &gt; 0)
+        &#34;&#34;&#34;
+        if Windows.CREATED:
+            raise Exception(&#39;Only one Windows instance can exist per process.&#39;)
+        else:
+            Windows.CREATED = True
+        assert update_delay &gt; 0, &#39;update_delay must be greater than 0&#39;
+        self.update_delay = update_delay
+        self.windows = LockDict()
+        self.callbacks = LockDict()
+        self.stop_event = Event()
+        self.thread = None
+
+    def start(self):
+        &#34;&#34;&#34;Starts the thread for updating.&#34;&#34;&#34;
+        if self.thread is None:
+            self.thread = Thread(target=self._update, daemon=True)
+            self.thread.start()
+        self.stop_event.clear()
+
+    def stop(self):
+        &#34;&#34;&#34;Stops the thread from updating the windows and removes.
+           all windows.
+        &#34;&#34;&#34;
+        if self.thread is not None:
+            self.stop_event.set()
+
+    def __enter__(self):
+        &#34;&#34;&#34;Starts the thread for updating.&#34;&#34;&#34;
+        self.start()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        &#34;&#34;&#34;Stops the thread from updating the windows and removes
+           all windows.
+        &#34;&#34;&#34;
+        self.stop()
+        if type is not None:
+            return False
+
+    def _update(self):
+        &#34;&#34;&#34;Updates the windows. (Called by thread)&#34;&#34;&#34;
+        windows_open = False
+        while True:
+            while not self.stop_event.is_set():
+                windows_open = True
+                for name, image in self.windows.items():
+                    if self.callbacks[name] is not None:
+                        cv2.namedWindow(name)
+                        cv2.setMouseCallback(name, self.callbacks[name])
+                        self.callbacks[name] = None
+                    cv2.imshow(name, image)
+                    cv2.waitKey(self.update_delay)
+            if windows_open:
+                cv2.destroyAllWindows()
+                self.windows = LockDict()
+                self.callbacks = LockDict()
+                windows_open = False
+            sleep(.01)
+
+    def add(self, name=&#39;Image&#39;, image=None, mouse_callback=None):
+        &#34;&#34;&#34;Adds an image to the update dictionary.
+
+        Args:
+            name: A string, which is the unguaranteed name of the window.
+            image: A numpy ndarray, which has 2 or 3 dimensions
+            mouse_callback: A function, which can be called on window events
+
+        Returns:
+            A string, which is the name for the window
+        &#34;&#34;&#34;
+        ndx = 1
+        temp_name = name
+        while temp_name in self.windows:
+            temp_name = f&#39;{name} ({ndx})&#39;
+            ndx += 1
+        name = temp_name
+        if image is None:
+            self.windows[name] = np.full((100, 100), 0, dtype=np.uint8)
+            self.callbacks[name] = mouse_callback
+        else:
+            self.windows[name] = image
+            self.callbacks[name] = mouse_callback
+        return name
+
+    def set(self, name, image):
+        &#34;&#34;&#34;Sets the window to image.
+
+        Args:
+            name: A string, which is the unguaranteed name of the window.
+            image: A numpy ndarray, which has 2 or 3 dimensions
+        &#34;&#34;&#34;
+        self.windows[name] = image
+
+    def remove(self, name):
+        &#34;&#34;&#34;Removes a window from the update dictionary.
+
+        Args:
+            name: A string, which is the unguaranteed name of the window.
+        &#34;&#34;&#34;
+        del self.windows[name]
+        del self.callbacks[name]
+        cv2.destroyWindow(name)
+
+    @staticmethod
+    def mouse_callback_logger(event, x, y, flags, param):
+        &#34;&#34;&#34;Logs all the events of a window.
+
+        Args:
+            event: A cv2 constant or an integer
+            x: An integer, which is the horizontal position of the event
+            y: An integer, which is the vertical position of the event
+            flags: A cv2 constant or an integet
+            param: A list of additional variables
+        &#34;&#34;&#34;
+        log = []
+        if flags == cv2.EVENT_FLAG_LBUTTON:
+            log.append(&#39;left&#39;)
+        elif flags == cv2.EVENT_FLAG_RBUTTON:
+            log.append(&#39;right&#39;)
+        elif flags == cv2.EVENT_FLAG_MBUTTON:
+            log.append(&#39;middle&#39;)
+        elif flags == cv2.EVENT_FLAG_CTRLKEY:
+            log.append(&#39;CTRL&#39;)
+        elif flags == cv2.EVENT_FLAG_SHIFTKEY:
+            log.append(&#39;SHIFT&#39;)
+        elif flags == cv2.EVENT_FLAG_ALTKEY:
+            log.append(&#39;ALT&#39;)
+
+        if event == cv2.EVENT_MOUSEMOVE:
+            log.append(&#39;mouse moved&#39;)
+        elif event == cv2.EVENT_LBUTTONDOWN:
+            log.append(&#39;left button down&#39;)
+        elif event == cv2.EVENT_RBUTTONDOWN:
+            log.append(&#39;right button down&#39;)
+        elif event == cv2.EVENT_MBUTTONDOWN:
+            log.append(&#39;middle button down&#39;)
+        elif event == cv2.EVENT_LBUTTONUP:
+            log.append(&#39;left button up&#39;)
+        elif event == cv2.EVENT_RBUTTONUP:
+            log.append(&#39;right button up&#39;)
+        elif event == cv2.EVENT_MBUTTONUP:
+            log.append(&#39;middle button up&#39;)
+        elif event == cv2.EVENT_LBUTTONDBLCLK:
+            log.append(&#39;left button double click&#39;)
+        elif event == cv2.EVENT_RBUTTONDBLCLK:
+            log.append(&#39;right button double click&#39;)
+        elif event == cv2.EVENT_MBUTTONDBLCLK:
+            log.append(&#39;middle button double click&#39;)
+        elif event == cv2.EVENT_MOUSEWHEEL:
+            log.append(&#39;mouse wheel&#39;)
+        elif event == cv2.EVENT_MOUSEHWHEEL:
+            log.append(&#39;mouse horizontal wheel&#39;)
+
+        log.append(f&#39;x: {x} y: {y}&#39;)
+
+        print(&#39; + &#39;.join(log))</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="paiutils.image.Windows.CREATED"><code class="name">var <span class="ident">CREATED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="paiutils.image.Windows.mouse_callback_logger"><code class="name flex">
+<span>def <span class="ident">mouse_callback_logger</span></span>(<span>event, x, y, flags, param)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Logs all the events of a window.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>event</code></strong></dt>
+<dd>A cv2 constant or an integer</dd>
+<dt><strong><code>x</code></strong></dt>
+<dd>An integer, which is the horizontal position of the event</dd>
+<dt><strong><code>y</code></strong></dt>
+<dd>An integer, which is the vertical position of the event</dd>
+<dt><strong><code>flags</code></strong></dt>
+<dd>A cv2 constant or an integet</dd>
+<dt><strong><code>param</code></strong></dt>
+<dd>A list of additional variables</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def mouse_callback_logger(event, x, y, flags, param):
+    &#34;&#34;&#34;Logs all the events of a window.
+
+    Args:
+        event: A cv2 constant or an integer
+        x: An integer, which is the horizontal position of the event
+        y: An integer, which is the vertical position of the event
+        flags: A cv2 constant or an integet
+        param: A list of additional variables
+    &#34;&#34;&#34;
+    log = []
+    if flags == cv2.EVENT_FLAG_LBUTTON:
+        log.append(&#39;left&#39;)
+    elif flags == cv2.EVENT_FLAG_RBUTTON:
+        log.append(&#39;right&#39;)
+    elif flags == cv2.EVENT_FLAG_MBUTTON:
+        log.append(&#39;middle&#39;)
+    elif flags == cv2.EVENT_FLAG_CTRLKEY:
+        log.append(&#39;CTRL&#39;)
+    elif flags == cv2.EVENT_FLAG_SHIFTKEY:
+        log.append(&#39;SHIFT&#39;)
+    elif flags == cv2.EVENT_FLAG_ALTKEY:
+        log.append(&#39;ALT&#39;)
+
+    if event == cv2.EVENT_MOUSEMOVE:
+        log.append(&#39;mouse moved&#39;)
+    elif event == cv2.EVENT_LBUTTONDOWN:
+        log.append(&#39;left button down&#39;)
+    elif event == cv2.EVENT_RBUTTONDOWN:
+        log.append(&#39;right button down&#39;)
+    elif event == cv2.EVENT_MBUTTONDOWN:
+        log.append(&#39;middle button down&#39;)
+    elif event == cv2.EVENT_LBUTTONUP:
+        log.append(&#39;left button up&#39;)
+    elif event == cv2.EVENT_RBUTTONUP:
+        log.append(&#39;right button up&#39;)
+    elif event == cv2.EVENT_MBUTTONUP:
+        log.append(&#39;middle button up&#39;)
+    elif event == cv2.EVENT_LBUTTONDBLCLK:
+        log.append(&#39;left button double click&#39;)
+    elif event == cv2.EVENT_RBUTTONDBLCLK:
+        log.append(&#39;right button double click&#39;)
+    elif event == cv2.EVENT_MBUTTONDBLCLK:
+        log.append(&#39;middle button double click&#39;)
+    elif event == cv2.EVENT_MOUSEWHEEL:
+        log.append(&#39;mouse wheel&#39;)
+    elif event == cv2.EVENT_MOUSEHWHEEL:
+        log.append(&#39;mouse horizontal wheel&#39;)
+
+    log.append(f&#39;x: {x} y: {y}&#39;)
+
+    print(&#39; + &#39;.join(log))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="paiutils.image.Windows.add"><code class="name flex">
+<span>def <span class="ident">add</span></span>(<span>self, name='Image', image=None, mouse_callback=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Adds an image to the update dictionary.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong></dt>
+<dd>A string, which is the unguaranteed name of the window.</dd>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+<dt><strong><code>mouse_callback</code></strong></dt>
+<dd>A function, which can be called on window events</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A string, which is the name for the window</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add(self, name=&#39;Image&#39;, image=None, mouse_callback=None):
+    &#34;&#34;&#34;Adds an image to the update dictionary.
+
+    Args:
+        name: A string, which is the unguaranteed name of the window.
+        image: A numpy ndarray, which has 2 or 3 dimensions
+        mouse_callback: A function, which can be called on window events
+
+    Returns:
+        A string, which is the name for the window
+    &#34;&#34;&#34;
+    ndx = 1
+    temp_name = name
+    while temp_name in self.windows:
+        temp_name = f&#39;{name} ({ndx})&#39;
+        ndx += 1
+    name = temp_name
+    if image is None:
+        self.windows[name] = np.full((100, 100), 0, dtype=np.uint8)
+        self.callbacks[name] = mouse_callback
+    else:
+        self.windows[name] = image
+        self.callbacks[name] = mouse_callback
+    return name</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.Windows.remove"><code class="name flex">
+<span>def <span class="ident">remove</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Removes a window from the update dictionary.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong></dt>
+<dd>A string, which is the unguaranteed name of the window.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove(self, name):
+    &#34;&#34;&#34;Removes a window from the update dictionary.
+
+    Args:
+        name: A string, which is the unguaranteed name of the window.
+    &#34;&#34;&#34;
+    del self.windows[name]
+    del self.callbacks[name]
+    cv2.destroyWindow(name)</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.Windows.set"><code class="name flex">
+<span>def <span class="ident">set</span></span>(<span>self, name, image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the window to image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong></dt>
+<dd>A string, which is the unguaranteed name of the window.</dd>
+<dt><strong><code>image</code></strong></dt>
+<dd>A numpy ndarray, which has 2 or 3 dimensions</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set(self, name, image):
+    &#34;&#34;&#34;Sets the window to image.
+
+    Args:
+        name: A string, which is the unguaranteed name of the window.
+        image: A numpy ndarray, which has 2 or 3 dimensions
+    &#34;&#34;&#34;
+    self.windows[name] = image</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.Windows.start"><code class="name flex">
+<span>def <span class="ident">start</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Starts the thread for updating.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start(self):
+    &#34;&#34;&#34;Starts the thread for updating.&#34;&#34;&#34;
+    if self.thread is None:
+        self.thread = Thread(target=self._update, daemon=True)
+        self.thread.start()
+    self.stop_event.clear()</code></pre>
+</details>
+</dd>
+<dt id="paiutils.image.Windows.stop"><code class="name flex">
+<span>def <span class="ident">stop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Stops the thread from updating the windows and removes.
+all windows.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stop(self):
+    &#34;&#34;&#34;Stops the thread from updating the windows and removes.
+       all windows.
+    &#34;&#34;&#34;
+    if self.thread is not None:
+        self.stop_event.set()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="paiutils" href="index.html">paiutils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="paiutils.image.apply_clahe" href="#paiutils.image.apply_clahe">apply_clahe</a></code></li>
+<li><code><a title="paiutils.image.bgr2hls" href="#paiutils.image.bgr2hls">bgr2hls</a></code></li>
+<li><code><a title="paiutils.image.bgr2hsv" href="#paiutils.image.bgr2hsv">bgr2hsv</a></code></li>
+<li><code><a title="paiutils.image.bgr2rgb" href="#paiutils.image.bgr2rgb">bgr2rgb</a></code></li>
+<li><code><a title="paiutils.image.blend" href="#paiutils.image.blend">blend</a></code></li>
+<li><code><a title="paiutils.image.compute_color_ranges" href="#paiutils.image.compute_color_ranges">compute_color_ranges</a></code></li>
+<li><code><a title="paiutils.image.create_histograms" href="#paiutils.image.create_histograms">create_histograms</a></code></li>
+<li><code><a title="paiutils.image.create_magnitude_spectrum" href="#paiutils.image.create_magnitude_spectrum">create_magnitude_spectrum</a></code></li>
+<li><code><a title="paiutils.image.create_mask_of_colors_in_range" href="#paiutils.image.create_mask_of_colors_in_range">create_mask_of_colors_in_range</a></code></li>
+<li><code><a title="paiutils.image.crop" href="#paiutils.image.crop">crop</a></code></li>
+<li><code><a title="paiutils.image.crop_rect" href="#paiutils.image.crop_rect">crop_rect</a></code></li>
+<li><code><a title="paiutils.image.crop_rect_coords" href="#paiutils.image.crop_rect_coords">crop_rect_coords</a></code></li>
+<li><code><a title="paiutils.image.denormalize" href="#paiutils.image.denormalize">denormalize</a></code></li>
+<li><code><a title="paiutils.image.equalize" href="#paiutils.image.equalize">equalize</a></code></li>
+<li><code><a title="paiutils.image.freq_filter_image" href="#paiutils.image.freq_filter_image">freq_filter_image</a></code></li>
+<li><code><a title="paiutils.image.gray" href="#paiutils.image.gray">gray</a></code></li>
+<li><code><a title="paiutils.image.hflip" href="#paiutils.image.hflip">hflip</a></code></li>
+<li><code><a title="paiutils.image.hls2bgr" href="#paiutils.image.hls2bgr">hls2bgr</a></code></li>
+<li><code><a title="paiutils.image.hsv2bgr" href="#paiutils.image.hsv2bgr">hsv2bgr</a></code></li>
+<li><code><a title="paiutils.image.increase_brightness" href="#paiutils.image.increase_brightness">increase_brightness</a></code></li>
+<li><code><a title="paiutils.image.load" href="#paiutils.image.load">load</a></code></li>
+<li><code><a title="paiutils.image.normalize" href="#paiutils.image.normalize">normalize</a></code></li>
+<li><code><a title="paiutils.image.pad" href="#paiutils.image.pad">pad</a></code></li>
+<li><code><a title="paiutils.image.pyr" href="#paiutils.image.pyr">pyr</a></code></li>
+<li><code><a title="paiutils.image.resize" href="#paiutils.image.resize">resize</a></code></li>
+<li><code><a title="paiutils.image.rgb2bgr" href="#paiutils.image.rgb2bgr">rgb2bgr</a></code></li>
+<li><code><a title="paiutils.image.rotate" href="#paiutils.image.rotate">rotate</a></code></li>
+<li><code><a title="paiutils.image.save" href="#paiutils.image.save">save</a></code></li>
+<li><code><a title="paiutils.image.set_brightness" href="#paiutils.image.set_brightness">set_brightness</a></code></li>
+<li><code><a title="paiutils.image.set_gamma" href="#paiutils.image.set_gamma">set_gamma</a></code></li>
+<li><code><a title="paiutils.image.shrink_sides" href="#paiutils.image.shrink_sides">shrink_sides</a></code></li>
+<li><code><a title="paiutils.image.transform_perspective" href="#paiutils.image.transform_perspective">transform_perspective</a></code></li>
+<li><code><a title="paiutils.image.translate" href="#paiutils.image.translate">translate</a></code></li>
+<li><code><a title="paiutils.image.unsharp_mask" href="#paiutils.image.unsharp_mask">unsharp_mask</a></code></li>
+<li><code><a title="paiutils.image.vflip" href="#paiutils.image.vflip">vflip</a></code></li>
+<li><code><a title="paiutils.image.zoom" href="#paiutils.image.zoom">zoom</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="paiutils.image.Camera" href="#paiutils.image.Camera">Camera</a></code></h4>
+<ul class="">
+<li><code><a title="paiutils.image.Camera.capture" href="#paiutils.image.Camera.capture">capture</a></code></li>
+<li><code><a title="paiutils.image.Camera.close" href="#paiutils.image.Camera.close">close</a></code></li>
+<li><code><a title="paiutils.image.Camera.open" href="#paiutils.image.Camera.open">open</a></code></li>
+<li><code><a title="paiutils.image.Camera.record" href="#paiutils.image.Camera.record">record</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="paiutils.image.HistogramBackProjector" href="#paiutils.image.HistogramBackProjector">HistogramBackProjector</a></code></h4>
+<ul class="">
+<li><code><a title="paiutils.image.HistogramBackProjector.backproject" href="#paiutils.image.HistogramBackProjector.backproject">backproject</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="paiutils.image.LockDict" href="#paiutils.image.LockDict">LockDict</a></code></h4>
+<ul class="">
+<li><code><a title="paiutils.image.LockDict.items" href="#paiutils.image.LockDict.items">items</a></code></li>
+<li><code><a title="paiutils.image.LockDict.keys" href="#paiutils.image.LockDict.keys">keys</a></code></li>
+<li><code><a title="paiutils.image.LockDict.values" href="#paiutils.image.LockDict.values">values</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="paiutils.image.TemplateMatcher" href="#paiutils.image.TemplateMatcher">TemplateMatcher</a></code></h4>
+<ul class="">
+<li><code><a title="paiutils.image.TemplateMatcher.match_coords" href="#paiutils.image.TemplateMatcher.match_coords">match_coords</a></code></li>
+<li><code><a title="paiutils.image.TemplateMatcher.match_draw_all_rects" href="#paiutils.image.TemplateMatcher.match_draw_all_rects">match_draw_all_rects</a></code></li>
+<li><code><a title="paiutils.image.TemplateMatcher.match_draw_rect" href="#paiutils.image.TemplateMatcher.match_draw_rect">match_draw_rect</a></code></li>
+<li><code><a title="paiutils.image.TemplateMatcher.methods" href="#paiutils.image.TemplateMatcher.methods">methods</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="paiutils.image.Windows" href="#paiutils.image.Windows">Windows</a></code></h4>
+<ul class="">
+<li><code><a title="paiutils.image.Windows.CREATED" href="#paiutils.image.Windows.CREATED">CREATED</a></code></li>
+<li><code><a title="paiutils.image.Windows.add" href="#paiutils.image.Windows.add">add</a></code></li>
+<li><code><a title="paiutils.image.Windows.mouse_callback_logger" href="#paiutils.image.Windows.mouse_callback_logger">mouse_callback_logger</a></code></li>
+<li><code><a title="paiutils.image.Windows.remove" href="#paiutils.image.Windows.remove">remove</a></code></li>
+<li><code><a title="paiutils.image.Windows.set" href="#paiutils.image.Windows.set">set</a></code></li>
+<li><code><a title="paiutils.image.Windows.start" href="#paiutils.image.Windows.start">start</a></code></li>
+<li><code><a title="paiutils.image.Windows.stop" href="#paiutils.image.Windows.stop">stop</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>
