@@ -303,7 +303,7 @@ def dense(units, activation='relu', l1=0, l2=0, batch_norm=True,
     Returns:
         A function, which takes a layer as input and returns a dense(layer)
     """
-    if activation == 'relu':
+    if activation in ['relu', 'swish']:
         kernel_initializer = 'he_normal'
     else:
         kernel_initializer = 'glorot_uniform'
@@ -368,7 +368,7 @@ def conv1d(filters, kernel_size, strides=1, activation='relu',
         A function, which takes a layer as input and returns
             a conv1d(layer)
     """
-    if activation == 'relu':
+    if activation in ['relu', 'swish']:
         kernel_initializer = 'he_normal'
     else:
         kernel_initializer = 'glorot_uniform'
@@ -458,7 +458,7 @@ def conv2d(filters, kernel_size=3, strides=1, activation='relu',
         A function, which takes a layer as input and returns
             a conv2d(layer)
     """
-    if activation == 'relu':
+    if activation in ['relu', 'swish']:
         kernel_initializer = 'he_normal'
     else:
         kernel_initializer = 'glorot_uniform'

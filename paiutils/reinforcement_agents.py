@@ -957,9 +957,12 @@ class PPOAgent(A2CAgent):
                 advantages_arr = np.empty(length)
             else:
                 # cmodel predict on batches if large?
-                values = tf.squeeze(
-                    self.cmodel(self.states.array())
-                ).numpy()
+                #values = tf.squeeze(
+                #    self.cmodel(self.states.array())
+                #).numpy()
+                values = np.squeeze(
+                    self.cmodel.predict(self.states.array(), batch_size=1024)
+                )
                 advantages = np.empty(len(self.rewards))
                 for ndx in reversed(range(len(self.rewards))):
                     delta = self.rewards[ndx] - values[ndx]

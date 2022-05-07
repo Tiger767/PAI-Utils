@@ -136,7 +136,7 @@ def load(filename, rate=None, assert_mono=True):
         if filename.split('.')[-1] == 'wav':
             file.close()
         temp_filename = os.path.join(
-            util_dir, str(np.random.randint(10000, 100000))+'.wav'
+            util_dir, filename+str(np.random.randint(100000000, 1000000000))+'.wav'
         )
         if rate is None:
             cmd = [SOX_PATH, filename, '-c 1', temp_filename]
@@ -967,8 +967,8 @@ def vad_trim_all(audio, rate, frame_duration, aggressiveness=1):
             voiced_frames.append(frame)
         offset += frame_size
     if len(voiced_frames) == 0:
-        return audio
-    return np.hstack(voiced_frames)
+        return audio.astype('float64') / np.iinfo('int16').max
+    return np.hstack(voiced_frames).astype('float64') / np.iinfo('int16').max
 
 
 def vad_trim_sides(audio, rate, frame_duration, aggressiveness=1):
@@ -1011,7 +1011,7 @@ def vad_trim_sides(audio, rate, frame_duration, aggressiveness=1):
             break
         offset += frame_size
     else:
-        return audio
+        return audio.astype('float64') / np.iinfo('int16').max
     offset = len(audio)
     end_ndx = len(audio)
     while offset - frame_size > start_ndx:
@@ -1020,7 +1020,7 @@ def vad_trim_sides(audio, rate, frame_duration, aggressiveness=1):
             end_ndx = offset
             break
         offset -= frame_size
-    return audio[start_ndx:end_ndx]
+    return audio[start_ndx:end_ndx].astype('float64') / np.iinfo('int16').max
 
 
 def vad_split(audio, rate, frame_duration, aggressiveness=1):
@@ -1066,7 +1066,7 @@ def vad_split(audio, rate, frame_duration, aggressiveness=1):
             off = True
         offset += frame_size
     if len(voiced_frames) == 0:
-        return np.array([audio])
+        return np.array([audio]).astype('float64') / np.iinfo('int16').max
     for ndx in range(len(voiced_frames)):
         voiced_frames[ndx] = np.hstack(voiced_frames[ndx])
-    return voiced_frames
+    return voiced_frames.astype('float64') / np.iinfo('int16').max
