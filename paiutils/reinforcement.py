@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_21_2020
+Version: 5_8_2022
 """
 
 
@@ -780,7 +780,7 @@ class Decay:
         self.initial_value = initial_value
         self.constant = constant
         self.min_value = min_value
-        self.step_ever_call = step_every_call
+        self.step_every_call = step_every_call
         self.steps = 0
 
     def reset(self):
@@ -798,7 +798,7 @@ class Decay:
             A float
         """
         value = self.initial_value - self.constant * self.steps
-        if self.step_ever_call:
+        if self.step_every_call:
             self.step()
         return np.maximum(value, self.min_value)
 
@@ -1991,7 +1991,7 @@ class DQNAgent(MemoryAgent):
             qvalues = self.target_qmodel(next_states, training=False)
             qvalues = tf.squeeze(tf.gather(qvalues, actions[:, tf.newaxis],
                                            axis=-1, batch_dims=1))
-            actions = tf.one_hot(actions, self.action_size,
+            actions = tf.one_hot(actions, self.action_size,  # BUG
                                  dtype=qvalues.dtype)
         else:
             qvalues = self.target_qmodel(next_states, training=False)

@@ -1,6 +1,6 @@
 """
 Author: Travis Hammond
-Version: 12_21_2020
+Version: 5_7_2022
 """
 
 
@@ -1438,8 +1438,8 @@ class PGCAgent(PGAgent, Continuous):
         """
         with tf.GradientTape() as tape:
             locs, scales, _ = self.amodel(states, training=True)
-            normal = tfp.distributions.MultivariateNormalDiag(locs, scales)
-            probs = normal.prob(actions)
+            normal = tfp.distributions.MultivariateNormalDiag(locs, tf.ones_like(scales))
+            probs = normal.prob((actions - locs) / scales + locs)
             log_probs = tf.math.log(probs + keras.backend.epsilon())
             loss = -tf.reduce_mean(drewards * log_probs)
             entropy = tf.reduce_mean(probs * log_probs)
@@ -1535,8 +1535,8 @@ class A2CCAgent(A2CAgent, Continuous):
 
         with tf.GradientTape() as tape:
             locs, scales, _ = self.amodel(states, training=True)
-            normal = tfp.distributions.MultivariateNormalDiag(locs, scales)
-            probs = normal.prob(actions)
+            normal = tfp.distributions.MultivariateNormalDiag(locs, tf.ones_like(scales))
+            probs = normal.prob((actions - locs) / scales + locs)
             log_probs = tf.math.log(probs + keras.backend.epsilon())
             if self.lambda_rate == 0:
                 advantages = (drewards - value_pred)
